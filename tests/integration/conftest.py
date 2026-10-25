@@ -110,3 +110,14 @@ async def setup_integration(hass: HomeAssistant, **data_overrides: Any) -> MockC
 
 def log_codes(coordinator: Any) -> list[str]:
     return [r["code"] for e in coordinator.log.to_data() for r in e["reasons"]]
+
+
+async def step(freezer: Any, hass: HomeAssistant, seconds: float) -> None:
+    """Move the frozen clock on and run whatever became due."""
+    from datetime import timedelta
+
+    from pytest_homeassistant_custom_component.common import async_fire_time_changed
+
+    freezer.tick(timedelta(seconds=seconds))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
