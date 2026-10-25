@@ -48,6 +48,7 @@ from .core.types import Decision, Layer, LayerMode, Reason, Settings, Snapshot
 from .decision_log import DecisionLog
 from .entity_map import EntityMap
 from .executor import async_run_commands
+from .learning_manager import LearningManager
 from .snapshot import build_snapshot
 from .status import is_live, load_pending_any, next_load_deadline_any
 from .storage import HybridStore
@@ -123,6 +124,7 @@ class HybridHeatingCoordinator(DataUpdateCoordinator[TickResult]):
         self._deadline_unsub: CALLBACK_TYPE | None = None
         self._alerted: set[str] = set()
         self.revision = 1  # +1 on every settings change, so the card knows when to reload them
+        self.learning = LearningManager(self)
 
     # Lifecycle
 
@@ -144,7 +146,9 @@ class HybridHeatingCoordinator(DataUpdateCoordinator[TickResult]):
             self.log.record_system(now, [Reason("system", "restored_after_restart", saved)])
         for name in loaded.reset_sections:
             self.log.record_system(now, [Reason("system", "store_section_reset", {"section": name})])
+        await self.learning.async_load(now)
         entry = self.config_entry
+        self.learning.async_setup_jobs(entry)
         # The coordinator polls only while something listens; the control loop must run even with
         # every entity disabled.
         entry.async_on_unload(self.async_add_listener(_keep_ticking))
@@ -175,6 +179,7 @@ class HybridHeatingCoordinator(DataUpdateCoordinator[TickResult]):
         await self.async_shutdown()
         if self._loaded:  # a store that never loaded must not be overwritten with defaults
             await self.async_release_all(code)
+            await self.learning.async_save()
 
     async def async_flush(self) -> None:
         self._last_saved = dt_util.now()
@@ -189,6 +194,7 @@ class HybridHeatingCoordinator(DataUpdateCoordinator[TickResult]):
 
     async def _on_final_write(self, event: Event) -> None:
         await self.async_flush()
+        await self.learning.async_save()
 
     def _state_data(self) -> dict[str, Any]:
         return {
@@ -300,9 +306,11 @@ class HybridHeatingCoordinator(DataUpdateCoordinator[TickResult]):
         elif not is_live(self.settings, Layer.LOAD):
             return TickResult(now, snap, None, self._status(None, starting=True))
 
-        decision = await self._run_tick(now, self.settings if ready else self._grace_settings(), snap)
+        settings = self.settings if ready else self._grace_settings()
+        decision = await self._run_tick(now, settings, snap)
         outcomes = await self._execute(decision)
         self.log.record_tick(now, decision, outcomes)
+        self.learning.on_tick(settings, snap, decision, self.state)
         if any(o.status == "ok" for o in outcomes):
             # What was just done (writes, a shed water heater, owned ACs) must survive a crash.
             await self.async_flush()

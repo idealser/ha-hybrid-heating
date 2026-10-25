@@ -5,6 +5,7 @@ import pytest
 
 from custom_components.hybrid_heating.core.controller import ControllerState, tick
 from custom_components.hybrid_heating.core.learning import (
+    LearningData,
     Mark,
     MorningSample,
     Resolution,
@@ -16,9 +17,12 @@ from custom_components.hybrid_heating.core.learning import (
     feedback_suggestion,
     make_mark,
     morning_sample,
+    prune,
     suggestion_patch,
     tick_sample,
+    upsert_pending,
 )
+from custom_components.hybrid_heating.core.model import DayTally
 from custom_components.hybrid_heating.core.types import (
     CurveSettings,
     Layer,
@@ -336,3 +340,40 @@ def test_a_mark_without_outdoor_reading_still_counts():
     ]
     sg = feedback_suggestion(marks, Room.LIVING, "cold", Settings(), [], NOWF)
     assert sg is not None and sg.band is None and sg.evidence == {"marks": 2, "room_temp": 22.1}
+
+
+# What is kept
+
+
+def test_one_suggestion_per_key():
+    a = curve_suggestion(COLD3, Settings(), [], NOW)
+    assert a is not None
+    b = replace(a, id="curve:5:up@2026-11-13T09:00+01:00", created_at=NOW + timedelta(days=1))
+    assert upsert_pending([a], b) == [a]  # the same change: the first stays, with its id
+    c = replace(b, old=46.0, new=47.5)
+    assert upsert_pending([a], c) == [c]
+    other = replace(a, key="fb:bath:cold", id="fb:bath:cold@2026-11-12T09:00+01:00")
+    assert upsert_pending([a], other) == [a, other]
+
+
+def test_prune_drops_old_records_and_stale_suggestions():
+    a = curve_suggestion(COLD3, Settings(), [], NOW)
+    assert a is not None
+    data = LearningData(
+        marks=[mk(Room.CHILD, "cold", NOW - timedelta(days=31)), mk(Room.CHILD, "cold", NOW)],
+        mornings=[ms(date(2026, 10, 25), 4.0, -0.7), *COLD3],
+        pending=[a],
+        resolutions=[Resolution(a, "dismissed", NOW - timedelta(days=46)), Resolution(a, "applied", NOW)],
+        tallies={date(2026, 10, 1): DayTally(), date(2026, 11, 11): DayTally(1, 0, 1)},
+    )
+    kept = prune(data, Settings(), NOW)
+    assert kept.pending == [a] and len(kept.marks) == 1 and kept.mornings == COLD3
+    assert [r.action for r in kept.resolutions] == ["applied"] and list(kept.tallies) == [date(2026, 11, 11)]
+    raised = replace(
+        Settings(),
+        curve=replace(
+            CurveSettings(), points=tuple((t, 46.0 if t == 5 else f) for t, f in CurveSettings().points)
+        ),
+    )
+    assert prune(data, raised, NOW).pending == []  # the user moved that point meanwhile
+    assert data.pending == [a]  # pruning returns a copy

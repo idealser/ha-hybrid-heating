@@ -1,11 +1,11 @@
-"""JSON round trip for settings and controller state, driven by the dataclass type hints."""
+"""JSON round trip for settings, controller state and learning data, driven by the dataclass type hints."""
 
 import dataclasses
 from collections.abc import Mapping
 from datetime import date, datetime, time
 from enum import Enum
 from types import MappingProxyType, NoneType, UnionType
-from typing import Any, Literal, Union, cast, get_args, get_origin, get_type_hints
+from typing import Any, Literal, TypeAliasType, Union, cast, get_args, get_origin, get_type_hints
 
 from .const import WINDOW_MAX_HOURS
 from .core.context import validate_zones
@@ -64,6 +64,8 @@ def _fail(path: str, tp: Any, data: Any) -> ValueError:
 
 
 def _decode(tp: Any, data: Any, strict: bool, path: str) -> Any:
+    if isinstance(tp, TypeAliasType):  # `type Kind = Literal[...]`
+        return _decode(tp.__value__, data, strict, path)
     origin, args = get_origin(tp), get_args(tp)
     if origin in (Union, UnionType):
         if data is None and NoneType in args:
@@ -121,6 +123,10 @@ def _decode(tp: Any, data: Any, strict: bool, path: str) -> Any:
         return tuple(
             _decode(a, x, strict, _join(path, i)) for i, (a, x) in enumerate(zip(args, data, strict=True))
         )
+    if origin is list:
+        if not isinstance(data, (list, tuple)):
+            raise _fail(path, tp, data)
+        return [_decode(args[0], x, strict, _join(path, i)) for i, x in enumerate(data)]
     if origin in (set, frozenset):
         if not isinstance(data, (list, tuple, set, frozenset)):
             raise _fail(path, tp, data)

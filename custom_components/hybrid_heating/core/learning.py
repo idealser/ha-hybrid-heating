@@ -13,6 +13,7 @@ from typing import Any, Literal
 
 from .controller import ControllerState
 from .curve import CURVE_OUTDOOR_POINTS
+from .model import DayTally, HeatLossEstimate
 from .timeutil import before
 from .types import AC_ROOMS, Decision, Layer, LayerMode, Preset, Room, Settings, Snapshot
 
@@ -37,6 +38,10 @@ class LearningSettings:
     offset_limit: float = 3.0
     bath_shift_step: float = 1.0
     shift_limit: float = 10.0
+    keep_marks: timedelta = timedelta(days=30)
+    keep_mornings: timedelta = timedelta(days=14)
+    keep_resolutions: timedelta = timedelta(days=45)  # longer than a dismissal lasts
+    keep_tallies: timedelta = timedelta(days=35)  # longer than the heat-loss window
 
 
 LEARNING = LearningSettings()
@@ -46,7 +51,7 @@ type ResolutionAction = Literal["applied", "dismissed"]
 type MarkKind = Literal["cold", "hot"]
 
 
-def _empty() -> Mapping[str, float | int | str]:
+def _empty() -> Mapping[str, int | float | str]:
     return MappingProxyType({})
 
 
@@ -61,7 +66,7 @@ class Suggestion:
     band: int | None  # the outdoor band (a curve point's temperature), for "similar weather"
     room: Room | None
     created_at: datetime
-    evidence: Mapping[str, float | int | str] = field(default_factory=_empty)
+    evidence: Mapping[str, int | float | str] = field(default_factory=_empty)
 
 
 def make_suggestion(
@@ -74,7 +79,7 @@ def make_suggestion(
     band: int | None,
     room: Room | None,
     now: datetime,
-    evidence: Mapping[str, float | int | str],
+    evidence: Mapping[str, int | float | str],
 ) -> Suggestion:
     sid = f"{key}@{now.isoformat(timespec='minutes')}"
     return Suggestion(sid, key, kind, setting, old, new, band, room, now, MappingProxyType(dict(evidence)))
@@ -347,11 +352,54 @@ def feedback_suggestion(
     setting, old, new = _lever(room, kind, settings, ls)
     if new == old or is_suppressed(resolutions, key, band, now, ls):
         return None
-    evidence: dict[str, float | int | str] = {"marks": len(counted)}
+    evidence: dict[str, int | float | str] = {"marks": len(counted)}
     if last.room_temp is not None:
         evidence["room_temp"] = last.room_temp
     if last.t_out is not None:
         evidence["t_out"] = last.t_out
     return make_suggestion(
         key, "feedback", setting, old, new, band=band, room=room, now=now, evidence=evidence
+    )
+
+
+# What the module keeps
+
+
+@dataclass
+class LearningData:
+    marks: list[Mark] = field(default_factory=list)
+    mornings: list[MorningSample] = field(default_factory=list)
+    pending: list[Suggestion] = field(default_factory=list)
+    resolutions: list[Resolution] = field(default_factory=list)
+    tallies: dict[date, DayTally] = field(default_factory=dict)
+    heat_loss: HeatLossEstimate | None = None
+
+
+def upsert_pending(pending: Sequence[Suggestion], sg: Suggestion) -> list[Suggestion]:
+    """One suggestion per key: the same change keeps the one shown already, a different one replaces it."""
+    current = next((p for p in pending if p.key == sg.key), None)
+    if current is not None and (current.setting, current.old, current.new) == (sg.setting, sg.old, sg.new):
+        return list(pending)
+    return [p for p in pending if p.key != sg.key] + [sg]
+
+
+def _fresh(settings: Settings, sg: Suggestion) -> bool:
+    try:
+        return abs(current_value(settings, sg.setting) - sg.old) <= 1e-6
+    except ValueError, KeyError:
+        return False
+
+
+def prune(
+    data: LearningData, settings: Settings, now: datetime, ls: LearningSettings = LEARNING
+) -> LearningData:
+    """A copy without old records, and without suggestions whose setting the user has changed since."""
+    today = now.date()
+    return LearningData(
+        marks=[m for m in data.marks if before(now - ls.keep_marks, m.at)],
+        mornings=[m for m in data.mornings if m.day > today - ls.keep_mornings],
+        pending=[p for p in data.pending if _fresh(settings, p)],
+        resolutions=[r for r in data.resolutions if before(now - ls.keep_resolutions, r.at)],
+        tallies={d: t for d, t in data.tallies.items() if d > today - ls.keep_tallies},
+        heat_loss=data.heat_loss,
     )

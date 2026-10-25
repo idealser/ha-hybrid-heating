@@ -45,6 +45,10 @@ TEXTS: Mapping[str, Mapping[str, str]] = {
     "classic_off": _t("Boiler off: rooms at target {target}°", "Котёл выключен: комнаты на цели {target}°"),
     "season_idle": _t("Boiler off: outside the heating season", "Котёл выключен: не отопительный сезон"),
     "zone_boiler_off": _t("Boiler off in the {zone} zone", "Котёл выключен в зоне «{zone}»"),
+    # Learning
+    "suggestion_created": _t(
+        "New suggestion: {setting} from {old}° to {new}°", "Новая подсказка: {setting} с {old}° на {new}°"
+    ),
     # Air conditioners
     "ac_started": _t(
         "{room}: AC started, setpoint {setpoint}°", "{room}: кондиционер включён, уставка {setpoint}°"
@@ -184,6 +188,10 @@ ROOM_NAMES: Mapping[str, Mapping[str, str]] = {
     "en": {"living": "Living room", "bedroom": "Bedroom", "child": "Child's room", "bath": "Bathroom"},
     "ru": {"living": "Гостиная", "bedroom": "Спальня", "child": "Детская", "bath": "Ванная"},
 }
+ROOMS_LOW: Mapping[str, Mapping[str, str]] = {
+    "en": {"living": "living room", "bedroom": "bedroom", "child": "child's room", "bath": "bathroom"},
+    "ru": {"living": "гостиная", "bedroom": "спальня", "child": "детская", "bath": "ванная"},
+}
 OBSERVE_SUFFIX: Mapping[str, str] = {"en": " (observe only)", "ru": " (только наблюдение)"}
 SIGNED_KEYS = frozenset({"correction", "error"})
 ALERTS: Mapping[str, Mapping[str, str]] = {
@@ -235,7 +243,24 @@ def render_alert(key: str, lang: str, **values: str) -> str:
     return ALERTS[key][lang if lang in LANGS else "en"].format(**values)
 
 
+def setting_name(setting: str, lang: str) -> str:
+    """What a suggestion changes, in words: "the +5° curve point", "поправка цели (детская)"."""
+    head, _, tail = setting.rpartition(".")
+    if head == "curve.points":
+        t = round(float(tail))
+        point = f"{'+' if t > 0 else '−' if t < 0 else ''}{abs(t)}°"
+        return f"the {point} curve point" if lang == "en" else f"точка кривой {point}"
+    if setting == "curve.shift":
+        return "the whole curve" if lang == "en" else "вся кривая"
+    if head == "room_offsets":
+        room = ROOMS_LOW[lang].get(tail, tail)
+        return f"the {room} target offset" if lang == "en" else f"поправка цели ({room})"
+    return setting
+
+
 def _value(key: str, value: Any, lang: str) -> str:
+    if key == "setting" and isinstance(value, str):
+        return setting_name(value, lang)
     if key == "room" and isinstance(value, str):
         return ROOM_NAMES[lang].get(value, value)
     if key == "rooms" and isinstance(value, str):

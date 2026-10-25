@@ -120,7 +120,7 @@ def ws_get_status(hass: HomeAssistant, connection: ActiveConnection, msg: dict[s
         state=c.state,
         revision=c.revision,
         log_seq=c.log.revision,
-        suggestions_seq=0,
+        suggestions_seq=c.learning.revision,
         enabled=c.enabled,
         now=data.now,
         language=msg.get("language") or lang_for(hass.config.language),
