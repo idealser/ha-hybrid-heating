@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Boiler and power",
-        "description": "Pick the boiler and power meter entities. Nothing is controlled until you switch a layer to Active.",
+        "description": "Pick the boiler and power meter entities. Nothing is controlled until you switch a layer to Control.",
         "data": {
           "boiler_call": "Boiler heat call",
           "boiler_flow": "Boiler flow setpoint",
@@ -55,12 +55,12 @@
         "data": {
           "thermostat": "Current thermostat",
           "overpower_automation": "Overpower automation",
-          "disable_overpower_automation": "Turn off the overpower automation while the Load layer is active"
+          "disable_overpower_automation": "Turn off the overpower automation while the Load layer is in Control"
         },
         "data_description": {
-          "thermostat": "The thermostat that drives the boiler today. It is turned off while the Boiler layer is active and turned back on afterwards.",
+          "thermostat": "The thermostat that drives the boiler today. It is turned off while the Boiler layer is in Control and turned back on afterwards.",
           "overpower_automation": "Optional. Your existing automation that throttles the boiler on overload.",
-          "disable_overpower_automation": "When the Load layer is switched to Active, Hybrid Heating turns this automation off. It turns it back on when the layer leaves Active, or when Hybrid Heating is disabled or removed. It never deletes it."
+          "disable_overpower_automation": "When the Load layer is switched to Control, Hybrid Heating turns this automation off. It turns it back on when the layer leaves Control, or when Hybrid Heating is disabled or removed. It never deletes it."
         }
       }
     },
@@ -127,12 +127,12 @@
         "data": {
           "thermostat": "Current thermostat",
           "overpower_automation": "Overpower automation",
-          "disable_overpower_automation": "Turn off the overpower automation while the Load layer is active"
+          "disable_overpower_automation": "Turn off the overpower automation while the Load layer is in Control"
         },
         "data_description": {
-          "thermostat": "The thermostat that drives the boiler today. It is turned off while the Boiler layer is active and turned back on afterwards.",
+          "thermostat": "The thermostat that drives the boiler today. It is turned off while the Boiler layer is in Control and turned back on afterwards.",
           "overpower_automation": "Optional. Your existing automation that throttles the boiler on overload.",
-          "disable_overpower_automation": "When the Load layer is switched to Active, Hybrid Heating turns this automation off. It turns it back on when the layer leaves Active, or when Hybrid Heating is disabled or removed. It never deletes it."
+          "disable_overpower_automation": "When the Load layer is switched to Control, Hybrid Heating turns this automation off. It turns it back on when the layer leaves Control, or when Hybrid Heating is disabled or removed. It never deletes it."
         }
       }
     },

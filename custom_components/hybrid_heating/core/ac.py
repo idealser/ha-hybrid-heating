@@ -15,6 +15,7 @@ class AcState:
     degraded: set[Room] = field(default_factory=set)
     quiet: dict[Room, bool] = field(default_factory=dict)
     manual_hold: set[Room] = field(default_factory=set)  # switched off by the user; not restarted
+    hand: set[Room] = field(default_factory=set)  # run by the user (remote, app): theirs until switched off
 
 
 def ac_allowed(
@@ -72,11 +73,18 @@ def decide_ac(
                 acts.append(Action(ActionKind.AC_HVAC, "off", room))
                 reasons.append(_reason("ac_stopped", room))
         elif is_on:
+            st.hand.add(room)
             reasons.append(_reason("ac_manual_left_alone", room))
         return acts, reasons
 
     if hvac == "off" and room in st.manual_hold:
         return acts, [_reason("ac_manual_hold", room)]
+
+    if hvac == "off" and room in st.hand:
+        # Someone ran it by hand and has now switched it off: that is a switch-off too.
+        st.hand.discard(room)
+        st.manual_hold.add(room)
+        return acts, [_reason("ac_manual_off", room)]
 
     if hvac == "off" and room in st.owned:
         last = st.last_step_at.get(room)
@@ -100,6 +108,7 @@ def decide_ac(
         # The user runs this AC by hand (another mode, or heat they switched on): leave it alone.
         st.owned.discard(room)
         if hvac is not None:
+            st.hand.add(room)
             reasons.append(_reason("ac_manual_left_alone", room))
         return acts, reasons
 

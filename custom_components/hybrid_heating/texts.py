@@ -18,9 +18,11 @@ TEXTS: Mapping[str, Mapping[str, str]] = {
     # Boiler
     # {gap}: how far the room the boiler follows is from its own target. The "driver" itself is a reading
     # less its room offset, which is not a temperature any room shows.
+    # {position}: "0.3° below target 23.0°", "0.3° above target 23.0°" or "at target 23.0°". The PI loop keeps
+    # the boiler on up to the overheat margin above the target, so either side is normal here.
     "smooth_on": _t(
-        "Boiler on: {gap}° below target {target}°, flow {flow}° (correction {correction}°)",
-        "Котёл включён: на {gap}° ниже цели {target}°, подача {flow}° (поправка {correction}°)",
+        "Boiler on: {position}, flow {flow}° (correction {correction}°)",
+        "Котёл включён: {position}, подача {flow}° (поправка {correction}°)",
     ),
     "smooth_overheat_wait": _t(
         "Boiler on, {gap}° above target {target}°: waiting before a pause; flow {flow}°",
@@ -31,8 +33,7 @@ TEXTS: Mapping[str, Mapping[str, str]] = {
         "Котёл на паузе: на {gap}° выше цели {target}°",
     ),
     "smooth_resumed": _t(
-        "Boiler resumed: {gap}° below target {target}°, flow {flow}°",
-        "Котёл снова греет: на {gap}° ниже цели {target}°, подача {flow}°",
+        "Boiler resumed: {position}, flow {flow}°", "Котёл снова греет: {position}, подача {flow}°"
     ),
     "classic_on_avg": _t(
         "Boiler on: rooms on average below target {target}°, flow {flow}°",
@@ -194,8 +195,8 @@ TEXTS: Mapping[str, Mapping[str, str]] = {
         "Запуск не удался: управление возвращено до следующей попытки",
     ),
     "store_section_reset": _t(
-        "Saved {section} could not be read and was reset",
-        "Сохранённый раздел {section} не прочитан и сброшен",
+        "Could not read the saved {section}: reset to defaults",
+        "Не удалось прочитать сохранённое ({section}): сброшено",
     ),
 }
 
@@ -217,6 +218,70 @@ ROOMS_LOW: Mapping[str, Mapping[str, str]] = {
     "ru": {"living": "гостиная", "bedroom": "спальня", "child": "детская", "bath": "ванная"},
 }
 OBSERVE_SUFFIX: Mapping[str, str] = {"en": " (observe only)", "ru": " (только наблюдение)"}
+POSITION: Mapping[str, Mapping[str, str]] = {
+    "en": {
+        "below": "{gap}° below target {target}°",
+        "above": "{gap}° above target {target}°",
+        "at": "at target {target}°",
+    },
+    "ru": {
+        "below": "на {gap}° ниже цели {target}°",
+        "above": "на {gap}° выше цели {target}°",
+        "at": "на цели {target}°",
+    },
+}
+SETTING_GROUPS: Mapping[str, Mapping[str, str]] = {
+    "en": {
+        "hybrid": "hybrid mode",
+        "preset": "preset",
+        "targets": "targets",
+        "curve": "curve",
+        "zones": "zones",
+        "boiler": "boiler",
+        "ac": "ACs",
+        "load": "load limit",
+        "season": "season",
+        "layers": "layer modes",
+        "room_offsets": "room targets",
+        "sensor_offsets": "sensor corrections",
+        "outdoor_stale_after_s": "outdoor timeout",
+    },
+    "ru": {
+        "hybrid": "гибридный режим",
+        "preset": "пресет",
+        "targets": "цели",
+        "curve": "кривая",
+        "zones": "зоны",
+        "boiler": "котёл",
+        "ac": "кондиционеры",
+        "load": "лимит нагрузки",
+        "season": "сезон",
+        "layers": "режимы слоёв",
+        "room_offsets": "цели комнат",
+        "sensor_offsets": "поправки датчиков",
+        "outdoor_stale_after_s": "тайм-аут уличного датчика",
+    },
+}
+STORE_SECTIONS: Mapping[str, Mapping[str, str]] = {
+    "en": {
+        "enabled": "on/off switch",
+        "settings": "settings",
+        "controller": "controller state",
+        "takeover": "takeover state",
+        "window": "outdoor average",
+        "failures": "failure count",
+        "learning": "learning data",
+    },
+    "ru": {
+        "enabled": "вкл/выкл",
+        "settings": "настройки",
+        "controller": "состояние регулятора",
+        "takeover": "что модуль взял на себя",
+        "window": "средняя уличная температура",
+        "failures": "счётчик сбоев",
+        "learning": "данные обучения",
+    },
+}
 MARK_NAMES: Mapping[str, Mapping[str, str]] = {
     "en": {"cold": "cold", "hot": "hot"},
     "ru": {"cold": "холодно", "hot": "жарко"},
@@ -293,6 +358,12 @@ def _value(key: str, value: Any, lang: str) -> str:
         return MARK_NAMES[lang].get(value, value)
     if key == "room" and isinstance(value, str):
         return ROOM_NAMES[lang].get(value, value)
+    if key == "keys" and isinstance(value, str):
+        return ", ".join(SETTING_GROUPS[lang].get(k, k) for k in value.split(",") if k)
+    if key == "section" and isinstance(value, str):
+        return STORE_SECTIONS[lang].get(value, value)
+    if key == "saved_at" and isinstance(value, str) and len(value) >= 16:
+        return f"{value[:10]} {value[11:16]}"  # the local time it was saved, as written
     if key == "rooms" and isinstance(value, str):
         return ", ".join(ROOM_NAMES[lang].get(r, r) for r in value.split(",") if r)
     if key == "zone" and isinstance(value, int) and not isinstance(value, bool):
@@ -312,7 +383,12 @@ def render_reason(reason: Reason, lang: str, *, observe_suffix: bool = True) -> 
     data = {k: v for k, v in reason.data.items() if k != "observe"}
     driver, target = data.get("driver"), data.get("target")
     if isinstance(driver, (int, float)) and isinstance(target, (int, float)):
-        data["gap"] = round(abs(target - driver), 1)
+        gap = round(abs(target - driver), 1)
+        data["gap"] = gap
+        side = "at" if gap < 0.05 else "below" if driver < target else "above"
+        data["position"] = POSITION[lang][side].format(
+            gap=_number(gap, lang, False), target=_number(target, lang, False)
+        )
     template = TEXTS.get(reason.code, {}).get(lang)
     if template is None:
         details = ", ".join(f"{k}={_value(k, v, lang)}" for k, v in data.items())
@@ -329,7 +405,13 @@ def _truncate(text: str) -> str:
 
 
 def render_status(
-    decision: Decision | None, lang: str, *, enabled: bool, starting: bool, boiler_observe: bool
+    decision: Decision | None,
+    lang: str,
+    *,
+    enabled: bool,
+    starting: bool,
+    boiler_observe: bool,
+    load_pause: bool = False,
 ) -> str:
     """One line for the status sensor: zone, preset and target, then what the boiler is doing."""
     lang = lang if lang in LANGS else "en"
@@ -342,6 +424,8 @@ def render_status(
     parts.append(zone_name(decision.zone, lang))
     parts.append(f"{PRESET_NAMES[lang][decision.preset]} {_number(decision.target, lang, False)}°")
     main = next((r for r in decision.reasons if r.layer in (Layer.BOILER, "season")), None)
+    if load_pause:  # the boiler's own reason still says "on" while the load holds the call off
+        main = Reason(Layer.LOAD, "pause_boiler")
     if main is not None:
         parts.append(render_reason(main, lang, observe_suffix=False))
     return _truncate(" · ".join(parts))

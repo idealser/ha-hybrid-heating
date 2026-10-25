@@ -199,6 +199,7 @@ def build_status(
             "water_heater_shed": load.water_heater_shed,
             "rods_shed": load.rods_shed,
             "shedding": load_shedding_active(load, now),
+            "pausing": pausing(load, now),  # the heat call held off for the load, on every tick of it
         },
         "reasons": [{**to_data(r), "text": text(r, language)} for r in reasons],
     }

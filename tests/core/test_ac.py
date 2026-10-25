@@ -133,3 +133,25 @@ def test_user_switching_an_owned_ac_off_is_respected():
     assert reasons[0].code == "ac_manual_off"
     acts, reasons = run(st, hvac="off", now=T0 + timedelta(hours=2))
     assert acts == [] and reasons[0].code == "ac_manual_hold"
+
+
+def test_switching_off_an_ac_run_by_hand_is_respected_too():
+    st = AcState()
+    acts, reasons = run(st, hvac="cool")  # someone runs it from the remote
+    assert acts == [] and reasons[0].code == "ac_manual_left_alone"
+    acts, reasons = run(st, hvac="off", now=T0 + timedelta(minutes=30))  # and switches it off
+    assert acts == [] and reasons[0].code == "ac_manual_off" and Room.LIVING in st.manual_hold
+    acts, reasons = run(st, hvac="off", now=T0 + timedelta(hours=2))
+    assert acts == [] and reasons[0].code == "ac_manual_hold"
+
+
+def test_an_ac_run_by_hand_in_a_zone_without_it_is_remembered_as_well():
+    st = AcState()
+    run(st, allowed=False, hvac="heat")
+    acts, reasons = run(st, hvac="off", now=T0 + timedelta(minutes=30))  # the zone allows it again, off
+    assert acts == [] and reasons[0].code == "ac_manual_off"
+
+
+def test_an_ac_the_user_never_touched_is_started():
+    acts, reasons = run(AcState(), hvac="off")
+    assert (ActionKind.AC_HVAC, "heat") in kinds(acts) and reasons[0].code == "ac_started"
