@@ -15,6 +15,7 @@ from custom_components.hybrid_heating.core.learning import (
     current_value,
     curve_suggestion,
     feedback_suggestion,
+    lever_changes,
     make_mark,
     morning_sample,
     prune,
@@ -31,7 +32,7 @@ from custom_components.hybrid_heating.core.types import (
     Room,
     Settings,
 )
-from tests.conftest import ALL_ACTIVE, T0, TZ, snap, with_layers
+from tests.conftest import ALL_ACTIVE, ROOMS, T0, TZ, snap, with_layers
 
 D1, D2, D3 = date(2026, 11, 10), date(2026, 11, 11), date(2026, 11, 12)
 NOW = datetime(2026, 11, 12, 9, 0, tzinfo=TZ)
@@ -377,3 +378,55 @@ def test_prune_drops_old_records_and_stale_suggestions():
     )
     assert prune(data, raised, NOW).pending == []  # the user moved that point meanwhile
     assert data.pending == [a]  # pruning returns a copy
+
+
+# Review fixes
+
+
+def test_a_missing_room_sensor_is_off_the_curve():
+    def on_curve(rooms):
+        s = snap(rooms=rooms)
+        st = ControllerState.initial(T0)
+        sample = tick_sample(ALL_ACTIVE, s, tick(ALL_ACTIVE, s, st), st)
+        assert sample is not None
+        return sample.on_curve
+
+    assert on_curve({**ROOMS, Room.CHILD: None}) is False  # the boiler would follow two rooms out of three
+    assert on_curve({**ROOMS, Room.BATH: None}) is True  # the bathroom does not steer the boiler
+
+
+def test_a_patch_onto_a_moved_neighbour_is_stale():
+    sg = curve_suggestion(COLD3, Settings(), [], NOW)  # +5: 44.5 -> 46
+    assert sg is not None
+    pts = tuple((t, 45.5 if t == 0 else f) for t, f in CurveSettings().points)
+    with pytest.raises(StaleSuggestion):  # 46 would now rise above the colder point
+        suggestion_patch(replace(Settings(), curve=replace(CurveSettings(), points=pts)), sg)
+
+
+def test_a_change_by_hand_starts_the_evidence_afresh():
+    after_d2 = datetime(2026, 11, 11, 9, 30, tzinfo=TZ)
+    assert curve_suggestion(COLD3, Settings(), [], NOW, changed={"curve.points.5": after_d2}) is None
+    assert curve_suggestion(COLD3, Settings(), [], NOW, changed={"curve.shift": after_d2}) is None
+    assert curve_suggestion(COLD3, Settings(), [], NOW, changed={"curve.points.10": after_d2}) is not None
+    marks = two(Room.LIVING, "cold")
+    before_last = {"room_offsets.living": NOWF - timedelta(hours=2)}
+    assert feedback_suggestion(marks, Room.LIVING, "cold", Settings(), [], NOWF, changed=before_last) is None
+    other_room = {"room_offsets.bedroom": NOWF - timedelta(hours=2)}
+    assert (
+        feedback_suggestion(marks, Room.LIVING, "cold", Settings(), [], NOWF, changed=other_room) is not None
+    )
+
+
+def test_lever_changes():
+    a = Settings()
+    pts = tuple((t, 59.0 if t == -10 else f) for t, f in a.curve.points)
+    b = replace(
+        a, curve=replace(a.curve, points=pts, shift=1.0), room_offsets={Room.CHILD: -0.7, Room.BATH: 0.5}
+    )
+    assert lever_changes(a, b) == [
+        "curve.points.-10",
+        "curve.shift",
+        "room_offsets.bath",
+        "room_offsets.child",
+    ]
+    assert lever_changes(a, replace(a, preset=a.preset)) == []

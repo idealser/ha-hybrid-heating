@@ -141,9 +141,6 @@ class HybridStore:
     async def async_save_learning(self, data: dict[str, Any]) -> None:
         await self._learning.async_save(data)
 
-    def async_delay_save_learning(self, data: Callable[[], dict[str, Any]], delay: float) -> None:
-        self._learning.async_delay_save(data, delay)
-
     async def async_remove(self) -> None:
         await self._state.async_remove()
         await self._log.async_remove()

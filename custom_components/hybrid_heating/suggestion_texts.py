@@ -80,16 +80,16 @@ HEAT_LOSS = {
         _t("Heat loss: not enough data yet", "Теплопотери: пока мало данных"),
         _t(
             "It needs {min} whole heating days without the ACs in {weeks} weeks; {days} so far. "
-            "Estimates use {default} W/K.",
+            "Estimates use {used} W/K.",
             "Нужно {min} целых дней отопления без кондиционеров за {weeks} недели, пока {days}. "
-            "Оценки берут {default} Вт/К.",
+            "Оценки берут {used} Вт/К.",
         ),
     ),
     "implausible": (
         _t("Heat loss estimate looks wrong: {w} W/K", "Оценка теплопотерь выглядит неверной: {w} Вт/К"),
         _t(
-            "Estimates keep {default} W/K. This happens when the days were too alike or a sensor was off.",
-            "Оценки по-прежнему берут {default} Вт/К. "
+            "Estimates keep {used} W/K. This happens when the days were too alike or a sensor was off.",
+            "Оценки по-прежнему берут {used} Вт/К. "
             "Так бывает, если дни были слишком похожи или сбоил датчик.",
         ),
     ),
@@ -155,13 +155,15 @@ def suggestion_view(sg: Suggestion, state: State, lang: str) -> dict[str, Any]:
     }
 
 
-def heat_loss_view(e: HeatLossEstimate, default_w_per_k: float, lang: str) -> dict[str, Any]:
+def heat_loss_view(e: HeatLossEstimate, lang: str, *, used: float, default: float) -> dict[str, Any]:
+    """The latest estimate; `used` is what estimates use now (the last good one, or the default)."""
     lang = _lang(lang)
     title, detail = HEAT_LOSS[e.status]
     values = {
         "w": _num(e.w_per_k, lang) if e.w_per_k is not None else "?",
         "days": e.days_used,
-        "default": _num(default_w_per_k, lang),
+        "default": _num(default, lang),
+        "used": _num(used, lang),
         "min": HEAT_LOSS_MIN_DAYS,
         "weeks": HEAT_LOSS_WINDOW_DAYS // 7,
     }

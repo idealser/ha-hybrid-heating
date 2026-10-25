@@ -106,3 +106,27 @@ def test_tallies_count_ticks_ac_heating_and_season_per_local_day():
         date(2026, 11, 1): DayTally(ticks=2, ac_heat_ticks=1, season_ticks=2),
         date(2026, 11, 2): DayTally(ticks=1, ac_heat_ticks=0, season_ticks=0),
     }
+
+
+def test_a_stuck_power_sensor_day_is_left_out():
+    stuck = [day(date(2026, 11, 6), 9, 0.0), day(date(2026, 11, 7), 11, 0.0)]
+    e = estimate_heat_loss(BASE + stuck, NOW)
+    assert (e.status, e.days_used) == ("ok", 5) and e.w_per_k == pytest.approx(160.0)
+
+
+def test_a_poor_fit_is_implausible():
+    scattered = [
+        day(date(2026, 11, i + 1), dt, w)
+        for i, (dt, w) in enumerate([(6, 1500), (8, 300), (10, 2200), (12, 600), (14, 2000)])
+    ]
+    e = estimate_heat_loss(scattered, NOW)
+    assert e.status == "implausible" and e.r2 is not None and e.r2 < 0.6
+    negative_gains = [
+        day(date(2026, 11, i + 1), dt, 150 * dt + 2000) for i, dt in enumerate([6, 8, 10, 12, 14])
+    ]
+    e = estimate_heat_loss(negative_gains, NOW)
+    assert (
+        e.status == "implausible"
+        and e.w_per_k == pytest.approx(150.0)
+        and e.gains_w == pytest.approx(-2000.0)
+    )
