@@ -1,10 +1,11 @@
-"""What survives a restart: settings, controller and takeover state, the outdoor window and the log."""
+"""What survives a restart: settings, controller and takeover state, the outdoor window, the log, the plan."""
 
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
+import probatio as vol
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
 
@@ -13,6 +14,7 @@ from .const import DOMAIN, STORAGE_VERSION
 from .core.controller import ControllerState
 from .core.types import Settings
 from .decision_log import DecisionLog
+from .floor_plan import validate_plan
 from .takeover import TakeoverState
 from .window import OutdoorWindow
 
@@ -56,6 +58,8 @@ class HybridStore:
         self._log: Store[dict[str, Any]] = Store(
             hass, STORAGE_VERSION, f"{key}.log", serialize_in_event_loop=False
         )
+        # The user's floor plan for the card; read only when a card asks for it.
+        self._plan: Store[dict[str, Any]] = Store(hass, STORAGE_VERSION, f"{key}.plan", atomic_writes=True)
 
     async def _load_state(self) -> dict[str, Any]:
         raw = await self._state.async_load()
@@ -110,6 +114,23 @@ class HybridStore:
         if log_data is not None:
             await self._log.async_save(log_data)
 
+    async def async_load_plan(self) -> dict[str, Any] | None:
+        """The uploaded plan, or None for the card's schematic (also when the saved one is unreadable)."""
+        raw = await self._plan.async_load()
+        if not isinstance(raw, dict) or raw.get("plan") is None:
+            return None
+        try:
+            return validate_plan(raw["plan"])
+        except vol.Invalid:
+            return None
+
+    async def async_save_plan(self, plan: dict[str, Any] | None) -> None:
+        if plan is None:
+            await self._plan.async_remove()
+        else:
+            await self._plan.async_save({"plan": plan})
+
     async def async_remove(self) -> None:
         await self._state.async_remove()
         await self._log.async_remove()
+        await self._plan.async_remove()

@@ -36,6 +36,39 @@ jobs:
       - run: uv sync --locked
       - run: uv run pytest -m replay -q
 
+  frontend:
+    runs-on: ubuntu-latest
+    # The image the Linux screenshot baselines were made in, so the fonts match.
+    container: mcr.microsoft.com/playwright:v1.64.1-noble
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - name: The committed bundle is the build of this source
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          npm run build
+          git diff --exit-code -- ../custom_components/hybrid_heating/frontend/
+      - run: npx playwright test
+      - if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: screenshots-linux
+          path: |
+            frontend/playwright-report
+            frontend/test-results
+            frontend/test/e2e/__screenshots__/linux
+          if-no-files-found: ignore
+
   hassfest:
     runs-on: ubuntu-latest
     steps:

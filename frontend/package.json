@@ -1,0 +1,26 @@
+{
+  "name": "hybrid-heating-card",
+  "version": "0.3.0",
+  "scripts": {
+    "test": "vitest run",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "harness": "vite --port 5179 --strictPort",
+    "e2e": "playwright test"
+  },
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "lit": "3.3.3"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "happy-dom": "21.0.4",
+    "typescript": "7.0.2",
+    "vite": "8.3.5",
+    "vitest": "5.0.5"
+  }
+}

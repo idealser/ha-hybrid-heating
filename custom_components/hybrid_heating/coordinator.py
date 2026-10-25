@@ -22,6 +22,7 @@ from homeassistant.core import (
     State,
     callback,
 )
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.debounce import Debouncer
 from homeassistant.helpers.event import async_call_later, async_track_state_change_event
 from homeassistant.helpers.start import async_at_started
@@ -67,6 +68,13 @@ LOGGER = logging.getLogger(__package__)
 OWN_CONTEXTS = 50
 NOBODY = Wants(boiler=False, load=False, ac=False, automation_consent=False)
 DEADLINE_SLACK_S = 0.05  # land just after a hold time ends, not just before it
+# The card drives these entities through their services: (platform, translation key)
+CONTROLS = {
+    "enabled": ("switch", "enabled"),
+    "hybrid": ("switch", "hybrid_mode"),
+    "preset": ("select", "preset"),
+    "boiler_mode": ("select", "boiler_mode"),
+}
 
 type HybridHeatingConfigEntry = ConfigEntry[HybridHeatingCoordinator]
 
@@ -114,6 +122,7 @@ class HybridHeatingCoordinator(DataUpdateCoordinator[TickResult]):
         self._saved_log_revision = -1
         self._deadline_unsub: CALLBACK_TYPE | None = None
         self._alerted: set[str] = set()
+        self.revision = 1  # +1 on every settings change, so the card knows when to reload them
 
     # Lifecycle
 
@@ -195,12 +204,25 @@ class HybridHeatingCoordinator(DataUpdateCoordinator[TickResult]):
     def config_view(self) -> dict[str, Any]:
         """What the dashboard and the diagnostics show about the configuration."""
         return {
+            "revision": self.revision,
             "version": VERSION,
             "enabled": self.enabled,
             "settings": to_data(self.settings),
             "entities": self.entities.to_mapping(),
+            "controls": self.controls(),
             "takeover": to_data(self.takeover),
         }
+
+    def controls(self) -> dict[str, str]:
+        """Entity ids of this integration's own switches and selects, as the user may have renamed them."""
+        registry = er.async_get(self.hass)
+        out: dict[str, str] = {}
+        for name, (platform, key) in CONTROLS.items():
+            unique_id = f"{self.config_entry.entry_id}_{key}"
+            out[name] = (
+                registry.async_get_entity_id(platform, DOMAIN, unique_id) or f"{platform}.{DOMAIN}_{key}"
+            )
+        return out
 
     def window_mean(self, now: datetime) -> float | None:
         return self.window.mean(now, self.settings.season.window_hours)
@@ -433,6 +455,7 @@ class HybridHeatingCoordinator(DataUpdateCoordinator[TickResult]):
             return self.settings  # unloading: taking over again is no longer allowed
         new = merge_settings(self.settings, patch)
         self.settings = new
+        self.revision += 1
         changed = Reason("system", "settings_changed", {"keys": ",".join(sorted(patch)), "source": source})
         await self._apply_takeover(now, self._wants(), [*extra, changed])
         return new

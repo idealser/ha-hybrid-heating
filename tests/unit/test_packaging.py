@@ -32,6 +32,7 @@ HA_MODULES = {
     "websocket",
     "diagnostics",
     "alerts",
+    "card_resource",
 }
 
 
@@ -43,3 +44,11 @@ def test_glue_modules_are_ha_free():
         and re.search(r"^\s*(from|import)\s+homeassistant", p.read_text(encoding="utf-8"), re.M)
     ]
     assert offenders == []
+
+
+def test_card_and_integration_share_the_version():
+    """The card is served with ?v=VERSION; a bundle change without a new version would be cached for weeks."""
+    card = json.loads(Path("frontend/package.json").read_text(encoding="utf-8"))
+    project = re.search(r'^version = "(.+)"$', Path("pyproject.toml").read_text(encoding="utf-8"), re.M)
+    assert card["version"] == VERSION and project and project.group(1) == VERSION
+    assert f"## {VERSION}" in Path("CHANGELOG.md").read_text(encoding="utf-8")

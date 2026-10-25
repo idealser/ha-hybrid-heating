@@ -1,0 +1,76 @@
+{
+ "revision": 1,
+ "seq": {
+  "log": 6,
+  "suggestions": 2
+ },
+ "enabled": true,
+ "season_active": true,
+ "now": "2026-10-25T14:05:00Z",
+ "t_out": -8.0,
+ "t_out_window_mean": 10.0,
+ "zone": 2,
+ "preset": "comfort",
+ "effective_preset": "comfort",
+ "target": 23.0,
+ "flow_target": 53.9,
+ "curve_flow": 56.4,
+ "background_shift": 3.0,
+ "correction": 0.5,
+ "driver": {
+  "mode": "average",
+  "room": null,
+  "temp": 22.43
+ },
+ "boiler": {
+  "available": true,
+  "call_on": true,
+  "setpoint": 33.0,
+  "rods_limit": 3,
+  "writes_left": 41
+ },
+ "rooms": {
+  "living": 22.8,
+  "bedroom": 22.6,
+  "child": 21.9,
+  "bath": 23.0
+ },
+ "acs": {
+  "living": {
+   "available": true,
+   "hvac": "heat",
+   "setpoint": 24.0,
+   "owned": true,
+   "quiet": false,
+   "degraded": false
+  },
+  "bedroom": {
+   "available": true,
+   "hvac": "heat",
+   "setpoint": 24.0,
+   "owned": true,
+   "quiet": false,
+   "degraded": false
+  }
+ },
+ "load": {
+  "kw": 6.4,
+  "water_heater_on": true,
+  "water_heater_shed": false,
+  "rods_shed": 0,
+  "shedding": false
+ },
+ "reasons": [
+  {
+   "layer": "boiler",
+   "code": "smooth_on",
+   "data": {
+    "driver": 22.43,
+    "target": 23.0,
+    "correction": 0.5,
+    "flow": 53.9
+   },
+   "text": "Boiler on: room 22.4° vs target 23.0°, flow 53.9° (correction +0.5°)"
+  }
+ ]
+}

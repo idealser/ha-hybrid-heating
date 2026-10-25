@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.3.0
+
+The dashboard card.
+
+- One card for the whole module: presets and hybrid mode, the flat with room temperatures and the devices that are running, why the module does what it does, the 48-hour forecast, the boiler flow curve with draggable points and weather-zone boundaries, a what-if estimate for any outdoor temperature, zone settings, room targets with night modes for the ACs, the load limit, the heating season and each layer's mode (off, observe, control), suggestions and the decision log.
+- The integration serves the card and adds it to the dashboards' resources itself; it appears in the card picker as "Hybrid Heating". A failure there never stops the heating.
+- Settings are edited as a draft and saved together; changes made elsewhere in the meantime are kept. Only administrators can change settings; everyone can switch presets.
+- English and Russian, light and dark themes, phone and desktop layouts. Times are shown in Home Assistant's time zone.
+- Card options: title, hidden sections, electricity price and currency.
+- A sample floor plan by default. `tools/dxf_to_plan.py` turns a DXF drawing of your own flat into a plan you upload in the card editor; it is kept with the module's data in Home Assistant.
+- Websocket commands `hybrid_heating/get_status`, `hybrid_heating/get_plan` and `hybrid_heating/set_plan` (admins only); `get_config` also reports the settings revision and the module's own entities.
+
 ## 0.2.0
 
 The Home Assistant integration.

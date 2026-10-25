@@ -1,0 +1,342 @@
+{
+ "en": {
+  "entries": [
+   {
+    "ts": "2026-10-25T14:02:00Z",
+    "kind": "tick",
+    "zone": 0,
+    "target": 23.0,
+    "preset": "comfort",
+    "flow_target": 33.0,
+    "season_active": true,
+    "reasons": [
+     {
+      "layer": "ac",
+      "code": "ac_step_down",
+      "data": {
+       "room": "bedroom",
+       "setpoint": 24,
+       "error": 0.4
+      },
+      "text": "Bedroom: AC setpoint down to 24°, room +0.4° off target"
+     }
+    ],
+    "actions": [
+     {
+      "kind": "ac_setpoint",
+      "value": 24,
+      "room": "bedroom",
+      "status": "ok",
+      "detail": null
+     }
+    ]
+   },
+   {
+    "ts": "2026-10-25T13:35:00Z",
+    "kind": "tick",
+    "zone": 0,
+    "target": 23.0,
+    "preset": "comfort",
+    "flow_target": 33.0,
+    "season_active": true,
+    "reasons": [
+     {
+      "layer": "boiler",
+      "code": "classic_off",
+      "data": {
+       "target": 23.0
+      },
+      "text": "Boiler off: rooms at target 23.0°"
+     }
+    ],
+    "actions": [
+     {
+      "kind": "boiler_call",
+      "value": false,
+      "room": null,
+      "status": "ok",
+      "detail": null
+     }
+    ]
+   },
+   {
+    "ts": "2026-10-25T12:40:00Z",
+    "kind": "tick",
+    "zone": 0,
+    "target": 23.0,
+    "preset": "comfort",
+    "flow_target": 33.0,
+    "season_active": true,
+    "reasons": [
+     {
+      "layer": "boiler",
+      "code": "classic_on_coldest",
+      "data": {
+       "target": 23.0,
+       "flow": 37.0
+      },
+      "text": "Boiler on: the coldest room is below target 23.0°, flow 37.0°"
+     }
+    ],
+    "actions": [
+     {
+      "kind": "boiler_call",
+      "value": true,
+      "room": null,
+      "status": "ok",
+      "detail": null
+     }
+    ]
+   },
+   {
+    "ts": "2026-10-25T08:24:00Z",
+    "kind": "tick",
+    "zone": 0,
+    "target": 23.0,
+    "preset": "comfort",
+    "flow_target": 33.0,
+    "season_active": true,
+    "reasons": [
+     {
+      "layer": "load",
+      "code": "restore_water_heater",
+      "data": {
+       "load_kw": 5.1,
+       "limit_kw": 8.0
+      },
+      "text": "Load back to normal: water heater switched on"
+     }
+    ],
+    "actions": [
+     {
+      "kind": "water_heater",
+      "value": true,
+      "room": null,
+      "status": "ok",
+      "detail": null
+     }
+    ]
+   },
+   {
+    "ts": "2026-10-25T08:12:00Z",
+    "kind": "tick",
+    "zone": 0,
+    "target": 23.0,
+    "preset": "comfort",
+    "flow_target": 33.0,
+    "season_active": true,
+    "reasons": [
+     {
+      "layer": "load",
+      "code": "shed_water_heater",
+      "data": {
+       "load_kw": 8.3,
+       "limit_kw": 8.0
+      },
+      "text": "Load above limit: water heater switched off"
+     }
+    ],
+    "actions": [
+     {
+      "kind": "water_heater",
+      "value": false,
+      "room": null,
+      "status": "ok",
+      "detail": null
+     }
+    ]
+   },
+   {
+    "ts": "2026-10-25T06:00:00Z",
+    "kind": "system",
+    "zone": null,
+    "target": null,
+    "preset": null,
+    "flow_target": null,
+    "season_active": null,
+    "reasons": [
+     {
+      "layer": "system",
+      "code": "settings_changed",
+      "data": {
+       "keys": "preset",
+       "source": "entity"
+      },
+      "text": "Settings changed: preset"
+     }
+    ],
+    "actions": []
+   }
+  ]
+ },
+ "ru": {
+  "entries": [
+   {
+    "ts": "2026-10-25T14:02:00Z",
+    "kind": "tick",
+    "zone": 0,
+    "target": 23.0,
+    "preset": "comfort",
+    "flow_target": 33.0,
+    "season_active": true,
+    "reasons": [
+     {
+      "layer": "ac",
+      "code": "ac_step_down",
+      "data": {
+       "room": "bedroom",
+       "setpoint": 24,
+       "error": 0.4
+      },
+      "text": "Спальня: уставка кондиционера понижена до 24°, отклонение комнаты +0,4°"
+     }
+    ],
+    "actions": [
+     {
+      "kind": "ac_setpoint",
+      "value": 24,
+      "room": "bedroom",
+      "status": "ok",
+      "detail": null
+     }
+    ]
+   },
+   {
+    "ts": "2026-10-25T13:35:00Z",
+    "kind": "tick",
+    "zone": 0,
+    "target": 23.0,
+    "preset": "comfort",
+    "flow_target": 33.0,
+    "season_active": true,
+    "reasons": [
+     {
+      "layer": "boiler",
+      "code": "classic_off",
+      "data": {
+       "target": 23.0
+      },
+      "text": "Котёл выключен: комнаты на цели 23,0°"
+     }
+    ],
+    "actions": [
+     {
+      "kind": "boiler_call",
+      "value": false,
+      "room": null,
+      "status": "ok",
+      "detail": null
+     }
+    ]
+   },
+   {
+    "ts": "2026-10-25T12:40:00Z",
+    "kind": "tick",
+    "zone": 0,
+    "target": 23.0,
+    "preset": "comfort",
+    "flow_target": 33.0,
+    "season_active": true,
+    "reasons": [
+     {
+      "layer": "boiler",
+      "code": "classic_on_coldest",
+      "data": {
+       "target": 23.0,
+       "flow": 37.0
+      },
+      "text": "Котёл включён: самая холодная комната ниже цели 23,0°, подача 37,0°"
+     }
+    ],
+    "actions": [
+     {
+      "kind": "boiler_call",
+      "value": true,
+      "room": null,
+      "status": "ok",
+      "detail": null
+     }
+    ]
+   },
+   {
+    "ts": "2026-10-25T08:24:00Z",
+    "kind": "tick",
+    "zone": 0,
+    "target": 23.0,
+    "preset": "comfort",
+    "flow_target": 33.0,
+    "season_active": true,
+    "reasons": [
+     {
+      "layer": "load",
+      "code": "restore_water_heater",
+      "data": {
+       "load_kw": 5.1,
+       "limit_kw": 8.0
+      },
+      "text": "Нагрузка в норме: бойлер включён"
+     }
+    ],
+    "actions": [
+     {
+      "kind": "water_heater",
+      "value": true,
+      "room": null,
+      "status": "ok",
+      "detail": null
+     }
+    ]
+   },
+   {
+    "ts": "2026-10-25T08:12:00Z",
+    "kind": "tick",
+    "zone": 0,
+    "target": 23.0,
+    "preset": "comfort",
+    "flow_target": 33.0,
+    "season_active": true,
+    "reasons": [
+     {
+      "layer": "load",
+      "code": "shed_water_heater",
+      "data": {
+       "load_kw": 8.3,
+       "limit_kw": 8.0
+      },
+      "text": "Нагрузка выше лимита: бойлер выключен"
+     }
+    ],
+    "actions": [
+     {
+      "kind": "water_heater",
+      "value": false,
+      "room": null,
+      "status": "ok",
+      "detail": null
+     }
+    ]
+   },
+   {
+    "ts": "2026-10-25T06:00:00Z",
+    "kind": "system",
+    "zone": null,
+    "target": null,
+    "preset": null,
+    "flow_target": null,
+    "season_active": null,
+    "reasons": [
+     {
+      "layer": "system",
+      "code": "settings_changed",
+      "data": {
+       "keys": "preset",
+       "source": "entity"
+      },
+      "text": "Настройки изменены: preset"
+     }
+    ],
+    "actions": []
+   }
+  ]
+ }
+}

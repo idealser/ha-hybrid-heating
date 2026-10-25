@@ -2,7 +2,7 @@
 
 Heating control for a flat with an electric boiler and radiators, plus heat-pump air conditioners in some rooms.
 
-**Status:** early development. The control logic and the Home Assistant integration are done and tested; the dashboard card is in progress. A fresh install only observes: it logs what it would do and changes nothing until you switch a layer to Active.
+**Status:** early development. The control logic, the Home Assistant integration and the dashboard card are done and tested; suggestions and the forecast come next. A fresh install only observes: it logs what it would do and changes nothing until you switch a layer to Active.
 
 ## What it does
 
@@ -45,18 +45,23 @@ You can change the entities later under the integration's **Configure**.
 
 **Diagnostics** (the integration's ⋮ menu → Download diagnostics) contain the settings, the controller state and the last 500 decisions.
 
-### Switching a layer to Active
+## Dashboard card
 
-Until the dashboard card is ready, use the browser console on any Home Assistant page (admin users only):
+The integration serves its own card and adds it to your dashboards' resources, so there is nothing to install or write in YAML. (A dashboard in YAML mode gets it as an extra module instead.)
 
-```js
-await document.querySelector("home-assistant").hass.callWS({
-  type: "hybrid_heating/set_config",
-  settings: { layers: { boiler: "active" } },
-});
-```
+1. Edit a dashboard, **Add card**, and pick **Hybrid Heating**. It is meant to be the only card on a **Panel** view, or a full-width card in a Sections view.
+2. Everything you can change is on the card: presets and hybrid mode, the flow curve (drag its points), the weather zones (drag the boundaries under the chart), room targets, the load limit, the heating season, and each layer's mode under **Heating season → Control**. Presets and hybrid mode switch at once; every other change is a draft until you press **Save**.
+3. Only administrators can change settings. Other users see the same card read-only, and can still switch presets.
 
-Send the same command with `"observe"` to go back. Watch the log for a few days in observe mode first.
+The card follows the language of your Home Assistant profile (English or Russian) and its theme, including dark mode. Its options, set in the card editor or in YAML:
+
+| Option | What it does |
+| --- | --- |
+| `title` | Replaces the heading. |
+| `hide_sections` | Sections to leave out: `plan`, `why`, `forecast`, `curve`, `probe`, `zone`, `rooms`, `load`, `season`, `suggestions`, `log`. |
+| `tariff_per_kwh`, `currency` | Your electricity price, for the cost estimates (default 0.25 €). |
+
+The floor plan starts as a sample layout. To show your own flat, convert its DXF drawing with `tools/dxf_to_plan.py` (see the docstring for the overlay that names the rooms), then upload the JSON in the card editor under **Floor plan**. It is stored in Home Assistant with the module's data, not in the dashboard.
 
 ## Development
 
@@ -67,6 +72,20 @@ uv sync
 uv run pytest -m "not replay"   # fast tests (Home Assistant tests need Linux)
 uv run pytest -m replay         # season replay on a thermal model of a flat
 ```
+
+The card lives in `frontend/` (Lit and TypeScript; Node 24):
+
+```bash
+cd frontend
+npm ci
+npm test                 # unit tests
+npm run typecheck
+npm run build            # writes custom_components/hybrid_heating/frontend/hybrid-heating-card.js (committed)
+npx playwright test      # the card in a test page against a fake Home Assistant
+npm run harness          # that page at http://localhost:5179/test/harness/index.html
+```
+
+Screenshot baselines are kept per platform. The Linux ones come from the Playwright image CI uses: `docker run --rm -v "$PWD:/work" -v hh-node-modules:/work/node_modules -w /work mcr.microsoft.com/playwright:v1.64.1-noble sh -c 'npm ci && npx playwright test test/e2e/screenshots.spec.ts'`.
 
 Home Assistant's test harness needs a Unix system. On Windows, `scripts/ha-pytest.sh` runs the same pytest arguments in a Linux container; the core tests also run natively with `-p no:homeassistant`.
 

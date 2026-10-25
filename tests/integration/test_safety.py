@@ -116,6 +116,7 @@ async def test_setup_failures_give_control_back_and_end_in_failsafe(
         )  # given back after the failed first tick
         for _ in range(10):
             await step(freezer, hass, 120)
+        await hass.async_block_till_done(wait_background_tasks=True)  # retries run as background tasks
     assert hass_storage[STORE_KEY]["data"]["enabled"] is False
     assert entry.state is ConfigEntryState.LOADED and entry.runtime_data.enabled is False
     assert "failsafe_released" in log_codes(entry.runtime_data)

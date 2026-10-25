@@ -1,7 +1,7 @@
 import pytest
 from homeassistant.setup import async_setup_component
 
-from custom_components.hybrid_heating.const import DOMAIN
+from custom_components.hybrid_heating.const import DOMAIN, VERSION
 from custom_components.hybrid_heating.core.types import Settings
 from tests.fakes import CALL
 from tests.integration.conftest import STORE_KEY, THERMOSTAT_OFF, setup_integration
@@ -16,7 +16,7 @@ async def ws(hass_ws_client, hass, **msg):
 async def test_get_config_defaults(hass, fake_home, hass_ws_client):
     await setup_integration(hass)
     r = await ws(hass_ws_client, hass, type="hybrid_heating/get_config")
-    assert r["success"] and r["result"]["version"] == "0.2.0" and r["result"]["enabled"] is True
+    assert r["success"] and r["result"]["version"] == VERSION and r["result"]["enabled"] is True
     assert r["result"]["settings"]["layers"] == {"boiler": "observe", "ac": "observe", "load": "observe"}
     assert r["result"]["entities"]["boiler_call"] == CALL
     assert r["result"]["takeover"]["thermostat_prev"] is None

@@ -1,6 +1,7 @@
 """Websocket commands for the dashboard card.
 
-hybrid_heating/get_config, hybrid_heating/set_config (admins only) and hybrid_heating/get_log.
+hybrid_heating/get_config, hybrid_heating/set_config (admins only), hybrid_heating/get_status,
+hybrid_heating/get_log, hybrid_heating/get_plan and hybrid_heating/set_plan (admins only).
 Reserved for later stages: subscribe, mark, suggestions, apply_suggestion, forecast.
 """
 
@@ -16,6 +17,8 @@ from .codec import parse_ts
 from .const import DOMAIN, LOG_SIZE, WS_PREFIX
 from .coordinator import HybridHeatingCoordinator
 from .core.types import Reason
+from .floor_plan import validate_plan
+from .status import build_status
 from .texts import LANGS, lang_for, render_reason
 
 
@@ -24,6 +27,9 @@ def async_register_websocket(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_get_config)
     websocket_api.async_register_command(hass, ws_set_config)
     websocket_api.async_register_command(hass, ws_get_log)
+    websocket_api.async_register_command(hass, ws_get_status)
+    websocket_api.async_register_command(hass, ws_get_plan)
+    websocket_api.async_register_command(hass, ws_set_plan)
 
 
 def _coordinator(hass: HomeAssistant) -> HybridHeatingCoordinator | None:
@@ -95,3 +101,57 @@ def ws_get_log(hass: HomeAssistant, connection: ActiveConnection, msg: dict[str,
     lang = msg.get("language") or lang_for(hass.config.language)
     entries = [_with_texts(e, lang) for e in c.log.latest(msg["limit"], before)]
     connection.send_result(msg["id"], {"entries": entries})
+
+
+@websocket_command(
+    {vol.Required("type"): f"{WS_PREFIX}get_status", vol.Optional("language"): vol.In(list(LANGS))}
+)
+@callback
+def ws_get_status(hass: HomeAssistant, connection: ActiveConnection, msg: dict[str, Any]) -> None:
+    c = _coordinator(hass)
+    if c is None:
+        _not_loaded(connection, msg)
+        return
+    data = c.data
+    status = build_status(
+        settings=c.settings,
+        snap=data.snapshot,
+        decision=data.decision,
+        state=c.state,
+        revision=c.revision,
+        log_seq=c.log.revision,
+        suggestions_seq=0,
+        enabled=c.enabled,
+        now=data.now,
+        language=msg.get("language") or lang_for(hass.config.language),
+        text=render_reason,
+    )
+    connection.send_result(msg["id"], status)
+
+
+@websocket_command({vol.Required("type"): f"{WS_PREFIX}get_plan"})
+@async_response
+async def ws_get_plan(hass: HomeAssistant, connection: ActiveConnection, msg: dict[str, Any]) -> None:
+    c = _coordinator(hass)
+    if c is None:
+        _not_loaded(connection, msg)
+        return
+    connection.send_result(msg["id"], {"plan": await c.store.async_load_plan()})
+
+
+@require_admin
+@websocket_command({vol.Required("type"): f"{WS_PREFIX}set_plan", vol.Required("plan"): vol.Any(None, dict)})
+@async_response
+async def ws_set_plan(hass: HomeAssistant, connection: ActiveConnection, msg: dict[str, Any]) -> None:
+    """Store the user's floor plan for the card; null goes back to the built-in schematic."""
+    c = _coordinator(hass)
+    if c is None:
+        _not_loaded(connection, msg)
+        return
+    try:
+        plan = None if msg["plan"] is None else validate_plan(msg["plan"])
+    except vol.Invalid as err:
+        connection.send_error(msg["id"], "invalid_plan", str(err))
+        return
+    await c.store.async_save_plan(plan)
+    connection.send_result(msg["id"], {"plan": plan})

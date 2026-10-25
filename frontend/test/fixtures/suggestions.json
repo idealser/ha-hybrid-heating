@@ -1,0 +1,42 @@
+{
+ "en": {
+  "suggestions": [
+   {
+    "id": "curve10",
+    "kind": "curve",
+    "state": "new",
+    "created": "2026-10-25T07:00:00Z",
+    "title": "Raise the +10° point from 39.5° to 41°",
+    "detail": "On the last three mornings at +5…+9° the child's room reached its target only by 8:30 although the boiler ran. A higher flow warms it by 7:00."
+   },
+   {
+    "id": "hloss",
+    "kind": "heat_loss",
+    "state": "info",
+    "created": "2026-10-25T07:00:00Z",
+    "title": "Heat loss this week: 148 W/K",
+    "detail": "This matches the model (150 W/K). Consumption forecasts are accurate; nothing to change."
+   }
+  ]
+ },
+ "ru": {
+  "suggestions": [
+   {
+    "id": "curve10",
+    "kind": "curve",
+    "state": "new",
+    "created": "2026-10-25T07:00:00Z",
+    "title": "Поднять точку +10° с 39,5° до 41°",
+    "detail": "Три последних утра при +5…+9° детская добирала цель только к 8:30, хотя котёл работал. Если подача будет выше, детская прогреется к 7:00."
+   },
+   {
+    "id": "hloss",
+    "kind": "heat_loss",
+    "state": "info",
+    "created": "2026-10-25T07:00:00Z",
+    "title": "Теплопотери за неделю: 148 Вт/К",
+    "detail": "Это совпадает с моделью (150 Вт/К). Прогнозы расхода точные, менять ничего не нужно."
+   }
+  ]
+ }
+}

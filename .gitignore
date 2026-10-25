@@ -6,3 +6,8 @@ __pycache__/
 .hypothesis/
 .superpowers/
 local/
+
+# card build and test output
+frontend/node_modules/
+frontend/test-results/
+frontend/playwright-report/

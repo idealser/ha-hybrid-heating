@@ -1,11 +1,31 @@
 """Small read-only questions about the settings and the controller state. No Home Assistant imports here."""
 
+from collections.abc import Callable
 from datetime import datetime
+from typing import Any
 
+from .codec import to_data
+from .core.ac import AcState
+from .core.boiler import budget_remaining
+from .core.context import effective_target, zone_index
 from .core.controller import ControllerState
+from .core.curve import flow_for
 from .core.load import LoadState
 from .core.timeutil import after, before
-from .core.types import BoilerMode, Decision, Layer, LayerMode, LoadSettings, Settings
+from .core.types import (
+    AC_ROOMS,
+    DRIVER_ROOMS,
+    BoilerMode,
+    BoilerZoneMode,
+    Decision,
+    Layer,
+    LayerMode,
+    LoadSettings,
+    Reason,
+    Room,
+    Settings,
+    Snapshot,
+)
 
 
 def is_live(settings: Settings, layer: Layer) -> bool:
@@ -72,3 +92,105 @@ def next_load_deadline_any(ctrl: ControllerState, s: LoadSettings, now: datetime
     """The earliest deadline of the live and the shadow load state."""
     dues = [d for st in (ctrl.load, ctrl.shadow_load) if (d := next_load_deadline(st, s, now)) is not None]
     return min(dues, key=datetime.timestamp) if dues else None
+
+
+def layer_ac_state(settings: Settings, state: ControllerState) -> AcState:
+    """The real AC state while the layer is ACTIVE, otherwise what it would have done."""
+    return state.ac if is_live(settings, Layer.AC) else state.shadow_ac
+
+
+def _driver(
+    settings: Settings, snap: Snapshot | None, zone: int, boiler_reason: Reason | None
+) -> dict[str, Any]:
+    follows_coldest = settings.hybrid and settings.zones.policies[zone].boiler is BoilerZoneMode.BACKUP
+    room: Room | None = None
+    if follows_coldest and snap is not None:
+        normalised = {
+            r: v - settings.room_offsets.get(r, 0.0)
+            for r in DRIVER_ROOMS
+            if (v := snap.rooms.get(r)) is not None
+        }
+        room = min(normalised, key=lambda r: normalised[r]) if normalised else None
+    temp = boiler_reason.data.get("driver") if boiler_reason is not None else None
+    return {"mode": "coldest" if follows_coldest else "average", "room": to_data(room), "temp": temp}
+
+
+def build_status(
+    *,
+    settings: Settings,
+    snap: Snapshot | None,
+    decision: Decision | None,
+    state: ControllerState,
+    revision: int,
+    log_seq: int,
+    suggestions_seq: int,
+    enabled: bool,
+    now: datetime,
+    language: str,
+    text: Callable[[Reason, str], str],
+) -> dict[str, Any]:
+    """Everything the dashboard card shows about the moment, in one JSON object."""
+    t_out = snap.t_out if snap is not None else None
+    if decision is not None:
+        zone, preset, target = decision.zone, decision.preset, decision.target
+    else:
+        zone = zone_index(settings.zones.bounds, t_out) if t_out is not None else 0
+        preset, target = effective_target(settings.targets, settings.preset, now)
+    reasons = decision.reasons if decision is not None else ()
+    boiler_reason = next((r for r in reasons if r.layer is Layer.BOILER and "driver" in r.data), None)
+    driver = _driver(settings, snap, zone, boiler_reason)
+    ac_state = layer_ac_state(settings, state)
+    ac_heating = snap is not None and any(snap.ac_hvac.get(r) == "heat" for r in AC_ROOMS)
+    shift = (
+        settings.curve.ac_background_shift
+        if settings.hybrid and ac_heating and driver["mode"] == "average"
+        else 0.0
+    )
+    load = layer_load_state(settings, state)
+    return {
+        "revision": revision,
+        "seq": {"log": log_seq, "suggestions": suggestions_seq},
+        "enabled": enabled,
+        "season_active": decision.season_active if decision is not None else state.season_active,
+        "now": now.isoformat(),
+        "t_out": t_out,
+        "t_out_window_mean": snap.t_out_window_mean if snap is not None else None,
+        "zone": zone,
+        "preset": settings.preset.value,
+        "effective_preset": preset.value,
+        "target": target,
+        "flow_target": decision.flow_target if decision is not None else None,
+        "curve_flow": flow_for(settings.curve, t_out, ac_active=False, hybrid=settings.hybrid)
+        if t_out is not None
+        else None,
+        "background_shift": shift,
+        "correction": boiler_reason.data.get("correction", 0.0) if boiler_reason is not None else 0.0,
+        "driver": driver,
+        "boiler": {
+            "available": snap.boiler_available if snap is not None else False,
+            "call_on": snap.boiler_call_on if snap is not None else None,
+            "setpoint": snap.boiler_setpoint if snap is not None else None,
+            "rods_limit": snap.boiler_rods_limit if snap is not None else None,
+            "writes_left": budget_remaining(settings.boiler, state.boiler, now),
+        },
+        "rooms": {r.value: (snap.rooms.get(r) if snap is not None else None) for r in Room},
+        "acs": {
+            r.value: {
+                "available": snap.ac_available.get(r, False) if snap is not None else False,
+                "hvac": snap.ac_hvac.get(r) if snap is not None else None,
+                "setpoint": snap.ac_setpoint.get(r) if snap is not None else None,
+                "owned": r in ac_state.owned,
+                "quiet": ac_state.quiet.get(r, False),
+                "degraded": r in ac_state.degraded,
+            }
+            for r in AC_ROOMS
+        },
+        "load": {
+            "kw": snap.load_kw if snap is not None else None,
+            "water_heater_on": snap.water_heater_on if snap is not None else None,
+            "water_heater_shed": load.water_heater_shed,
+            "rods_shed": load.rods_shed,
+            "shedding": load_shedding_active(load, now),
+        },
+        "reasons": [{**to_data(r), "text": text(r, language)} for r in reasons],
+    }
