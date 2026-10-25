@@ -1,7 +1,5 @@
 """JSON round trip for settings and controller state, driven by the dataclass type hints."""
 
-from __future__ import annotations
-
 import dataclasses
 from collections.abc import Mapping
 from datetime import date, datetime, time
@@ -13,7 +11,11 @@ from .const import WINDOW_MAX_HOURS
 from .core.context import validate_zones
 from .core.controller import ControllerState
 from .core.curve import validate_curve
-from .core.types import Layer, Settings
+from .core.timeutil import before
+from .core.types import Layer, Preset, Settings
+
+# The real classes, taken once: a frozen test clock swaps the module names for subclasses of them.
+_TIME_TYPES = (datetime, date, time)
 
 TARGET_MIN = 5.0
 TARGET_MAX = 30.0
@@ -26,7 +28,7 @@ def to_data(obj: Any) -> Any:
         return {f.name: to_data(getattr(obj, f.name)) for f in dataclasses.fields(obj)}
     if isinstance(obj, Enum):
         return obj.value
-    if isinstance(obj, (datetime, date, time)):
+    if isinstance(obj, _TIME_TYPES):
         return obj.isoformat()
     if isinstance(obj, (set, frozenset)):
         return sorted(to_data(x) for x in obj)
@@ -35,6 +37,17 @@ def to_data(obj: Any) -> Any:
     if isinstance(obj, Mapping):
         return {to_data(k): to_data(v) for k, v in obj.items()}
     return obj
+
+
+def parse_ts(value: Any) -> datetime | None:
+    """An ISO timestamp with a time zone, or None for anything else (naive times included)."""
+    if not isinstance(value, str):
+        return None
+    try:
+        ts = datetime.fromisoformat(value)
+    except ValueError:
+        return None
+    return ts if ts.tzinfo is not None else None
 
 
 def from_data[T](cls: type[T], data: Any, *, strict: bool = True) -> T:
@@ -91,7 +104,7 @@ def _decode(tp: Any, data: Any, strict: bool, path: str) -> Any:
         if isinstance(data, str):
             return data
         raise _fail(path, tp, data)
-    if tp in (datetime, date, time):
+    if isinstance(tp, type) and issubclass(tp, _TIME_TYPES):
         if not isinstance(data, str):
             raise _fail(path, tp, data)
         try:
@@ -149,10 +162,10 @@ def validate_settings(s: Settings) -> None:
         raise ValueError(f"layers: missing {', '.join(missing)}")
     validate_curve(s.curve)
     validate_zones(s.zones)
-    for name in ("comfort", "eco", "night", "away"):
-        value = getattr(s.targets, name)
+    for preset in Preset:
+        value = getattr(s.targets, preset.value)
         if not TARGET_MIN <= value <= TARGET_MAX:
-            raise ValueError(f"targets.{name} must be within {TARGET_MIN}-{TARGET_MAX}, got {value}")
+            raise ValueError(f"targets.{preset} must be within {TARGET_MIN}-{TARGET_MAX}, got {value}")
     for room, offset in s.sensor_offsets.items():
         if abs(offset) > SENSOR_OFFSET_MAX:
             raise ValueError(f"sensor_offsets.{room} must be within ±{SENSOR_OFFSET_MAX}, got {offset}")
@@ -193,22 +206,19 @@ def settings_from_saved(data: Any) -> Settings:
     return settings
 
 
-def restore_controller_state(data: Mapping[str, Any] | None, now: datetime) -> ControllerState:
-    """State saved before a restart, minus the timers that only make sense while running."""
-    if data is None:
-        return ControllerState.initial(now)
-    try:
-        st = from_data(ControllerState, data, strict=False)
-        for load in (st.load, st.shadow_load):
-            if load.emergency_until is not None and load.emergency_until <= now:
-                load.emergency_until = None
-    except ValueError, TypeError:  # unreadable or from an incompatible version: start clean
-        return ControllerState.initial(now)
+def restore_controller_state(data: Any, now: datetime) -> ControllerState:
+    """State saved before a restart, minus the timers that only make sense while running.
+
+    Raises ValueError if the data cannot be read; keys from a newer version are ignored.
+    """
+    st = from_data(ControllerState, data, strict=False)
     st.boiler.overheat_since = None
     st.last_tick_at = None
     for load in (st.load, st.shadow_load):
         load.over_since = None
         load.under_since = None
+        if load.emergency_until is not None and not before(now, load.emergency_until):
+            load.emergency_until = None
     for ac in (st.ac, st.shadow_ac):
         ac.fail_since = {}
     return st

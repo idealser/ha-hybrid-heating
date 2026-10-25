@@ -4,8 +4,6 @@ Three rooms (living incl. kitchen/hall, bedroom, child) coupled to each other an
 a water loop heated by the boiler rods, radiators by the EN 442 formula, and two inverter ACs.
 """
 
-from __future__ import annotations
-
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta

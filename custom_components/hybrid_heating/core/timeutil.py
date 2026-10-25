@@ -4,8 +4,6 @@ Two datetimes that share a tzinfo subtract and compare as wall-clock times in Py
 hour off across a DST change. Every timer in the core goes through these helpers instead.
 """
 
-from __future__ import annotations
-
 from datetime import UTC, datetime, timedelta
 
 

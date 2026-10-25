@@ -1,14 +1,11 @@
-from __future__ import annotations
-
 import pytest
 
 from custom_components.hybrid_heating.core.types import Room, Settings
-from custom_components.hybrid_heating.entity_map import EntityMap
 from custom_components.hybrid_heating.snapshot import build_snapshot
 from tests.conftest import T0
-from tests.fakes import FAKE_ENTITIES, now_view, st
+from tests.fakes import FAKE_MAP, now_view, st
 
-E = EntityMap.from_mapping(FAKE_ENTITIES)
+E = FAKE_MAP
 
 
 def test_now_scenario_snapshot():

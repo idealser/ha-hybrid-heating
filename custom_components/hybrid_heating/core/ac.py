@@ -1,7 +1,5 @@
 """Per-room heat-pump (AC) control: each AC follows its own room sensor."""
 
-from __future__ import annotations
-
 from dataclasses import dataclass, field
 from datetime import datetime
 

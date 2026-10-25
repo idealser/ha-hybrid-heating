@@ -1,12 +1,9 @@
 """Hybrid Heating integration for Home Assistant."""
 
-from __future__ import annotations
-
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
-from homeassistant.util import dt as dt_util
 
 from .alerts import notify_pending_giveback
 from .const import DOMAIN
@@ -48,8 +45,9 @@ async def async_unload_entry(hass: HomeAssistant, entry: HybridHeatingConfigEntr
 
 async def async_remove_entry(hass: HomeAssistant, entry: HybridHeatingConfigEntry) -> None:
     store = HybridStore(hass, entry.entry_id)
-    loaded = await store.async_load(dt_util.now())
-    items = pending_giveback(loaded.takeover, EntityMap.from_entry_dicts(entry.data, entry.options))
+    items = pending_giveback(
+        await store.async_load_takeover(), EntityMap.from_entry_dicts(entry.data, entry.options)
+    )
     if items:  # a device was unavailable when the module let go: tell the user what to set back
         notify_pending_giveback(hass, items)
     await store.async_remove()

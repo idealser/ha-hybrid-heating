@@ -1,8 +1,6 @@
 """Setup wizard and options: which entities Hybrid Heating reads and drives."""
 
-from __future__ import annotations
-
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Mapping
 from typing import Any
 
 import probatio as vol
@@ -89,18 +87,16 @@ def _entity_schema(fields: Fields) -> dict[vol.Marker, Any]:
     }
 
 
-def boiler_schema() -> vol.Schema:
-    return vol.Schema(_entity_schema(BOILER_FIELDS))
+BOILER_SCHEMA = vol.Schema(_entity_schema(BOILER_FIELDS))
+ROOMS_SCHEMA = vol.Schema(_entity_schema(ROOM_FIELDS))
 
 
-def rooms_schema() -> vol.Schema:
-    return vol.Schema(_entity_schema(ROOM_FIELDS))
-
-
-def coexistence_schema(disable_automation: bool = False) -> vol.Schema:
+def coexistence_schema(values: Mapping[str, Any]) -> vol.Schema:
+    """The consent box defaults to what was chosen before, or off."""
+    consent = bool(values.get(CONF_DISABLE_OVERPOWER_AUTOMATION, False))
     return vol.Schema(
         _entity_schema(COEXISTENCE_FIELDS)
-        | {vol.Required(CONF_DISABLE_OVERPOWER_AUTOMATION, default=disable_automation): BooleanSelector()}
+        | {vol.Required(CONF_DISABLE_OVERPOWER_AUTOMATION, default=consent): BooleanSelector()}
     )
 
 
@@ -153,15 +149,14 @@ class HybridHeatingConfigFlow(ConfigFlow, domain=DOMAIN):
         return HybridHeatingOptionsFlow()
 
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
-        return await _step(self, "user", boiler_schema(), self._values, user_input, self.async_step_rooms)
+        return await _step(self, "user", BOILER_SCHEMA, self._values, user_input, self.async_step_rooms)
 
     async def async_step_rooms(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
-        return await _step(
-            self, "rooms", rooms_schema(), self._values, user_input, self.async_step_coexistence
-        )
+        return await _step(self, "rooms", ROOMS_SCHEMA, self._values, user_input, self.async_step_coexistence)
 
     async def async_step_coexistence(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
-        return await _step(self, "coexistence", coexistence_schema(), self._values, user_input, self._finish)
+        schema = coexistence_schema(self._values)
+        return await _step(self, "coexistence", schema, self._values, user_input, self._finish)
 
     async def _finish(self) -> ConfigFlowResult:
         return self.async_create_entry(title=TITLE, data=self._values)
@@ -177,18 +172,14 @@ class HybridHeatingOptionsFlow(OptionsFlowWithReload):
         if not self._values:
             entry = self.config_entry
             self._values = {k: v for k, v in {**entry.data, **entry.options}.items() if v is not None}
-        return await _step(self, "init", boiler_schema(), self._values, user_input, self.async_step_rooms)
+        return await _step(self, "init", BOILER_SCHEMA, self._values, user_input, self.async_step_rooms)
 
     async def async_step_rooms(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
-        return await _step(
-            self, "rooms", rooms_schema(), self._values, user_input, self.async_step_coexistence
-        )
+        return await _step(self, "rooms", ROOMS_SCHEMA, self._values, user_input, self.async_step_coexistence)
 
     async def async_step_coexistence(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
-        flag = bool(self._values.get(CONF_DISABLE_OVERPOWER_AUTOMATION, False))
-        return await _step(
-            self, "coexistence", coexistence_schema(flag), self._values, user_input, self._finish
-        )
+        schema = coexistence_schema(self._values)
+        return await _step(self, "coexistence", schema, self._values, user_input, self._finish)
 
     async def _finish(self) -> ConfigFlowResult:
         # Options override data key by key, so a cleared optional entity is stored as None.

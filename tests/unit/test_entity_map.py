@@ -1,11 +1,9 @@
-from __future__ import annotations
-
 import pytest
 
 from custom_components.hybrid_heating.const import OPTIONAL_KEYS
 from custom_components.hybrid_heating.core.types import Room
 from custom_components.hybrid_heating.entity_map import EntityMap
-from tests.fakes import FAKE_ENTITIES
+from tests.fakes import FAKE_ENTITIES, fake_entities
 
 
 def test_from_mapping_reads_every_key():
@@ -26,13 +24,13 @@ def test_from_mapping_reads_every_key():
 
 
 def test_optional_keys_missing_are_none():
-    e = EntityMap.from_mapping({k: v for k, v in FAKE_ENTITIES.items() if k not in OPTIONAL_KEYS})
+    e = EntityMap.from_mapping(fake_entities(*OPTIONAL_KEYS))
     assert e.quiet == {Room.LIVING: None, Room.BEDROOM: None} and e.overpower_automation is None
 
 
 def test_missing_required_key_raises():
     with pytest.raises(KeyError):
-        EntityMap.from_mapping({k: v for k, v in FAKE_ENTITIES.items() if k != "boiler_call"})
+        EntityMap.from_mapping(fake_entities("boiler_call"))
 
 
 def test_options_override_data():
@@ -42,7 +40,7 @@ def test_options_override_data():
 
 def test_to_mapping_round_trips():
     assert EntityMap.from_mapping(FAKE_ENTITIES).to_mapping() == FAKE_ENTITIES
-    m = {k: v for k, v in FAKE_ENTITIES.items() if k not in OPTIONAL_KEYS}
+    m = fake_entities(*OPTIONAL_KEYS)
     assert EntityMap.from_mapping(EntityMap.from_mapping(m).to_mapping()) == EntityMap.from_mapping(m)
 
 
@@ -59,5 +57,5 @@ def test_trigger_ids():
         "climate.bedroom_ac",
         "automation.overpower_throttle",
     ]
-    no_auto = EntityMap.from_mapping({k: v for k, v in FAKE_ENTITIES.items() if k != "overpower_automation"})
+    no_auto = EntityMap.from_mapping(fake_entities("overpower_automation"))
     assert "automation.overpower_throttle" not in no_auto.trigger_ids()

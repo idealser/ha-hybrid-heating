@@ -4,8 +4,6 @@ Used when no real history is available (CI, public clones). Real history goes to
 local/data/season.csv, which is never committed.
 """
 
-from __future__ import annotations
-
 import math
 import random
 from datetime import datetime, timedelta

@@ -1,7 +1,5 @@
 """Turn the Home Assistant states of the chosen entities into the controller's Snapshot."""
 
-from __future__ import annotations
-
 from collections.abc import Mapping
 from datetime import datetime
 from types import MappingProxyType

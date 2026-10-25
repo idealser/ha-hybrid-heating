@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import json
 
 import pytest
@@ -158,13 +156,16 @@ def test_restore_drops_transient_timers():
     assert r.shadow_ac.owned == {Room.BEDROOM} and r.shadow_ac.fail_since == {}
 
 
-def test_restore_keeps_future_emergency_and_handles_garbage():
+def test_restore_keeps_future_emergency():
     st = ControllerState.initial(T0)
     st.load.emergency_until = T0 + sec(20)
     assert restore_controller_state(to_data(st), T0).load.emergency_until == T0 + sec(20)
-    assert restore_controller_state({"boiler": "garbage"}, T0) == ControllerState.initial(T0)
-    assert restore_controller_state(None, T0) == ControllerState.initial(T0)
-    assert restore_controller_state({"boiler": {"integral": "x"}}, T0) == ControllerState.initial(T0)
+
+
+@pytest.mark.parametrize("garbage", [{"boiler": "garbage"}, None, {"boiler": {"integral": "x"}}])
+def test_restore_rejects_garbage(garbage):
+    with pytest.raises(ValueError):  # the store resets the section and reports it
+        restore_controller_state(garbage, T0)
 
 
 def test_restore_ignores_unknown_keys_from_a_newer_version():

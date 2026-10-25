@@ -1,7 +1,6 @@
-from __future__ import annotations
-
+import re
 from dataclasses import replace
-from types import MappingProxyType
+from pathlib import Path
 
 from hypothesis import given, settings
 from hypothesis import strategies as hs
@@ -10,17 +9,14 @@ from custom_components.hybrid_heating.core.controller import ControllerState, ti
 from custom_components.hybrid_heating.core.types import (
     Decision,
     Layer,
-    LayerMode,
     Preset,
     Reason,
     Room,
-    Settings,
 )
 from custom_components.hybrid_heating.texts import (
-    CORE_CODES,
+    ALERTS,
     LANGS,
     PRESET_NAMES,
-    SYSTEM_CODES,
     TEXTS,
     ZONE_KEYS,
     ZONE_NAMES,
@@ -28,18 +24,38 @@ from custom_components.hybrid_heating.texts import (
     render_reason,
     render_status,
 )
-from tests.conftest import T0, sec, snap
+from tests.conftest import ALL_ACTIVE, T0, sec, snap
 
 SMOOTH = Reason(Layer.BOILER, "smooth_on", {"driver": 22.6, "target": 23.0, "flow": 36.1, "correction": 0.8})
 
 
-def test_every_known_code_has_en_and_ru():
-    assert len(CORE_CODES) == 31 and len(SYSTEM_CODES) == 19
-    assert len(set(CORE_CODES + SYSTEM_CODES)) == len(CORE_CODES + SYSTEM_CODES)
-    for code in CORE_CODES + SYSTEM_CODES:
-        assert set(TEXTS[code]) == {"en", "ru"}, code
+# Lines that emit a reason code: Reason(...), the takeover's _system(...), the AC layer's _reason(...),
+# the boiler's decide functions (return <call>, "<code>"), and the coordinator's stop and release calls.
+EMITTING = re.compile(
+    r"Reason\(|_system\(|_reason\(|return (?:True|False), |async_stop\(|async_release_all\("
+)
+CODE = re.compile(r'"([a-z]+(?:_[a-z]+)+)"')
+
+
+def emitted_codes() -> set[str]:
+    codes: set[str] = set()
+    for path in Path("custom_components/hybrid_heating").rglob("*.py"):
+        for line in path.read_text(encoding="utf-8").splitlines():
+            if EMITTING.search(line):
+                codes |= set(CODE.findall(line))
+    return codes
+
+
+def test_every_emitted_code_has_en_and_ru_and_every_text_is_used():
+    emitted = emitted_codes()
+    assert {"smooth_on", "ac_quiet_off", "pause_boiler", "season_ended", "thermostat_taken"} <= emitted
+    assert emitted == set(TEXTS)
+    for code, texts in TEXTS.items():
+        assert set(texts) == {"en", "ru"}, code
         for lang in LANGS:
             assert render_reason(Reason("system", code), lang)
+    for key, texts in ALERTS.items():
+        assert set(texts) == {"en", "ru"}, key
 
 
 def test_names_per_language():
@@ -140,7 +156,7 @@ def test_lang_for():
     )
 )
 def test_codes_emitted_by_tick_have_texts(steps):
-    s = replace(Settings(), layers=MappingProxyType({layer: LayerMode.ACTIVE for layer in Layer}))
+    s = ALL_ACTIVE
     state = ControllerState.initial(T0)
     for i, (t_out, room, load, flag) in enumerate(steps):
         d = tick(

@@ -1,7 +1,5 @@
 """Constants shared by the Home Assistant glue. No Home Assistant imports here."""
 
-from __future__ import annotations
-
 from typing import Final
 
 DOMAIN: Final = "hybrid_heating"

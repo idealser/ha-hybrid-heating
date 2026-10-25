@@ -3,8 +3,6 @@
 Numbers come from the user's HA data and equipment (see the design spec, section 2).
 """
 
-from __future__ import annotations
-
 AC_RATED_AT_C = 7.0
 AC_LIMIT_C = -15.0
 AC_CAPACITY_SHARE_AT_LIMIT = 3.0 / 6.2  # combined units: ~6.2 kW at +7 °C, ~3.0 kW at -15 °C

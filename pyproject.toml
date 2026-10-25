@@ -1,6 +1,6 @@
 [project]
 name = "ha-hybrid-heating"
-version = "0.1.0"
+version = "0.2.0"
 description = "Hybrid heating for Home Assistant: heat pumps first, weather-compensated electric boiler, load shedding"
 readme = "README.md"
 requires-python = ">=3.14.2"
@@ -21,6 +21,8 @@ dev = [
 pythonpath = ["."]
 testpaths = ["tests"]
 markers = ["replay: slow season replay", "real_time: do not freeze the clock"]
+# Raised inside Home Assistant itself (its HTTP server), not by this integration
+filterwarnings = ["ignore:Inheritance class HomeAssistantApplication:DeprecationWarning"]
 asyncio_mode = "auto"
 
 [tool.ruff]

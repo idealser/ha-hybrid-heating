@@ -1,7 +1,5 @@
 """Weather-compensated flow curve."""
 
-from __future__ import annotations
-
 from itertools import pairwise
 
 from .types import CurveSettings

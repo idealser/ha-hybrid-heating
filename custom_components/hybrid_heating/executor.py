@@ -1,7 +1,5 @@
 """Run commands as Home Assistant service calls, one by one, never raising."""
 
-from __future__ import annotations
-
 import asyncio
 import logging
 from collections.abc import Sequence

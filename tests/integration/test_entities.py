@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from custom_components.hybrid_heating.core.types import BoilerMode, Preset
 from tests.integration.conftest import log_codes, setup_integration
 

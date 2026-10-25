@@ -15,10 +15,10 @@ from custom_components.hybrid_heating.core.types import (
     SeasonSettings,
     Settings,
 )
-from tests.conftest import T0, codes, snap, triples
+from tests.conftest import ALL_ACTIVE, T0, codes, snap, triples, with_layers
 
 FROST = {Room.LIVING: 22.8, Room.BEDROOM: 22.6, Room.CHILD: 21.9, Room.BATH: 23.0}
-active = replace(Settings(), layers=MappingProxyType({layer: LayerMode.ACTIVE for layer in Layer}))
+active = ALL_ACTIVE
 
 
 def test_now_scenario_acs_and_smooth_boiler():
@@ -147,12 +147,7 @@ def test_observed_load_never_touches_boiler_but_reports():
 
 
 def test_background_shift_follows_real_ac_state_not_observed_decisions():
-    observe_acs = replace(
-        Settings(),
-        layers=MappingProxyType(
-            {Layer.BOILER: LayerMode.ACTIVE, Layer.AC: LayerMode.OBSERVE, Layer.LOAD: LayerMode.ACTIVE}
-        ),
-    )
+    observe_acs = with_layers(ALL_ACTIVE, ac=LayerMode.OBSERVE)
     observed = tick(observe_acs, snap(t_out=5.0), ControllerState.initial(T0))
     live = tick(active, snap(t_out=5.0), ControllerState.initial(T0))
     assert observed.flow_target - live.flow_target == pytest.approx(3.0, abs=0.01)
@@ -191,9 +186,7 @@ def test_ac_room_offset_moves_ac_target():
 
 
 def _layers(boiler, ac, load):
-    return replace(
-        Settings(), layers=MappingProxyType({Layer.BOILER: boiler, Layer.AC: ac, Layer.LOAD: load})
-    )
+    return with_layers(boiler=boiler, ac=ac, load=load)
 
 
 def test_live_load_gives_back_what_it_took_while_boiler_is_observed():

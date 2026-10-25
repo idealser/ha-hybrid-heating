@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import pytest
 
 from custom_components.hybrid_heating.commands import (
@@ -10,10 +8,9 @@ from custom_components.hybrid_heating.commands import (
 )
 from custom_components.hybrid_heating.core.types import Action, ActionKind, Room
 from custom_components.hybrid_heating.entity_map import EntityMap
-from tests.fakes import FAKE_ENTITIES, st
+from tests.fakes import BOILER, FAKE_MAP, fake_entities, st
 
-E = EntityMap.from_mapping(FAKE_ENTITIES)
-BOILER = "climate.boiler"
+E = FAKE_MAP
 
 
 def test_boiler_flow_rounding_and_clamp():
@@ -66,7 +63,7 @@ def test_quiet_on_off():
         ("turn_off", None),
         ("set_fan_mode", "auto"),
     ]
-    no_quiet = EntityMap.from_mapping({k: v for k, v in FAKE_ENTITIES.items() if k != "quiet_bedroom"})
+    no_quiet = EntityMap.from_mapping(fake_entities("quiet_bedroom"))
     assert [
         c.service for c in commands_for(Action(ActionKind.AC_QUIET, True, Room.BEDROOM), no_quiet, {})
     ] == ["set_fan_mode"]

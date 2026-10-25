@@ -1,7 +1,5 @@
 """Controller actions as Home Assistant service calls. No Home Assistant imports here."""
 
-from __future__ import annotations
-
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any, Literal
@@ -48,8 +46,12 @@ def outcome_for(action: Action, results: Sequence[CommandResult]) -> ActionOutco
     return ActionOutcome(action, worst.status, worst.detail)
 
 
-def _switch(entity_id: str, on: bool) -> Command:
-    return Command("switch", "turn_on" if on else "turn_off", {"entity_id": entity_id})
+def toggle(domain: str, entity_id: str, on: bool) -> Command:
+    return Command(domain, "turn_on" if on else "turn_off", {"entity_id": entity_id})
+
+
+def set_hvac_mode(entity_id: str, mode: str) -> Command:
+    return Command("climate", "set_hvac_mode", {"entity_id": entity_id, "hvac_mode": mode})
 
 
 def _boiler_flow(value: float, entity_id: str, view: StateView) -> float:
@@ -75,7 +77,7 @@ def commands_for(action: Action, entities: EntityMap, view: StateView) -> list[C
     kind, value = action.kind, action.value
     match kind:
         case ActionKind.BOILER_CALL:
-            return [_switch(entities.boiler_call, bool(value))]
+            return [toggle("switch", entities.boiler_call, bool(value))]
         case ActionKind.BOILER_FLOW:
             flow = _boiler_flow(float(value), entities.boiler_flow, view)
             return [
@@ -86,10 +88,9 @@ def commands_for(action: Action, entities: EntityMap, view: StateView) -> list[C
         case ActionKind.BOILER_RODS:
             return [Command("number", "set_value", {"entity_id": entities.boiler_rods, "value": int(value)})]
         case ActionKind.WATER_HEATER:
-            return [_switch(entities.water_heater, bool(value))]
+            return [toggle("switch", entities.water_heater, bool(value))]
         case ActionKind.AC_HVAC:
-            ac = entities.acs[_room(action)]
-            return [Command("climate", "set_hvac_mode", {"entity_id": ac, "hvac_mode": value})]
+            return [set_hvac_mode(entities.acs[_room(action)], str(value))]
         case ActionKind.AC_SETPOINT:
             ac = entities.acs[_room(action)]
             return [Command("climate", "set_temperature", {"entity_id": ac, "temperature": value})]
@@ -100,4 +101,4 @@ def commands_for(action: Action, entities: EntityMap, view: StateView) -> list[C
             fan = Command("climate", "set_fan_mode", {"entity_id": ac, "fan_mode": "low" if on else "auto"})
             if quiet is None:
                 return [fan]
-            return [fan, _switch(quiet, True)] if on else [_switch(quiet, False), fan]
+            return [fan, toggle("switch", quiet, True)] if on else [toggle("switch", quiet, False), fan]

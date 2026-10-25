@@ -1,7 +1,5 @@
 """Human-readable reasons and the status line, in English and Russian. No Home Assistant imports here."""
 
-from __future__ import annotations
-
 import math
 from collections.abc import Mapping
 from typing import Any
@@ -10,64 +8,6 @@ from .core.types import Decision, Layer, Preset, Reason
 
 LANGS = ("en", "ru")
 STATUS_MAX = 255
-
-BOILER_CODES = (
-    "smooth_on",
-    "smooth_overheat_wait",
-    "smooth_paused",
-    "smooth_resumed",
-    "classic_on_avg",
-    "classic_on_coldest",
-    "classic_off",
-    "season_idle",
-    "zone_boiler_off",
-)
-AC_CODES = (
-    "ac_started",
-    "ac_step_up",
-    "ac_step_down",
-    "ac_stopped",
-    "ac_not_coping",
-    "ac_unavailable",
-    "ac_manual_left_alone",
-    "ac_manual_off",
-    "ac_manual_hold",
-    "ac_quiet_on",
-    "ac_quiet_off",
-)
-LOAD_CODES = (
-    "pause_boiler",
-    "shed_water_heater",
-    "shed_rod",
-    "restore_rod",
-    "restore_water_heater",
-    "load_unknown",
-    "rods_budget_exhausted",
-)
-SEASON_CODES = ("season_started", "season_ended", "outdoor_unavailable", "rooms_unavailable")
-CORE_CODES = BOILER_CODES + AC_CODES + LOAD_CODES + SEASON_CODES
-
-SYSTEM_CODES = (
-    "thermostat_taken",
-    "thermostat_restored",
-    "thermostat_user_override",
-    "thermostat_reasserted",
-    "automation_disabled",
-    "automation_restored",
-    "automation_user_override",
-    "automation_still_enabled",
-    "boiler_settings_restored",
-    "water_heater_restored",
-    "acs_released",
-    "tick_failed",
-    "failsafe_released",
-    "settings_changed",
-    "module_enabled",
-    "module_disabled",
-    "restored_after_restart",
-    "store_section_reset",
-    "setup_failed_released",
-)
 
 
 def _t(en: str, ru: str) -> Mapping[str, str]:
@@ -244,6 +184,22 @@ ROOM_NAMES: Mapping[str, Mapping[str, str]] = {
 }
 OBSERVE_SUFFIX: Mapping[str, str] = {"en": " (observe only)", "ru": " (только наблюдение)"}
 SIGNED_KEYS = frozenset({"correction", "error"})
+ALERTS: Mapping[str, Mapping[str, str]] = {
+    "unreachable": _t(
+        "{entities} did not respond ({detail}). Hybrid Heating keeps trying; please check the device.",
+        "{entities} не ответил ({detail}). Hybrid Heating продолжает попытки; проверьте устройство.",
+    ),
+    "failsafe": _t(
+        "Hybrid Heating failed several cycles in a row, switched itself off and gave control back. "
+        "Download the diagnostics and switch it on again when the cause is fixed.",
+        "Hybrid Heating несколько раз подряд не смог выполнить такт, выключился и вернул управление. "
+        "Скачайте диагностику и включите его снова, когда причина устранена.",
+    ),
+    "giveback": _t(
+        "Hybrid Heating was removed while it could not give everything back. Please restore by hand: {items}",
+        "Hybrid Heating удалён, но не смог всё вернуть. Восстановите вручную: {items}",
+    ),
+}
 _STATUS: Mapping[str, Mapping[str, str]] = {
     "en": {"disabled": "Disabled", "starting": "Starting", "observe": "Observe"},
     "ru": {"disabled": "Выключено", "starting": "Запуск", "observe": "Наблюдение"},
@@ -264,8 +220,17 @@ def _number(value: float, lang: str, signed: bool) -> str:
     return text.replace(".", ",") if lang == "ru" else text
 
 
+def zone_key(zone: int) -> str | None:
+    return ZONE_KEYS[zone] if 0 <= zone < len(ZONE_KEYS) else None
+
+
 def zone_name(zone: int, lang: str) -> str:
-    return ZONE_NAMES[lang][ZONE_KEYS[zone]] if 0 <= zone < len(ZONE_KEYS) else str(zone)
+    key = zone_key(zone)
+    return ZONE_NAMES[lang][key] if key is not None else str(zone)
+
+
+def render_alert(key: str, lang: str, **values: str) -> str:
+    return ALERTS[key][lang if lang in LANGS else "en"].format(**values)
 
 
 def _value(key: str, value: Any, lang: str) -> str:

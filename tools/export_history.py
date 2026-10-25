@@ -12,8 +12,6 @@ Usage (token from HA profile -> Security -> Long-lived access tokens):
 The CSV goes to local/data/season.csv by default; the season replay picks it up from there.
 """
 
-from __future__ import annotations
-
 import argparse
 import asyncio
 import csv

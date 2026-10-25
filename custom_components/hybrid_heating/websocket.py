@@ -4,10 +4,6 @@ hybrid_heating/get_config, hybrid_heating/set_config (admins only) and hybrid_he
 Reserved for later stages: subscribe, mark, suggestions, apply_suggestion, forecast.
 """
 
-from __future__ import annotations
-
-import copy
-from datetime import datetime
 from typing import Any
 
 import probatio as vol
@@ -16,13 +12,11 @@ from homeassistant.components.websocket_api.connection import ActiveConnection
 from homeassistant.components.websocket_api.decorators import async_response, require_admin, websocket_command
 from homeassistant.core import HomeAssistant, callback
 
-from .codec import to_data
-from .const import DOMAIN, VERSION, WS_PREFIX
+from .codec import parse_ts
+from .const import DOMAIN, LOG_SIZE, WS_PREFIX
 from .coordinator import HybridHeatingCoordinator
 from .core.types import Reason
 from .texts import LANGS, lang_for, render_reason
-
-LOG_LIMIT_MAX = 500
 
 
 @callback
@@ -42,14 +36,7 @@ def _not_loaded(connection: ActiveConnection, msg: dict[str, Any]) -> None:
 
 
 def _config(c: HybridHeatingCoordinator) -> dict[str, Any]:
-    return {
-        "version": VERSION,
-        "enabled": c.enabled,
-        "settings": to_data(c.settings),
-        "entities": c.entities.to_mapping(),
-        "takeover": to_data(c.takeover),
-        "status": c.data.status if c.data is not None else None,
-    }
+    return {**c.config_view(), "status": c.data.status}
 
 
 @websocket_command({vol.Required("type"): f"{WS_PREFIX}get_config"})
@@ -79,16 +66,17 @@ async def ws_set_config(hass: HomeAssistant, connection: ActiveConnection, msg: 
 
 
 def _with_texts(entry: dict[str, Any], lang: str) -> dict[str, Any]:
-    out = copy.deepcopy(entry)
-    for r in out.get("reasons", []):
-        r["text"] = render_reason(Reason("system", r.get("code", "?"), r.get("data") or {}), lang)
-    return out
+    reasons = [
+        {**r, "text": render_reason(Reason("system", r.get("code", "?"), r.get("data") or {}), lang)}
+        for r in entry.get("reasons", [])
+    ]
+    return {**entry, "reasons": reasons}
 
 
 @websocket_command(
     {
         vol.Required("type"): f"{WS_PREFIX}get_log",
-        vol.Optional("limit", default=100): vol.All(int, vol.Range(min=1, max=LOG_LIMIT_MAX)),
+        vol.Optional("limit", default=100): vol.All(int, vol.Range(min=1, max=LOG_SIZE)),
         vol.Optional("before"): str,
         vol.Optional("language"): vol.In(list(LANGS)),
     }
@@ -99,15 +87,11 @@ def ws_get_log(hass: HomeAssistant, connection: ActiveConnection, msg: dict[str,
     if c is None:
         _not_loaded(connection, msg)
         return
-    before: datetime | None = None
-    if "before" in msg:
-        try:
-            before = datetime.fromisoformat(msg["before"])
-        except ValueError:
-            connection.send_error(
-                msg["id"], "invalid_format", f"before is not an ISO time: {msg['before']!r}"
-            )
-            return
+    before = None
+    if "before" in msg and (before := parse_ts(msg["before"])) is None:
+        message = f"before must be an ISO time with a time zone: {msg['before']!r}"
+        connection.send_error(msg["id"], "invalid_format", message)
+        return
     lang = msg.get("language") or lang_for(hass.config.language)
     entries = [_with_texts(e, lang) for e in c.log.latest(msg["limit"], before)]
     connection.send_result(msg["id"], {"entries": entries})

@@ -1,7 +1,5 @@
 """Boiler control: driver room, PI room correction, smooth/classic heat call, write budget."""
 
-from __future__ import annotations
-
 from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import date, datetime

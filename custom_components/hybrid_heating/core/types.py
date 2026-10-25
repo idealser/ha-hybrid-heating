@@ -4,8 +4,6 @@ Everything here is plain data. Defaults are the values fixed by the design spec
 (docs/superpowers/specs/2026-10-25-hybrid-heating-design.md).
 """
 
-from __future__ import annotations
-
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import datetime, time

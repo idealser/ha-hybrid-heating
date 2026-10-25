@@ -1,11 +1,17 @@
-from __future__ import annotations
+import pytest
 
 from custom_components.hybrid_heating.core.types import Layer, LayerMode
-from tests.integration.conftest import ACTIVE_ALL, ENTRY_ID, log_codes, setup_integration
-
-BOILER = "climate.boiler"
-TH = "climate.thermostat"
-AUT = "automation.overpower_throttle"
+from custom_components.hybrid_heating.takeover import ThermostatPrev
+from tests.fakes import AUT, BOILER, CALL
+from tests.integration.conftest import (
+    ACTIVE_ALL,
+    LOG_KEY,
+    STORE_KEY,
+    THERMOSTAT_OFF,
+    log_codes,
+    log_reasons,
+    setup_integration,
+)
 
 
 async def test_observe_default_makes_no_service_calls(hass, fake_home, calls):
@@ -20,8 +26,8 @@ async def test_observe_default_makes_no_service_calls(hass, fake_home, calls):
 async def test_active_now_scenario_executes_through_services(hass, fake_home, calls, stored):
     stored(settings=ACTIVE_ALL)
     entry = await setup_integration(hass)
-    assert calls.log[0] == ("climate", "set_hvac_mode", {"entity_id": TH, "hvac_mode": "off"})
-    assert ("switch", "turn_on", {"entity_id": "switch.boiler_heat_call"}) in calls.log
+    assert calls.log[0] == THERMOSTAT_OFF
+    assert ("switch", "turn_on", {"entity_id": CALL}) in calls.log
     flow = [d["temperature"] for _, _, d in calls.log if d["entity_id"] == BOILER]
     assert len(flow) == 1 and 32.0 <= flow[0] <= 37.0
     for ac in ("climate.living_ac", "climate.bedroom_ac"):
@@ -46,22 +52,19 @@ async def test_boiler_active_ac_observe_no_background_shift(hass, fake_home, cal
 async def test_state_saved_to_store(hass, fake_home, hass_storage):
     entry = await setup_integration(hass)
     await entry.runtime_data.async_flush()
-    data = hass_storage[f"hybrid_heating.{ENTRY_ID}"]["data"]
+    data = hass_storage[STORE_KEY]["data"]
     assert data["enabled"] is True and data["settings"]["layers"]["boiler"] == "observe"
     assert "boiler" in data["controller"] and "shadow_load" in data["controller"]
     assert data["takeover"]["thermostat_prev"] is None and data["window"] and data["saved_at"]
-    assert len(hass_storage[f"hybrid_heating.{ENTRY_ID}.log"]["data"]["entries"]) >= 1
+    assert len(hass_storage[LOG_KEY]["data"]["entries"]) >= 1
 
 
 async def test_patch_settings_merges_logs_and_rejects_bad(hass, fake_home, calls):
-    import pytest
-
     c = (await setup_integration(hass)).runtime_data
     s = await c.async_patch_settings({"targets": {"comfort": 22.0}}, source="ws")
     assert s.targets.comfort == 22.0 and c.settings is s
     assert "settings_changed" in log_codes(c)
-    entry = [e for e in c.log.to_data() if e["reasons"][0]["code"] == "settings_changed"][-1]
-    assert entry["reasons"][0]["data"] == {"keys": "targets", "source": "ws"}
+    assert log_reasons(c, "settings_changed")[-1]["data"] == {"keys": "targets", "source": "ws"}
     with pytest.raises(ValueError):
         await c.async_patch_settings({"layers": {"boiler": "turbo"}}, source="ws")
     assert c.settings is s
@@ -70,5 +73,5 @@ async def test_patch_settings_merges_logs_and_rejects_bad(hass, fake_home, calls
 async def test_patch_to_active_takes_over_at_once(hass, fake_home, calls):
     c = (await setup_integration(hass)).runtime_data
     await c.async_patch_settings({"layers": {"boiler": "active"}}, source="ws")
-    assert calls.log[0] == ("climate", "set_hvac_mode", {"entity_id": TH, "hvac_mode": "off"})
-    assert c.takeover.thermostat_prev == {"hvac_mode": "heat", "temperature": 22.5}
+    assert calls.log[0] == THERMOSTAT_OFF
+    assert c.takeover.thermostat_prev == ThermostatPrev("heat", 22.5)

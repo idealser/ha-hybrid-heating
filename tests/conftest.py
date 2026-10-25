@@ -1,10 +1,19 @@
-from __future__ import annotations
-
 from collections.abc import Iterable
+from dataclasses import replace
 from datetime import datetime, timedelta
+from types import MappingProxyType
 from zoneinfo import ZoneInfo
 
-from custom_components.hybrid_heating.core.types import ActionKind, Decision, Reason, Room, Snapshot
+from custom_components.hybrid_heating.core.types import (
+    ActionKind,
+    Decision,
+    Layer,
+    LayerMode,
+    Reason,
+    Room,
+    Settings,
+    Snapshot,
+)
 
 TZ = ZoneInfo("Europe/Berlin")  # DST: 02:00-02:59 repeats on 2026-10-25
 T0 = datetime(2026, 11, 1, 15, 0, tzinfo=TZ)
@@ -43,3 +52,12 @@ def snap(**overrides) -> Snapshot:
     }
     base.update(overrides)
     return Snapshot(**base)
+
+
+def with_layers(settings: Settings | None = None, **modes: LayerMode) -> Settings:
+    """Settings with some layers switched, e.g. with_layers(boiler=LayerMode.ACTIVE)."""
+    base = settings or Settings()
+    return replace(base, layers=MappingProxyType({**base.layers, **{Layer(k): v for k, v in modes.items()}}))
+
+
+ALL_ACTIVE = with_layers(**dict.fromkeys(Layer, LayerMode.ACTIVE))

@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import json
 import re
 from pathlib import Path
@@ -18,19 +16,6 @@ def test_manifest_hacs_and_version():
     hacs = json.loads(Path("hacs.json").read_text(encoding="utf-8"))
     assert hacs == {"name": "Hybrid Heating", "homeassistant": "2026.10.0"}
     assert (PKG / "brand/icon.png").stat().st_size > 0
-
-
-def test_translations_have_the_same_keys():
-    def keys(d: dict, prefix: str = "") -> set[str]:
-        out: set[str] = set()
-        for k, v in d.items():
-            out |= keys(v, f"{prefix}{k}.") if isinstance(v, dict) else {prefix + k}
-        return out
-
-    en = json.loads((PKG / "translations/en.json").read_text(encoding="utf-8"))
-    ru = json.loads((PKG / "translations/ru.json").read_text(encoding="utf-8"))
-    assert keys(en) == keys(ru)
-    assert en["config"]["error"]["entity_not_found"] and en["config"]["abort"]["single_instance_allowed"]
 
 
 HA_MODULES = {

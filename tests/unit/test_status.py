@@ -1,7 +1,4 @@
-from __future__ import annotations
-
 from dataclasses import replace
-from types import MappingProxyType
 
 from custom_components.hybrid_heating.core.controller import ControllerState
 from custom_components.hybrid_heating.core.load import LoadState
@@ -9,7 +6,6 @@ from custom_components.hybrid_heating.core.types import (
     BoilerMode,
     Decision,
     Layer,
-    LayerMode,
     Preset,
     Reason,
     Settings,
@@ -22,7 +18,7 @@ from custom_components.hybrid_heating.status import (
     load_shedding_active,
     next_load_deadline,
 )
-from tests.conftest import T0, sec
+from tests.conftest import ALL_ACTIVE, T0, sec
 
 
 def test_load_pending():
@@ -63,8 +59,7 @@ def test_desired_call_and_shedding():
     st2 = ControllerState.initial(T0)
     st2.shadow_load.water_heater_shed = True
     assert layer_load_state(Settings(), st2) is st2.shadow_load
-    all_active = replace(Settings(), layers=MappingProxyType(dict.fromkeys(Layer, LayerMode.ACTIVE)))
-    assert layer_load_state(all_active, st2) is st2.load
+    assert layer_load_state(ALL_ACTIVE, st2) is st2.load
 
 
 def test_next_load_deadline():

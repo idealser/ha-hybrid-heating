@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from custom_components.hybrid_heating.commands import ActionOutcome, Command, CommandResult
 from custom_components.hybrid_heating.core.types import (
     Action,

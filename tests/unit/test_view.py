@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import pytest
 
 from custom_components.hybrid_heating.view import as_float, as_switch, attr_float, is_available, power_kw

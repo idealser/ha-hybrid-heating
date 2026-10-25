@@ -1,11 +1,10 @@
-from __future__ import annotations
-
 import pytest
 from homeassistant.setup import async_setup_component
 
 from custom_components.hybrid_heating.const import DOMAIN
 from custom_components.hybrid_heating.core.types import Settings
-from tests.integration.conftest import ENTRY_ID, setup_integration
+from tests.fakes import CALL
+from tests.integration.conftest import STORE_KEY, THERMOSTAT_OFF, setup_integration
 
 
 async def ws(hass_ws_client, hass, **msg):
@@ -19,7 +18,7 @@ async def test_get_config_defaults(hass, fake_home, hass_ws_client):
     r = await ws(hass_ws_client, hass, type="hybrid_heating/get_config")
     assert r["success"] and r["result"]["version"] == "0.2.0" and r["result"]["enabled"] is True
     assert r["result"]["settings"]["layers"] == {"boiler": "observe", "ac": "observe", "load": "observe"}
-    assert r["result"]["entities"]["boiler_call"] == "switch.boiler_heat_call"
+    assert r["result"]["entities"]["boiler_call"] == CALL
     assert r["result"]["takeover"]["thermostat_prev"] is None
     assert r["result"]["status"].startswith("Observe · Warm")
 
@@ -39,8 +38,8 @@ async def test_set_config_merges_persists_and_takes_over(
         and r["result"]["settings"]["targets"]["comfort"] == 23.5
         and c.settings.targets.eco == 21.5
     )
-    assert hass_storage[f"hybrid_heating.{ENTRY_ID}"]["data"]["settings"]["targets"]["comfort"] == 23.5
-    assert ("climate", "set_hvac_mode", {"entity_id": "climate.thermostat", "hvac_mode": "off"}) in calls.log
+    assert hass_storage[STORE_KEY]["data"]["settings"]["targets"]["comfort"] == 23.5
+    assert THERMOSTAT_OFF in calls.log
     assert r["result"]["takeover"]["thermostat_prev"] == {"hvac_mode": "heat", "temperature": 22.5}
 
 

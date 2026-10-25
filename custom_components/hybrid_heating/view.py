@@ -1,10 +1,8 @@
 """Reading Home Assistant states without importing Home Assistant: `hass.states` and a dict both fit."""
 
-from __future__ import annotations
-
 import math
 from collections.abc import Mapping
-from typing import Any, Protocol
+from typing import Any, Protocol, TypeGuard
 
 UNAVAILABLE = frozenset({"unavailable", "unknown"})
 
@@ -21,7 +19,7 @@ class StateView(Protocol):
     def get(self, entity_id: str, /) -> StateLike | None: ...
 
 
-def is_available(s: StateLike | None) -> bool:
+def is_available(s: StateLike | None) -> TypeGuard[StateLike]:
     return s is not None and s.state not in UNAVAILABLE
 
 
@@ -36,7 +34,7 @@ def _finite(value: Any) -> float | None:
 
 
 def as_float(s: StateLike | None) -> float | None:
-    return _finite(s.state) if s is not None and is_available(s) else None
+    return _finite(s.state) if is_available(s) else None
 
 
 def as_switch(s: StateLike | None) -> bool | None:
@@ -48,7 +46,7 @@ def as_switch(s: StateLike | None) -> bool | None:
 def power_kw(s: StateLike | None) -> float | None:
     """Power in kW from a sensor in W (or without a unit) or kW; any other unit is unreadable."""
     value = as_float(s)
-    if s is None or value is None:
+    if not is_available(s) or value is None:
         return None
     unit = s.attributes.get("unit_of_measurement")
     if unit in (None, "W"):
@@ -59,4 +57,4 @@ def power_kw(s: StateLike | None) -> float | None:
 
 
 def attr_float(s: StateLike | None, name: str) -> float | None:
-    return _finite(s.attributes.get(name)) if s is not None and is_available(s) else None
+    return _finite(s.attributes.get(name)) if is_available(s) else None

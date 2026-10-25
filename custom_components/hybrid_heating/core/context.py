@@ -1,7 +1,5 @@
 """Where are we: outdoor zone, heating season, effective target."""
 
-from __future__ import annotations
-
 from datetime import datetime
 from itertools import pairwise
 

@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import json
 from pathlib import Path
 
@@ -76,3 +74,19 @@ def test_state_names_match_texts():
         "smooth": "Плавный",
         "classic": "Классический",
     }
+
+
+def test_errors_and_aborts_are_translated():
+    for lang in ("en", "ru"):
+        config = load(lang)["config"]
+        assert config["error"]["entity_not_found"] and config["abort"]["single_instance_allowed"]
+        assert load(lang)["options"]["error"] == config["error"]
+
+
+def test_options_pages_mirror_the_setup_pages():
+    # Home Assistant does not resolve [%key:...%] references for custom integrations, so the options
+    # pages are a copy of the setup pages; only the first page's description differs.
+    for lang in ("en", "ru"):
+        setup, options = load(lang)["config"]["step"], load(lang)["options"]["step"]
+        assert {**options["init"], "description": None} == {**setup["user"], "description": None}
+        assert options["rooms"] == setup["rooms"] and options["coexistence"] == setup["coexistence"]

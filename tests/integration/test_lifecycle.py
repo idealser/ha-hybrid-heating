@@ -1,14 +1,17 @@
-from __future__ import annotations
-
 import pytest
 
 from custom_components.hybrid_heating.core.types import Settings
-from tests.integration.conftest import ENTRY_ID, log_codes, setup_integration
-
-BOILER = "climate.boiler"
-TH = "climate.thermostat"
-AUT = "automation.overpower_throttle"
-RESTORE_TH = ("climate", "set_temperature", {"entity_id": TH, "temperature": 22.5, "hvac_mode": "heat"})
+from custom_components.hybrid_heating.takeover import ThermostatPrev
+from tests.fakes import AUT, BOILER, TH
+from tests.integration.conftest import (
+    LOG_KEY,
+    RESTORE_TH,
+    STORE_KEY,
+    THERMOSTAT_OFF,
+    log_codes,
+    log_reasons,
+    setup_integration,
+)
 
 
 async def test_unload_restores_thermostat_and_automation(hass, fake_home, calls, stored):
@@ -40,11 +43,10 @@ async def test_restart_restores_state_without_retaking(hass, fake_home, calls, s
     c = (await setup_integration(hass)).runtime_data
     assert c.state.boiler.integral == pytest.approx(0.4, abs=0.05) and c.state.boiler.writes_today in (7, 8)
     assert c.state.load.rods_shed == 1 and c.state.load.over_since is None
-    assert c.takeover.thermostat_prev == {"hvac_mode": "heat", "temperature": 22.5}
+    assert c.takeover.thermostat_prev == ThermostatPrev("heat", 22.5)
     assert not any(d["entity_id"] == TH for *_, d in calls.log)
     assert "restored_after_restart" in log_codes(c)
-    restored = next(r for e in c.log.to_data() for r in e["reasons"] if r["code"] == "restored_after_restart")
-    assert restored["data"]["saved_at"] == "2026-11-01T14:58:00+01:00"
+    assert log_reasons(c, "restored_after_restart")[0]["data"]["saved_at"] == "2026-11-01T14:58:00+01:00"
 
 
 async def test_reload_restores_boiler_and_counts_writes(hass, fake_home, calls, stored):
@@ -75,8 +77,7 @@ async def test_corrupt_section_resets_only_that_section(hass, fake_home, calls, 
         "set_temperature",
         {"entity_id": TH, "temperature": 21.5, "hvac_mode": "heat"},
     ) in calls.log
-    resets = [r["data"] for e in c.log.to_data() for r in e["reasons"] if r["code"] == "store_section_reset"]
-    assert resets == [{"section": "settings"}]
+    assert [r["data"] for r in log_reasons(c, "store_section_reset")] == [{"section": "settings"}]
 
 
 async def test_set_enabled_false_releases_and_stops(hass, fake_home, calls, stored):
@@ -90,7 +91,7 @@ async def test_set_enabled_false_releases_and_stops(hass, fake_home, calls, stor
     await c.async_refresh()
     assert calls.log == []
     await c.async_set_enabled(True)
-    assert ("climate", "set_hvac_mode", {"entity_id": TH, "hvac_mode": "off"}) in calls.log
+    assert THERMOSTAT_OFF in calls.log
     assert "module_enabled" in log_codes(c)
 
 
@@ -103,8 +104,7 @@ async def test_disabled_survives_restart(hass, fake_home, calls, stored):
 async def test_remove_entry_deletes_store(hass, fake_home, hass_storage):
     entry = await setup_integration(hass)
     await entry.runtime_data.async_flush()
-    assert f"hybrid_heating.{ENTRY_ID}" in hass_storage
+    assert STORE_KEY in hass_storage
     await hass.config_entries.async_remove(entry.entry_id)
     await hass.async_block_till_done()
-    assert f"hybrid_heating.{ENTRY_ID}" not in hass_storage
-    assert f"hybrid_heating.{ENTRY_ID}.log" not in hass_storage
+    assert STORE_KEY not in hass_storage and LOG_KEY not in hass_storage

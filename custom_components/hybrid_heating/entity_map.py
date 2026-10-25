@@ -1,11 +1,9 @@
 """Which Home Assistant entities the module reads and drives, as chosen in the setup wizard."""
 
-from __future__ import annotations
-
 from collections.abc import Mapping
 from dataclasses import dataclass
 from types import MappingProxyType
-from typing import Any
+from typing import Any, Self
 
 from .const import (
     CONF_AC_BEDROOM,
@@ -46,6 +44,22 @@ QUIET_KEYS: Mapping[Room, str] = MappingProxyType(
 )
 
 
+# Required single entities; each field is named exactly like its config key.
+SINGLE_KEYS = (
+    CONF_BOILER_CALL,
+    CONF_BOILER_FLOW,
+    CONF_BOILER_RODS,
+    CONF_FLOW_TEMPERATURE,
+    CONF_ACTIVE_RODS,
+    CONF_BOILER_POWER,
+    CONF_TOTAL_POWER,
+    CONF_WATER_HEATER,
+    CONF_THERMOSTAT,
+    CONF_OUTDOOR,
+    CONF_WEATHER,
+)
+
+
 @dataclass(frozen=True)
 class EntityMap:
     boiler_call: str
@@ -66,20 +80,10 @@ class EntityMap:
     disable_overpower_automation: bool
 
     @classmethod
-    def from_mapping(cls, m: Mapping[str, Any]) -> EntityMap:
+    def from_mapping(cls, m: Mapping[str, Any]) -> Self:
         """Build from config entry data. A missing optional key is None; a missing required one raises."""
         return cls(
-            boiler_call=m[CONF_BOILER_CALL],
-            boiler_flow=m[CONF_BOILER_FLOW],
-            boiler_rods=m[CONF_BOILER_RODS],
-            flow_temperature=m[CONF_FLOW_TEMPERATURE],
-            active_rods=m[CONF_ACTIVE_RODS],
-            boiler_power=m[CONF_BOILER_POWER],
-            total_power=m[CONF_TOTAL_POWER],
-            water_heater=m[CONF_WATER_HEATER],
-            thermostat=m[CONF_THERMOSTAT],
-            outdoor=m[CONF_OUTDOOR],
-            weather=m[CONF_WEATHER],
+            **{key: m[key] for key in SINGLE_KEYS},
             rooms=MappingProxyType({room: m[key] for room, key in ROOM_KEYS.items()}),
             acs=MappingProxyType({room: m[key] for room, key in AC_KEYS.items()}),
             quiet=MappingProxyType({room: m.get(key) or None for room, key in QUIET_KEYS.items()}),
@@ -88,25 +92,13 @@ class EntityMap:
         )
 
     @classmethod
-    def from_entry_dicts(cls, data: Mapping[str, Any], options: Mapping[str, Any]) -> EntityMap:
+    def from_entry_dicts(cls, data: Mapping[str, Any], options: Mapping[str, Any]) -> Self:
         return cls.from_mapping({**data, **options})
 
     def to_mapping(self) -> dict[str, Any]:
         """Inverse of from_mapping; optional keys without an entity are left out."""
-        out: dict[str, Any] = {
-            CONF_BOILER_CALL: self.boiler_call,
-            CONF_BOILER_FLOW: self.boiler_flow,
-            CONF_BOILER_RODS: self.boiler_rods,
-            CONF_FLOW_TEMPERATURE: self.flow_temperature,
-            CONF_ACTIVE_RODS: self.active_rods,
-            CONF_BOILER_POWER: self.boiler_power,
-            CONF_TOTAL_POWER: self.total_power,
-            CONF_WATER_HEATER: self.water_heater,
-            CONF_THERMOSTAT: self.thermostat,
-            CONF_OUTDOOR: self.outdoor,
-            CONF_WEATHER: self.weather,
-            CONF_DISABLE_OVERPOWER_AUTOMATION: self.disable_overpower_automation,
-        }
+        out: dict[str, Any] = {key: getattr(self, key) for key in SINGLE_KEYS}
+        out[CONF_DISABLE_OVERPOWER_AUTOMATION] = self.disable_overpower_automation
         out |= {key: self.rooms[room] for room, key in ROOM_KEYS.items()}
         out |= {key: self.acs[room] for room, key in AC_KEYS.items()}
         out |= {key: q for room, key in QUIET_KEYS.items() if (q := self.quiet[room]) is not None}

@@ -5,8 +5,6 @@ Like the user's old HA automation, but one step further: an overload held for
 and lowers the rods by one so the overload does not come back when the pause ends.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 from datetime import datetime
 
