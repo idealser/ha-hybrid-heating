@@ -17,6 +17,7 @@ from .core.types import Settings
 
 TARGET_MIN = 5.0
 TARGET_MAX = 30.0
+SENSOR_OFFSET_MAX = 5.0
 
 
 def to_data(obj: Any) -> Any:
@@ -149,6 +150,9 @@ def validate_settings(s: Settings) -> None:
         value = getattr(s.targets, name)
         if not TARGET_MIN <= value <= TARGET_MAX:
             raise ValueError(f"targets.{name} must be within {TARGET_MIN}-{TARGET_MAX}, got {value}")
+    for room, offset in s.sensor_offsets.items():
+        if abs(offset) > SENSOR_OFFSET_MAX:
+            raise ValueError(f"sensor_offsets.{room} must be within ±{SENSOR_OFFSET_MAX}, got {offset}")
     if not s.load.restore_kw < s.load.limit_kw:
         raise ValueError(f"load.restore_kw {s.load.restore_kw} must be below load.limit_kw {s.load.limit_kw}")
     if not 1 <= s.season.window_hours <= WINDOW_MAX_HOURS:

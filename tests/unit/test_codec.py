@@ -77,11 +77,19 @@ def test_merge_accepts_int_for_float_and_returns_float():
         {"targets": {"night_start": "25:00"}},
         {"curve": 5},
         {"future_key": 1},
+        {"sensor_offsets": {"child": 5.5}},
+        {"sensor_offsets": {"kitchen": 0.3}},
     ],
 )
 def test_merge_rejects_bad_patch(patch):
     with pytest.raises(ValueError):
         merge_settings(Settings(), patch)
+
+
+def test_merge_sets_sensor_offsets():
+    s = merge_settings(Settings(), {"sensor_offsets": {"child": 0.3}})
+    assert dict(s.sensor_offsets) == {Room.CHILD: 0.3}
+    assert to_data(s)["sensor_offsets"] == {"child": 0.3}
 
 
 def test_unknown_key_error_names_the_path():

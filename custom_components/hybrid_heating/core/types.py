@@ -181,6 +181,10 @@ def _default_room_offsets() -> Mapping[Room, float]:
     return MappingProxyType({Room.CHILD: -1.0})
 
 
+def _no_sensor_offsets() -> Mapping[Room, float]:
+    return MappingProxyType({})
+
+
 def _default_layers() -> Mapping[Layer, LayerMode]:
     return MappingProxyType({layer: LayerMode.OBSERVE for layer in Layer})
 
@@ -198,6 +202,9 @@ class Settings:
     season: SeasonSettings = field(default_factory=SeasonSettings)
     layers: Mapping[Layer, LayerMode] = field(default_factory=_default_layers)
     room_offsets: Mapping[Room, float] = field(default_factory=_default_room_offsets)
+    # Calibration added to each room sensor's reading before anything uses it. The core never
+    # applies it: readings arrive in the Snapshot already corrected.
+    sensor_offsets: Mapping[Room, float] = field(default_factory=_no_sensor_offsets)
     timezone: str = "UTC"
     outdoor_stale_after_s: int = 21600
 
