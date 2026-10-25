@@ -100,7 +100,7 @@ test('why an AC is off', () => {
 
 test('classic mode waiting', () => {
   const s = mergeSettings(SETTINGS, { boiler: { mode: 'classic' } });
-  const st = { ...STATUS_NOW, boiler: { ...STATUS_NOW.boiler, call_on: false } } as HhStatus;
+  const st = { ...STATUS_NOW, boiler: { ...STATUS_NOW.boiler, call_on: false, wanted: false } } as HhStatus;
   expect(buildWhy(st, s, 'ru').items).toContainEqual({
     pip: 'idle',
     lead: 'Котёл ждёт.',
@@ -131,7 +131,7 @@ test('classic mode heating for the coldest room', () => {
 });
 
 test('smooth mode paused, and the boiler off in the zone', () => {
-  const paused = { ...STATUS_NOW, boiler: { ...STATUS_NOW.boiler, call_on: false } } as HhStatus;
+  const paused = { ...STATUS_NOW, boiler: { ...STATUS_NOW.boiler, call_on: false, wanted: false } } as HhStatus;
   expect(buildWhy(paused, SETTINGS, 'ru').items[1]).toEqual({
     pip: 'idle',
     lead: 'Котёл на паузе:',
@@ -185,4 +185,11 @@ test('banners: observe, disabled and off season', () => {
   expect(buildWhy({ ...STATUS_NOW, enabled: false }, activeAll, 'en').banners).toEqual([
     'The module is off: the heating runs without it.',
   ]);
+});
+
+test('in observe mode why follows the module, not the old thermostat', () => {
+  const st = { ...STATUS_NOW, boiler: { ...STATUS_NOW.boiler, call_on: false, wanted: true } } as HhStatus;
+  expect(buildWhy(st, SETTINGS, 'en').items[1]!.lead).toBe('Radiators stay warm:');
+  const off = { ...STATUS_NOW, boiler: { ...STATUS_NOW.boiler, call_on: true, wanted: false } } as HhStatus;
+  expect(buildWhy(off, SETTINGS, 'en').items[1]!.lead).toBe('The boiler is paused:');
 });

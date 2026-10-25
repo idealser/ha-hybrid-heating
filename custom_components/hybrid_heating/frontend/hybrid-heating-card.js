@@ -1999,7 +1999,7 @@ function en(e, t, n) {
 		lead: z(n, "why.boiler_off"),
 		text: z(n, "why.boiler_off_text")
 	};
-	let i = e.boiler.call_on === !0;
+	let i = e.boiler.wanted ?? e.boiler.call_on === !0;
 	if (t.boiler.mode === "smooth") {
 		if (!i) return {
 			pip: "idle",

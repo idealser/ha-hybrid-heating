@@ -25,6 +25,7 @@
  "boiler": {
   "available": true,
   "call_on": true,
+  "wanted": true,
   "setpoint": 36.0,
   "rods_limit": 2,
   "writes_left": 41

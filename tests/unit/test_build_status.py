@@ -165,3 +165,23 @@ def test_the_card_fixture_is_what_the_integration_sends_now():
     assert {**fixture["driver"], "temp": pytest.approx(s["driver"]["temp"], abs=0.01)} == s["driver"]
     for key in ("curve_flow", "flow_target", "correction"):
         assert fixture[key] == pytest.approx(s[key], abs=0.05), key
+
+
+def test_status_says_what_the_module_wants_from_the_boiler():
+    """In observe mode the heat call belongs to the old thermostat; the card explains the module's."""
+    s = now_status(settings=Settings())
+    assert s["boiler"]["wanted"] is True and s["boiler"]["call_on"] is False  # observing: the device is off
+    r = build_status(
+        settings=Settings(),
+        snap=None,
+        decision=None,
+        state=ControllerState.initial(T0),
+        revision=1,
+        log_seq=0,
+        suggestions_seq=0,
+        enabled=True,
+        now=T0,
+        language="en",
+        text=lambda r, lang: r.code,
+    )
+    assert r["boiler"]["wanted"] is None

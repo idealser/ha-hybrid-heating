@@ -194,6 +194,8 @@ export interface HhStatus {
   boiler: {
     available: boolean;
     call_on: boolean | null;
+    /** The module's own decision (also in observe mode, where call_on belongs to the old thermostat). */
+    wanted: boolean | null;
     setpoint: number | null;
     rods_limit: number | null;
     writes_left: number;

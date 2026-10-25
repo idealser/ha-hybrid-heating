@@ -116,7 +116,8 @@ function boilerItem(st: HhStatus, s: HhSettings, L: Lang): WhyItem {
     return { pip: 'cold', lead: t(L, 'why.boiler_unavailable'), text: t(L, 'why.boiler_unavailable_text') };
   if (s.zones.policies[st.zone]?.boiler === 'off')
     return { pip: 'idle', lead: t(L, 'why.boiler_off'), text: t(L, 'why.boiler_off_text') };
-  const heating = st.boiler.call_on === true;
+  // The module's decision, not the device: in observe mode the old thermostat drives the call.
+  const heating = st.boiler.wanted ?? st.boiler.call_on === true;
   if (s.boiler.mode === 'smooth') {
     if (!heating)
       return {

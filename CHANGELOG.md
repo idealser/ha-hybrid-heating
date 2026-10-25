@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1
+
+- "Why" explains the module's own boiler decision. In observe mode the heat call still belongs to the old thermostat, so the card said "the boiler is paused" while the module would heat. The status now reports it as `boiler.wanted`.
+
 ## 0.3.0
 
 The dashboard card.

@@ -169,6 +169,8 @@ def build_status(
         "boiler": {
             "available": snap.boiler_available if snap is not None else False,
             "call_on": snap.boiler_call_on if snap is not None else None,
+            # What the module wants, live or observed: in observe mode the call belongs to the old thermostat.
+            "wanted": desired_call(settings, decision, state, now),
             "setpoint": snap.boiler_setpoint if snap is not None else None,
             "rods_limit": snap.boiler_rods_limit if snap is not None else None,
             "writes_left": budget_remaining(settings.boiler, state.boiler, now),
