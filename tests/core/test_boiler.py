@@ -5,6 +5,7 @@ import pytest
 from custom_components.hybrid_heating.core.boiler import (
     BoilerState,
     budget_remaining,
+    carry_integral,
     decide_call_classic,
     decide_call_smooth,
     driver_temperature,
@@ -111,3 +112,22 @@ def test_unreadable_setpoint_compares_with_what_we_wrote():
     )
     assert should_write_flow(s, st, None, 50.4, now) is False
     assert should_write_flow(s, st, None, 52.0, now) is True
+
+
+def test_a_curve_change_takes_over_what_the_correction_already_adds():
+    from dataclasses import replace
+
+    from custom_components.hybrid_heating.core.types import BoilerSettings, CurveSettings
+
+    s = BoilerSettings()  # ki 1/h: the integral (°C·h) adds as many °C to the flow
+    old = CurveSettings()
+    raised = replace(old, points=tuple((t, f + 1.5 if t == 5 else f) for t, f in old.points))
+    lowered = replace(old, points=tuple((t, f - 1.5 if t == 5 else f) for t, f in old.points))
+    assert carry_integral(s, 2.0, old, raised, 5.0) == pytest.approx(0.5)  # the curve takes 1.5° of the 2°
+    assert carry_integral(s, 1.0, old, raised, 5.0) == pytest.approx(0.0)  # never past zero
+    assert carry_integral(s, 0.0, old, raised, 5.0) == 0.0  # nothing to take: the change acts at once
+    assert carry_integral(s, 2.0, old, lowered, 5.0) == 2.0  # the other way: nothing to take
+    assert carry_integral(s, -2.0, old, lowered, 5.0) == pytest.approx(-0.5)
+    assert carry_integral(s, 2.0, old, raised, 15.0) == 2.0  # the change does not reach this weather
+    assert carry_integral(s, 2.0, old, raised, None) == 2.0
+    assert carry_integral(replace(s, ki_per_hour=2.0), 2.0, old, raised, 5.0) == pytest.approx(1.25)

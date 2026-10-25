@@ -25,13 +25,16 @@ from .core.learning import (
     StaleSuggestion,
     Suggestion,
     TickSample,
+    correction_suggestions,
     curve_suggestion,
+    drop_corrections,
     feedback_suggestion,
     is_fresh,
     lever_changes,
     make_mark,
     morning_sample,
     prune,
+    record_correction,
     suggestion_patch,
     tick_sample,
     upsert_pending,
@@ -45,7 +48,7 @@ from .core.model import (
     update_tally,
 )
 from .core.timeutil import before, elapsed_s
-from .core.types import Decision, Reason, Room, Settings, Snapshot
+from .core.types import BoilerMode, Decision, Reason, Room, Settings, Snapshot
 from .suggestion_texts import heat_loss_view, suggestion_view
 
 if TYPE_CHECKING:
@@ -85,6 +88,8 @@ class LearningManager:
         self.morning_buffer: list[TickSample] = []
         self._last_minute: datetime | None = None
         self._saved_at: datetime | None = None
+        self._target: float | None = None  # the target the boiler follows, and since when
+        self._target_since: datetime | None = None
 
     async def async_load(self, now: datetime) -> None:
         raw = await self._c.store.async_load_learning()
@@ -137,14 +142,32 @@ class LearningManager:
             return  # one count per minute, however often the loop ticks
         self._last_minute = minute
         update_tally(self.data.tallies, snap, d)
+        sample = tick_sample(settings, snap, d, state)
         if LEARNING.morning_start <= snap.now.time() < LEARNING.morning_end:
             if self.morning_buffer and self.morning_buffer[0].at.date() != snap.now.date():
                 self.morning_buffer.clear()
-            sample = tick_sample(settings, snap, d, state)
             if sample is not None:
                 self.morning_buffer.append(sample)
+        if sample is not None:
+            self._count_correction(settings, sample)
         if self._saved_at is None or elapsed_s(snap.now, self._saved_at) >= SAVE_DELAY_S:
             self._save_soon()  # every few minutes, like the module's own state
+
+    def _count_correction(self, settings: Settings, sample: TickSample) -> None:
+        """What the room correction adds: in smooth mode, on the curve, once the target has held a while."""
+        if sample.target != self._target:
+            self._target, self._target_since = sample.target, sample.at
+        since = self._target_since
+        settled = since is not None and not before(sample.at, since + LEARNING.settle_after_target_change)
+        if (
+            settings.boiler.mode is BoilerMode.SMOOTH
+            and sample.on_curve
+            and sample.t_out is not None
+            and settled
+        ):
+            self.data.corrections = record_correction(
+                self.data.corrections, sample.at, sample.t_out, sample.correction
+            )
 
     async def _async_morning_end(self, now: datetime) -> None:
         await self.async_morning_check(dt_util.as_local(now))
@@ -162,6 +185,8 @@ class LearningManager:
         )
         if sg is not None:
             self.offer(sg, now)
+        for found in correction_suggestions(self.data.corrections, settings, self.data.resolutions, now):
+            self.offer(found, now)
         self.data = prune(self.data, settings, now)
         await self.async_save()
         await self._c.async_flush()
@@ -262,6 +287,11 @@ class LearningManager:
             changed = lever_changes(old, new)
             for setting in changed:
                 self.data.changed[setting] = now
+            if "curve.shift" in changed:
+                self.data.corrections = drop_corrections(self.data.corrections, None)
+            points = {int(c.rpartition(".")[2]) for c in changed if c.startswith("curve.points.")}
+            if points:
+                self.data.corrections = drop_corrections(self.data.corrections, points)
             stale = [p for p in self.data.pending if not is_fresh(new, p)]
             if stale:
                 self._withdraw(stale, now)
@@ -309,6 +339,8 @@ class LearningManager:
         sg = self._pending(suggestion_id)
         self.data.pending.remove(sg)
         self.data.resolutions.append(Resolution(sg, "dismissed", now))
+        if sg.setting.startswith("curve.points.") and sg.band is not None:  # answered: the band starts afresh
+            self.data.corrections = drop_corrections(self.data.corrections, {sg.band})
         data: dict[str, float | str | bool] = {"setting": sg.setting}
         self._c.log.record_system(now, [Reason("system", "suggestion_dismissed", data)])
         await self._async_decided()

@@ -4,8 +4,9 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import date, datetime
 
+from .curve import raw_curve
 from .timeutil import elapsed_s
-from .types import DRIVER_ROOMS, BoilerSettings, Room
+from .types import DRIVER_ROOMS, BoilerSettings, CurveSettings, Room
 
 
 @dataclass
@@ -120,3 +121,25 @@ def register_write(st: BoilerState, now: datetime, *, flow: bool = True) -> None
     st.writes_today += 1
     if flow:
         st.last_write_at = now
+
+
+def carry_integral(
+    s: BoilerSettings, integral: float, old: CurveSettings, new: CurveSettings, t_out: float | None
+) -> float:
+    """The integral after a curve change: the curve takes over what the correction already adds the same way.
+
+    Raising a point the correction was covering for would otherwise add the same degrees twice, until the
+    integral unwinds. Only what the integral holds in that direction moves, never past zero: a change the
+    correction was not covering for acts at once.
+    """
+    if t_out is None or s.ki_per_hour <= 0:
+        return integral
+    delta = raw_curve(new, t_out) - raw_curve(old, t_out)
+    held = s.ki_per_hour * integral  # °C the integral adds to the flow now
+    if delta > 0:
+        moved = min(delta, max(0.0, held))
+    elif delta < 0:
+        moved = max(delta, min(0.0, held))
+    else:
+        return integral
+    return integral - moved / s.ki_per_hour

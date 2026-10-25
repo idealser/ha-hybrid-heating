@@ -3,14 +3,15 @@
 from datetime import date, datetime
 from unittest.mock import patch
 
+import pytest
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import EVENT_HOMEASSISTANT_FINAL_WRITE
 from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
 from custom_components.hybrid_heating.codec import to_data
 from custom_components.hybrid_heating.const import STORAGE_VERSION
-from custom_components.hybrid_heating.core.learning import LearningData, TickSample
-from custom_components.hybrid_heating.core.types import LayerMode
+from custom_components.hybrid_heating.core.learning import CorrectionDay, LearningData, TickSample
+from custom_components.hybrid_heating.core.types import CurveSettings, LayerMode
 from tests.conftest import TZ, with_layers
 from tests.core.test_learning import COLD3
 from tests.integration.conftest import STORE_KEY, log_codes, log_reasons, setup_integration, step
@@ -130,3 +131,53 @@ async def test_learning_is_saved_while_the_loop_runs(hass, fake_home, hass_stora
     for _ in range(6):
         await step(freezer, hass, 60)
     assert hass_storage[LEARN_KEY]["data"]["tallies"]["2026-11-01"]["ticks"] >= 6
+
+
+async def test_corrections_count_with_the_boiler_on_its_curve_once_the_target_has_settled(
+    hass, fake_home, freezer, calls, stored
+):
+    stored(settings=to_data(with_layers(boiler=LayerMode.ACTIVE)))
+    c = (await setup_integration(hass)).runtime_data
+    for _ in range(130):
+        await step(freezer, hass, 60)
+    minutes = sum(d.minutes for d in c.learning.data.corrections)
+    assert 9 <= minutes <= 12  # the first 2 hours after the start (a target change) do not count
+    assert {d.band for d in c.learning.data.corrections} == {15}  # +13.8° outside
+
+
+async def test_observed_corrections_are_not_the_curves(hass, fake_home, freezer):
+    c = (await setup_integration(hass)).runtime_data  # the boiler observed: its flow is the old thermostat's
+    for _ in range(130):
+        await step(freezer, hass, 60)
+    assert c.learning.data.corrections == []
+
+
+async def test_the_morning_check_offers_what_the_correction_kept_adding(
+    hass, fake_home, hass_storage, freezer
+):
+    freezer.move_to(datetime(2026, 11, 12, 8, 59, tzinfo=TZ))
+    days = [CorrectionDay(date(2026, 11, d), 5, 2.0 * 120, 120) for d in (10, 11, 12)]
+    saved_learning(hass_storage, LearningData(corrections=days))
+    c = (await setup_integration(hass)).runtime_data
+    freezer.move_to(datetime(2026, 11, 12, 9, 0, tzinfo=TZ))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+    (sg,) = c.learning.data.pending
+    assert (sg.key, sg.new, sg.evidence["mean_correction"]) == ("curve:5:up", 46.0, 2.0)
+    await c.learning.async_dismiss(sg.id)
+    assert c.learning.data.corrections == []  # answered: that band starts afresh
+
+
+async def test_a_curve_change_starts_its_bands_afresh_and_takes_over_the_correction(
+    hass, fake_home, hass_storage
+):
+    days = [CorrectionDay(date(2026, 11, 1), b, 10.0, 60) for b in (5, 10)]
+    saved_learning(hass_storage, LearningData(corrections=days))
+    c = (await setup_integration(hass)).runtime_data
+    c.state.last_t_out, c.state.boiler.integral = 5.0, 2.0  # the correction adds 2° at +5°
+    points = [[t, f + 1.5 if t == 5 else f] for t, f in CurveSettings().points]
+    await c.async_patch_settings({"curve": {"points": points}}, "ws")
+    assert [d.band for d in c.learning.data.corrections] == [10]
+    assert c.state.boiler.integral == pytest.approx(0.5)  # the point took 1.5° of it: the flow does not jump
+    await c.async_patch_settings({"curve": {"shift": 1.0}}, "ws")
+    assert c.learning.data.corrections == []

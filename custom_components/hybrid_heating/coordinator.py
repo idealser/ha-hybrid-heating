@@ -42,9 +42,10 @@ from .const import (
     TICK_S,
     VERSION,
 )
+from .core.boiler import carry_integral
 from .core.controller import ControllerState, tick
 from .core.timeutil import after, before, elapsed_s
-from .core.types import Decision, Layer, LayerMode, Reason, Settings, Snapshot
+from .core.types import BoilerMode, Decision, Layer, LayerMode, Reason, Settings, Snapshot
 from .decision_log import DecisionLog
 from .entity_map import EntityMap
 from .executor import async_run_commands
@@ -481,6 +482,12 @@ class HybridHeatingCoordinator(DataUpdateCoordinator[TickResult]):
         new = merge_settings(self.settings, changes)
         old, self.settings = self.settings, new
         self.revision += 1
+        if new.curve != old.curve and new.boiler.mode is BoilerMode.SMOOTH:
+            # The curve takes over what the room correction already added, so the flow does not jump twice.
+            boiler = self.state.boiler
+            boiler.integral = carry_integral(
+                new.boiler, boiler.integral, old.curve, new.curve, self.state.last_t_out
+            )
         if on_merged is not None:
             on_merged()
         self.learning.on_settings_changed(old, new, now)

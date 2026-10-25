@@ -42,6 +42,12 @@ class LearningSettings:
     keep_mornings: timedelta = timedelta(days=14)
     keep_resolutions: timedelta = timedelta(days=45)  # longer than a dismissal lasts
     keep_tallies: timedelta = timedelta(days=35)  # longer than the heat-loss window
+    # The room correction as a signal (smooth mode): what it adds on average, by band, over a week
+    correction_threshold: float = 1.5
+    correction_window: timedelta = timedelta(days=7)
+    correction_min_days: int = 3
+    correction_min_minutes: int = 60  # in a band on one day, for the day to count
+    settle_after_target_change: timedelta = timedelta(hours=2)  # a morning warm-up is not the curve's
 
 
 LEARNING = LearningSettings()
@@ -188,6 +194,7 @@ class TickSample:
     driver: float  # the room the boiler follows, against its own target
     target: float
     on_curve: bool
+    correction: float = 0.0  # what the room correction added to the curve's flow
 
 
 def _on_curve(settings: Settings, snap: Snapshot, d: Decision, st: ControllerState) -> bool:
@@ -213,8 +220,11 @@ def tick_sample(settings: Settings, snap: Snapshot, d: Decision, st: ControllerS
     if reason is None:
         return None
     driver, target = reason.data["driver"], reason.data["target"]
+    correction = reason.data.get("correction", 0.0)
     assert isinstance(driver, (int, float)) and isinstance(target, (int, float))
-    return TickSample(snap.now, snap.t_out, float(driver), float(target), _on_curve(settings, snap, d, st))
+    assert isinstance(correction, (int, float))
+    on_curve = _on_curve(settings, snap, d, st)
+    return TickSample(snap.now, snap.t_out, float(driver), float(target), on_curve, float(correction))
 
 
 @dataclass(frozen=True)
@@ -248,6 +258,19 @@ def morning_sample(
 
 def _morning_end(day: date, now: datetime, ls: LearningSettings) -> datetime:
     return datetime.combine(day, ls.morning_end, tzinfo=now.tzinfo)
+
+
+def _curve_step(settings: Settings, band: int, up: bool, ls: LearningSettings) -> tuple[float, float] | None:
+    """(old, new) for moving the band's point a step; None at a flow limit or where the curve would fall."""
+    points = settings.curve.points
+    i = next(i for i, (t, _) in enumerate(points) if t == band)
+    old = points[i][1]
+    new = round(old + ls.curve_step if up else old - ls.curve_step, 1)
+    if up and (old >= settings.curve.flow_max or (i + 1 < len(points) and new > points[i + 1][1])):
+        return None  # at the limit already, or it would rise above the colder point
+    if not up and (old <= settings.curve.flow_min or (i > 0 and new < points[i - 1][1])):
+        return None
+    return old, new
 
 
 def curve_suggestion(
@@ -285,14 +308,10 @@ def curve_suggestion(
         return None
     if is_suppressed(resolutions, key, band, now, ls):
         return None
-    points = settings.curve.points
-    i = next(i for i, (t, _) in enumerate(points) if t == band)
-    old = points[i][1]
-    new = round(old + ls.curve_step if up else old - ls.curve_step, 1)
-    if up and (old >= settings.curve.flow_max or (i + 1 < len(points) and new > points[i + 1][1])):
-        return None  # at the limit already, or it would rise above the colder point
-    if not up and (old <= settings.curve.flow_min or (i > 0 and new < points[i - 1][1])):
+    step = _curve_step(settings, band, up, ls)
+    if step is None:
         return None
+    old, new = step
     evidence = {
         "mornings": len(run),
         "mean_error": round(sum(m.error for m in run) / len(run), 2),
@@ -417,6 +436,7 @@ class LearningData:
     tallies: dict[date, DayTally] = field(default_factory=dict)
     heat_loss: HeatLossEstimate | None = None  # the latest estimate, whatever its status
     heat_loss_ok: HeatLossEstimate | None = None  # the latest good one: what estimates use
+    corrections: list[CorrectionDay] = field(default_factory=list)
     changed: dict[str, datetime] = field(default_factory=dict)  # when a suggestion setting last changed
 
 
@@ -449,5 +469,79 @@ def prune(
         tallies={d: t for d, t in data.tallies.items() if d > today - ls.keep_tallies},
         heat_loss=data.heat_loss,
         heat_loss_ok=data.heat_loss_ok,
+        corrections=[d for d in data.corrections if d.day > today - ls.keep_mornings],
         changed={k: t for k, t in data.changed.items() if before(now - ls.keep_resolutions, t)},
     )
+
+
+# The room correction as a signal: in smooth mode the PI loop covers for a curve point that is off, so the
+# rooms reach their targets and the morning check stays quiet; what the correction keeps adding tells.
+
+
+@dataclass(frozen=True)
+class CorrectionDay:
+    day: date
+    band: int
+    total: float  # the sum of the per-minute corrections
+    minutes: int
+
+
+def record_correction(
+    days: Sequence[CorrectionDay],
+    at: datetime,
+    t_out: float,
+    correction: float,
+    ls: LearningSettings = LEARNING,
+) -> list[CorrectionDay]:
+    """Add one minute's correction to its local day and outdoor band."""
+    day, band = at.date(), band_of(t_out, ls.band_step)
+    out = list(days)
+    for i, d in enumerate(out):
+        if d.day == day and d.band == band:
+            out[i] = CorrectionDay(day, band, d.total + correction, d.minutes + 1)
+            return out
+    return [*out, CorrectionDay(day, band, correction, 1)]
+
+
+def drop_corrections(days: Sequence[CorrectionDay], bands: set[int] | None) -> list[CorrectionDay]:
+    """Forget these bands (all with None): the curve there changed, or the question was answered."""
+    return [] if bands is None else [d for d in days if d.band not in bands]
+
+
+def correction_suggestions(
+    days: Sequence[CorrectionDay],
+    settings: Settings,
+    resolutions: Sequence[Resolution],
+    now: datetime,
+    ls: LearningSettings = LEARNING,
+) -> list[Suggestion]:
+    """A band where the correction added (or took off) 1.5° or more on average, on 3 days in the last week."""
+    first = now.date() - ls.correction_window
+    counted = [d for d in days if d.day > first and d.minutes >= ls.correction_min_minutes]
+    out: list[Suggestion] = []
+    for band in sorted({d.band for d in counted}):
+        mine = [d for d in counted if d.band == band]
+        if len({d.day for d in mine}) < ls.correction_min_days:
+            continue
+        minutes = sum(d.minutes for d in mine)
+        mean = sum(d.total for d in mine) / minutes
+        if abs(mean) < ls.correction_threshold - EPS:
+            continue
+        up = mean > 0
+        key = f"curve:{band}:{'up' if up else 'down'}"  # the morning check's key: one suggestion per point
+        if is_suppressed(resolutions, key, band, now, ls):
+            continue
+        step = _curve_step(settings, band, up, ls)
+        if step is None:
+            continue
+        evidence = {
+            "days": len({d.day for d in mine}),
+            "hours": round(minutes / 60, 1),
+            "mean_correction": round(mean, 2),
+        }
+        out.append(
+            make_suggestion(
+                key, "curve", f"curve.points.{band}", *step, band=band, room=None, now=now, evidence=evidence
+            )
+        )
+    return out
