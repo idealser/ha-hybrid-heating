@@ -15,6 +15,7 @@ from .entity_map import EntityMap
 from .storage import HybridStore
 from .takeover import pending_giveback
 from .websocket import async_register_websocket
+from .websocket_learning import async_register_learning_commands
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -25,6 +26,7 @@ PLATFORMS: list[Platform] = [Platform.SWITCH, Platform.SELECT, Platform.SENSOR, 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     async_register_websocket(hass)  # once for the whole of Home Assistant, not per entry
+    async_register_learning_commands(hass)
     await async_serve_card(hass)
     return True
 

@@ -2,7 +2,7 @@
 
 hybrid_heating/get_config, hybrid_heating/set_config (admins only), hybrid_heating/get_status,
 hybrid_heating/get_log, hybrid_heating/get_plan and hybrid_heating/set_plan (admins only).
-Reserved for later stages: subscribe, mark, suggestions, apply_suggestion, forecast.
+The forecast, the suggestions and the feedback are in websocket_learning.py.
 """
 
 from typing import Any
@@ -32,12 +32,12 @@ def async_register_websocket(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_set_plan)
 
 
-def _coordinator(hass: HomeAssistant) -> HybridHeatingCoordinator | None:
+def coordinator_for(hass: HomeAssistant) -> HybridHeatingCoordinator | None:
     entries = hass.config_entries.async_loaded_entries(DOMAIN)
     return entries[0].runtime_data if entries else None
 
 
-def _not_loaded(connection: ActiveConnection, msg: dict[str, Any]) -> None:
+def not_loaded(connection: ActiveConnection, msg: dict[str, Any]) -> None:
     connection.send_error(msg["id"], "not_loaded", "Hybrid Heating is not set up or not loaded")
 
 
@@ -48,9 +48,9 @@ def _config(c: HybridHeatingCoordinator) -> dict[str, Any]:
 @websocket_command({vol.Required("type"): f"{WS_PREFIX}get_config"})
 @callback
 def ws_get_config(hass: HomeAssistant, connection: ActiveConnection, msg: dict[str, Any]) -> None:
-    c = _coordinator(hass)
+    c = coordinator_for(hass)
     if c is None:
-        _not_loaded(connection, msg)
+        not_loaded(connection, msg)
         return
     connection.send_result(msg["id"], _config(c))
 
@@ -59,9 +59,9 @@ def ws_get_config(hass: HomeAssistant, connection: ActiveConnection, msg: dict[s
 @websocket_command({vol.Required("type"): f"{WS_PREFIX}set_config", vol.Required("settings"): dict})
 @async_response
 async def ws_set_config(hass: HomeAssistant, connection: ActiveConnection, msg: dict[str, Any]) -> None:
-    c = _coordinator(hass)
+    c = coordinator_for(hass)
     if c is None:
-        _not_loaded(connection, msg)
+        not_loaded(connection, msg)
         return
     try:
         await c.async_patch_settings(msg["settings"], "ws")
@@ -89,9 +89,9 @@ def _with_texts(entry: dict[str, Any], lang: str) -> dict[str, Any]:
 )
 @callback
 def ws_get_log(hass: HomeAssistant, connection: ActiveConnection, msg: dict[str, Any]) -> None:
-    c = _coordinator(hass)
+    c = coordinator_for(hass)
     if c is None:
-        _not_loaded(connection, msg)
+        not_loaded(connection, msg)
         return
     before = None
     if "before" in msg and (before := parse_ts(msg["before"])) is None:
@@ -108,9 +108,9 @@ def ws_get_log(hass: HomeAssistant, connection: ActiveConnection, msg: dict[str,
 )
 @callback
 def ws_get_status(hass: HomeAssistant, connection: ActiveConnection, msg: dict[str, Any]) -> None:
-    c = _coordinator(hass)
+    c = coordinator_for(hass)
     if c is None:
-        _not_loaded(connection, msg)
+        not_loaded(connection, msg)
         return
     data = c.data
     status = build_status(
@@ -132,9 +132,9 @@ def ws_get_status(hass: HomeAssistant, connection: ActiveConnection, msg: dict[s
 @websocket_command({vol.Required("type"): f"{WS_PREFIX}get_plan"})
 @async_response
 async def ws_get_plan(hass: HomeAssistant, connection: ActiveConnection, msg: dict[str, Any]) -> None:
-    c = _coordinator(hass)
+    c = coordinator_for(hass)
     if c is None:
-        _not_loaded(connection, msg)
+        not_loaded(connection, msg)
         return
     connection.send_result(msg["id"], {"plan": await c.store.async_load_plan()})
 
@@ -144,9 +144,9 @@ async def ws_get_plan(hass: HomeAssistant, connection: ActiveConnection, msg: di
 @async_response
 async def ws_set_plan(hass: HomeAssistant, connection: ActiveConnection, msg: dict[str, Any]) -> None:
     """Store the user's floor plan for the card; null goes back to the built-in schematic."""
-    c = _coordinator(hass)
+    c = coordinator_for(hass)
     if c is None:
-        _not_loaded(connection, msg)
+        not_loaded(connection, msg)
         return
     try:
         plan = None if msg["plan"] is None else validate_plan(msg["plan"])

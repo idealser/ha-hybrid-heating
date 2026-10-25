@@ -68,6 +68,6 @@ async def test_status_follows_the_settings_revision(hass, fake_home, hass_ws_cli
 
 async def test_stage5_commands_are_absent_for_now(hass, fake_home, hass_ws_client):
     await setup_integration(hass)
-    for cmd in ("get_forecast", "get_suggestions"):
+    for cmd in ("get_suggestions",):
         msg = await ws(hass_ws_client, hass, type=f"hybrid_heating/{cmd}")
         assert not msg["success"] and msg["error"]["code"] == "unknown_command"
