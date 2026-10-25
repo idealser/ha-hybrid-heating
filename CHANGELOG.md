@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.6.0
+
+Suggestions and the forecast. A suggestion changes nothing by itself: an admin applies or dismisses it.
+
+- **Forecast:** the card shows the next 48 hours from the hourly forecast of the weather entity chosen in the setup.
+- **Cold/Hot:** anyone in the house can mark a room on the plan or under Rooms & power. Two marks of the same kind within 7 days, an hour apart, suggest raising or lowering that room's target by 0.3° (the bathroom: the whole curve by 1°).
+- **Morning check of the curve:** with the boiler in Control, three mornings in a row in one 5° outdoor band with the room the boiler follows 0.5° off its target suggest moving that curve point by 1.5°.
+- **Heat loss:** estimated every Monday from the recorder's daily statistics, over whole heating days without the ACs. A good estimate is what the forecast and the what-if use and what `sensor.hybrid_heating_heat_loss` shows; it never changes the control.
+- A dismissed suggestion does not come back for 30 days in similar weather; one whose setting someone changed meanwhile is withdrawn. The log records marks, suggestions and decisions.
+- **Card fix:** Apply and Not now send the suggestion as `suggestion_id`; Home Assistant uses a message's `id` for itself.
+
 ## 0.5.0
 
 Easier to read and to use.
