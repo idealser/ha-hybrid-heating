@@ -105,7 +105,7 @@ test('a tapped hour says what runs then; tapping it again clears it', async ({ p
   const line = page.locator('hh-forecast .hour');
   await bar.click();
   await expect(line).toHaveText(
-    /^Tue 27, 03:00, −4\.6°: zone “Frost”: both ACs · boiler main · 3 rods · flow \d+(\.\d)?° · about \d+\.\d kW\.$/,
+    /^Tue 27, 03:00, −4\.6°: zone “Frost”: both ACs · boiler main · 3 rods · flow \d+(\.\d)?° · about \d+\.\d kW · inside \d+\.\d°\.$/,
   );
   await bar.click();
   await expect(line).toHaveCount(0);
@@ -134,4 +134,29 @@ test('out of the heating season the forecast costs nothing', async ({ page }) =>
   await expect(page.locator('hh-forecast')).toContainText('Out of the heating season: no heating in these 48 h.');
   await page.locator('hh-forecast .fc-bar').nth(3).click();
   await expect(page.locator('hh-forecast .hour')).toContainText('out of the heating season, no heating.');
+});
+
+test('the forecast shows the flat inside and the electricity per hour, under the outdoor line', async ({ page }) => {
+  await page.goto(H());
+  const fc = page.locator('hh-forecast');
+  await expect(fc.locator('.fc-out')).toHaveCount(1); // outside
+  await expect(fc.locator('.fc-in')).toHaveCount(1); // the flat, modelled
+  await expect(fc.locator('.fc-target')).toHaveCount(1); // against its target
+  expect(await fc.locator('.fc-kwh-ac').count()).toBeGreaterThan(0); // the ACs run in the warm zone
+  expect(await fc.locator('.fc-kwh-boiler').count()).toBeGreaterThan(0);
+  for (const label of ['Outside', 'Inside (model)', 'target', 'Electricity, kWh per hour', 'boiler', 'ACs'])
+    await expect(fc.locator('svg')).toContainText(label);
+  // a tapped hour is marked across all three panels and its line says how warm the flat is then
+  await fc.locator('.fc-bar').nth(36).click();
+  await expect(fc.locator('.fc-sel')).toHaveCount(1);
+  await expect(fc.locator('.hour')).toContainText(/inside \d+\.\d°/);
+});
+
+test('away: the flat cools inside, and no electricity until it reaches its target', async ({ page }) => {
+  await page.goto(H());
+  await page.locator('hh-header').getByRole('button', { name: /Away/ }).click();
+  const fc = page.locator('hh-forecast');
+  await fc.locator('.fc-bar').first().click();
+  await expect(fc.locator('.hour')).toContainText('the flat cools to');
+  await expect(fc.locator('.fc-kwh-ac')).toHaveCount(0); // no ACs in Away
 });

@@ -26,6 +26,9 @@ export const tokens = css`
     --deep-fill: rgba(163, 50, 42, 0.13);
     --warn-bg: #fff3dc;
     --warn-ink: #7e5300;
+    /* the forecast's electricity bars: validated as a pair (lightness, chroma, colour-blind separation) */
+    --fc-boiler: #d4502a;
+    --fc-ac: #00948a;
   }
   :host([dark]) {
     --line-strong: #38434e;
@@ -42,6 +45,8 @@ export const tokens = css`
     --deep-fill: rgba(242, 103, 91, 0.15);
     --warn-bg: #3a2b0e;
     --warn-ink: #f2c86c;
+    --fc-boiler: #ec6638;
+    --fc-ac: #1ba89f;
     color-scheme: dark;
   }
 `;
