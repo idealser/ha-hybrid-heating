@@ -176,11 +176,11 @@ test('the line for a tapped hour says what runs then', () => {
   const row = forecastRun(S, M, night, TZ, { seasonActive: true, windowMean: 0, indoor: 22.5 })[0]!;
   expect(forecastHourLine(S, night[0]!, row, TZ, 'en')).toBe(
     `Tue 3, 03:00, −4.6°: zone “Frost”: both ACs · boiler main · 3 rods · flow ${fF(row.p.flow, 'en')} · ` +
-      `about ${fmt(row.electricKwh, 1, 'en')} kW.`,
+      `about ${fmt(row.electricKwh, 1, 'en')} kW · inside ${fmt(row.indoor, 1, 'en')}°.`,
   );
   expect(forecastHourLine(S, night[0]!, row, TZ, 'ru')).toBe(
     `вт 3, 03:00, −4,6°: зона «Мороз»: оба кондиционера · котёл основной · 3 ТЭНа · подача ${fF(row.p.flow, 'ru')} · ` +
-      `около ${fmt(row.electricKwh, 1, 'ru')} кВт.`,
+      `около ${fmt(row.electricKwh, 1, 'ru')} кВт · внутри ${fmt(row.indoor, 1, 'ru')}°.`,
   );
   const warm = hoursFrom(DAY, [10]);
   const coast = forecastRun(away(), M, warm, TZ, { seasonActive: true, windowMean: 10, indoor: 21 })[0]!;
@@ -191,4 +191,17 @@ test('the line for a tapped hour says what runs then', () => {
   expect(forecastHourLine(season('off'), warm[0]!, off, TZ, 'en')).toBe(
     `Mon 2, 08:00, ${fT(10, 'en')}: out of the heating season, no heating.`,
   );
+});
+
+
+test('each hour splits its electricity between the boiler and the ACs', () => {
+  const hours = hoursFrom(DAY, Array(6).fill(5));
+  for (const r of forecastRun(S, M, hours, TZ, AT_TARGET)) {
+    expect(r.boilerKwh + r.acKwh).toBeCloseTo(r.electricKwh, 9);
+    expect(r.acKwh).toBeGreaterThan(0); // the cool zone runs both ACs
+  }
+  for (const r of forecastRun(away(), M, hours, TZ, { ...AT_TARGET, indoor: 17 })) {
+    expect(r.acKwh).toBe(0); // no ACs in Away
+    expect(r.boilerKwh).toBeCloseTo(r.electricKwh, 9);
+  }
 });

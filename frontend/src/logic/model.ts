@@ -136,6 +136,9 @@ export interface ForecastRow {
   heatKwh: number;
   /** The electricity for that heat: the ACs at their COP, the boiler at 1. */
   electricKwh: number;
+  /** Of it, the boiler's and the ACs'. */
+  boilerKwh: number;
+  acKwh: number;
   /** Where the heat comes from in this hour's weather, held at the target. */
   p: ProbeResult;
 }
@@ -191,8 +194,11 @@ export function forecastRun(
       t = heat < need ? t + (heat - loss(t, h.t_out)) / c : target;
     }
     indoor = t;
-    const electricKwh = heat === 0 ? 0 : p.demandKw > 0 ? (p.electricKw * heat) / p.demandKw : heat;
-    return { heats: season[i]!, target, indoor: t, heatKwh: heat, electricKwh, p };
+    // The heat splits as the probe shares it at the target; a warm-up beyond that is the boiler's too.
+    const scale = p.demandKw > 0 ? heat / p.demandKw : 0;
+    const electricKwh = heat === 0 ? 0 : p.demandKw > 0 ? p.electricKw * scale : heat;
+    const acKwh = heat === 0 || !p.cop ? 0 : (p.acTotalKw * scale) / p.cop;
+    return { heats: season[i]!, target, indoor: t, heatKwh: heat, electricKwh, boilerKwh: electricKwh - acKwh, acKwh, p };
   });
 }
 
@@ -214,6 +220,12 @@ export function forecastTotals(
   };
 }
 
+/** A round top for the electricity scale: 0.5, 1, 1.5, 2, 3, 4, 5, 6, 8, 10 kWh. */
+export function niceKwh(v: number): number {
+  for (const step of [0.5, 1, 1.5, 2, 3, 4, 5, 6, 8, 10]) if (v <= step) return step;
+  return Math.ceil(v / 5) * 5;
+}
+
 /** The line for a tapped hour: what runs then and about how much it draws. */
 export function forecastHourLine(s: HhSettings, h: HhForecastHour, row: ForecastRow, tz: string, lang: Lang): string {
   const when = `${dayLabel(h.ts, tz, lang)}, ${localTime(h.ts, tz).hhmm}, ${fT(h.t_out, lang)}`;
@@ -227,6 +239,7 @@ export function forecastHourLine(s: HhSettings, h: HhForecastHour, row: Forecast
     parts.push(plural(lang, 'rods', policy.max_rods), t(lang, 'forecast.hour_flow', { flow: fF(row.p.flow, lang) }));
   }
   parts.push(t(lang, 'forecast.hour_kw', { kw: fmt(row.electricKwh, 1, lang) }));
+  parts.push(t(lang, 'forecast.hour_inside', { t: fmt(row.indoor, 1, lang) }));
   return t(lang, 'forecast.hour', { when, zone, what: parts.join(' · ') });
 }
 
