@@ -169,7 +169,8 @@ export class HybridHeatingCard extends LitElement {
 
   protected override shouldUpdate(changed: PropertyValues<this>): boolean {
     if (changed.size === 1 && changed.has('hass')) {
-      return relevantHassChanged(changed.get('hass'), this.hass!, this._view?.config?.controls ?? null);
+      const extra = this.thermostatId ? [this.thermostatId] : [];
+      return relevantHassChanged(changed.get('hass'), this.hass!, this._view?.config?.controls ?? null, extra);
     }
     return true;
   }
@@ -207,6 +208,12 @@ export class HybridHeatingCard extends LitElement {
       ...(c?.tariff_per_kwh !== undefined ? { tariff_per_kwh: c.tariff_per_kwh } : {}),
       ...(c?.currency ? { currency: c.currency } : {}),
     });
+  }
+
+  /** The old thermostat (the System tab compares its target with the module's). */
+  private get thermostatId(): string | undefined {
+    const id = this._view?.config?.entities.thermostat;
+    return typeof id === 'string' ? id : undefined;
   }
 
   /** Times are shown in Home Assistant's time zone, not the browser's. */
@@ -277,6 +284,8 @@ export class HybridHeatingCard extends LitElement {
           .schematic=${!v.plan}
           .status=${v.status}
           .offsets=${this.running?.room_offsets ?? {}}
+          .settings=${this.running}
+          .learning=${v.suggestions !== null}
         ></hh-floor-plan>`;
       case 'why':
         return v.status && this.running
@@ -331,6 +340,9 @@ export class HybridHeatingCard extends LitElement {
           .settings=${settings}
           .status=${v.status}
           .readOnly=${!this.admin}
+          .version=${v.config?.version ?? ''}
+          .thermostat=${this.thermostatId ? this.hass?.states[this.thermostatId] : undefined}
+          .savedBoiler=${v.saved?.layers.boiler ?? 'observe'}
         ></hh-season>`;
       case 'suggestions':
         return html`<hh-suggestions

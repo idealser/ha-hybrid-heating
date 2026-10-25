@@ -1,6 +1,6 @@
 // Small derived values for the rooms, load and season sections.
 import { t, type Lang } from '../i18n/index';
-import type { HhSettings, HhStatus } from '../types';
+import type { HassEntity, HhSettings, HhStatus } from '../types';
 import { DASH, fDev } from './format';
 
 /** Fill and limit mark as percentages of the scale; "hi" when less than 2 kW is left. */
@@ -27,4 +27,11 @@ export function shedNow(st: HhStatus, s: HhSettings, lang: Lang): string | null 
   if (!what.length) what.push(t(lang, 'why.boiler_paused_word'));
   const key = s.layers.load === 'active' ? 'load.shedding_now' : 'load.shedding_obs';
   return t(lang, key, { what: what.join(', ') });
+}
+
+/** The old thermostat's target when it differs from the module's (>= 0.5°): worth a word before Control. */
+export function thermostatGap(entity: HassEntity | undefined, target: number): { thermostat: number; target: number } | null {
+  const value = entity?.attributes?.temperature;
+  if (!entity || entity.state === 'off' || typeof value !== 'number') return null;
+  return Math.abs(value - target) >= 0.5 ? { thermostat: value, target } : null;
 }

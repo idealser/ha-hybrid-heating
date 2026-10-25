@@ -1,5 +1,4 @@
-import { expect, test } from '@playwright/test';
-import { H, openTab } from './helpers';
+import { expect, H, openTab, test } from './helpers';
 
 test('forecast totals and summary with the card tariff', async ({ page }) => {
   await page.goto(H({ lang: 'ru', tariff: '0.30', currency: '¤' }));
@@ -54,26 +53,26 @@ test('zone editor: AC toggle edits the draft and the summary', async ({ page }) 
   await page.goto(H());
   await openTab(page, 'Curve & zones');
   await page.locator('hh-zone-editor').getByRole('switch', { name: 'Bedroom' }).click();
-  await expect(page.locator('hh-curve-card .zone-row').first()).toContainText('living room AC');
+  await expect(page.locator('hh-zone-editor')).toContainText('living room AC');
   await expect(page.getByRole('button', { name: 'Save' })).toBeEnabled();
 });
 
 test('zone editor follows the selected zone; boiler and rods', async ({ page }) => {
   await page.goto(H());
   await openTab(page, 'Curve & zones');
-  await page.locator('hh-curve-card .zone-row').nth(1).click();
+  await page.locator('hh-curve-chart [data-zone="1"]').click();
   const ed = page.locator('hh-zone-editor');
   await expect(ed.getByRole('heading')).toHaveText('Zone “Cool”');
   await ed.getByRole('button', { name: 'Backup' }).click();
   await ed.getByRole('button', { name: '3', exact: true }).click();
-  await expect(page.locator('hh-curve-card .zone-row').nth(1)).toContainText('boiler backup · 3 rods');
+  await expect(page.locator('hh-zone-editor')).toContainText('boiler backup · 3 rods');
   await expect(ed).toContainText('Up to 6.0 kW.');
 });
 
 test('warn for ACs in a zone below −15°', async ({ page }) => {
   await page.goto(H());
   await openTab(page, 'Curve & zones');
-  await page.locator('hh-curve-card .zone-row').nth(3).click();
+  await page.locator('hh-curve-chart [data-zone="3"]').click();
   await page.locator('hh-zone-editor').getByRole('switch', { name: 'Living room' }).click();
   await expect(page.locator('hh-zone-editor .warn')).toBeVisible();
 });

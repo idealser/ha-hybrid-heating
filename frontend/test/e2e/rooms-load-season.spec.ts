@@ -1,5 +1,4 @@
-import { expect, test } from '@playwright/test';
-import { calls, H, openTab } from './helpers';
+import { calls, expect, H, openTab, test } from './helpers';
 
 const lastSet = async (page: Parameters<typeof calls>[0]) =>
   (await calls(page)).filter(c => c.type === 'hybrid_heating/set_config').at(-1);

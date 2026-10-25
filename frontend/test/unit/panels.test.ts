@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { loadMeter, seasonStatus, shedNow } from '../../src/logic/panels';
+import { loadMeter, seasonStatus, shedNow, thermostatGap } from '../../src/logic/panels';
 import type { HhStatus } from '../../src/types';
 import { mergeSettings } from '../../src/logic/draft';
 import { SETTINGS, STATUS_NOW } from '../fixtures';
@@ -31,4 +31,11 @@ test('what load shedding has switched off', () => {
   expect(shedNow(st, SETTINGS, 'ru')).toBe('Отключил бы сейчас: бойлер, ТЭНов снято: 1.');
   const pause = { ...st, load: { ...st.load, water_heater_shed: false, rods_shed: 0 } } as HhStatus;
   expect(shedNow(pause, LIVE, 'en')).toBe('Switched off now: the boiler (paused).');
+});
+
+test('the old thermostat and the module disagree on the target', () => {
+  expect(thermostatGap({ state: 'heat', attributes: { temperature: 20 } }, 23)).toEqual({ thermostat: 20, target: 23 });
+  expect(thermostatGap({ state: 'heat', attributes: { temperature: 22.8 } }, 23)).toBeNull(); // close enough
+  expect(thermostatGap({ state: 'off', attributes: {} }, 23)).toBeNull();
+  expect(thermostatGap(undefined, 23)).toBeNull();
 });

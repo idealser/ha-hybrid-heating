@@ -15,7 +15,7 @@ import {
 } from '../logic/chart-geometry';
 import { clampPointFlow, flowFor, nudgePoint, setPointFlow } from '../logic/curve';
 import { fF, fT, fmt } from '../logic/format';
-import { setBound, stripLabel, ZONE_TONE, zoneName } from '../logic/zones';
+import { setBound, stripLabel, ZONE_TONE, zoneName, zoneRange } from '../logic/zones';
 import { shared } from '../styles/shared';
 import type { HhSettings, PointIndex, UiState, ZoneIndex } from '../types';
 
@@ -184,6 +184,13 @@ export class HhCurveChart extends LitElement {
       }
       .strip {
         cursor: pointer;
+      }
+      .strip:focus {
+        outline: none;
+      }
+      .strip:focus-visible {
+        stroke-width: 3;
+        stroke-dasharray: 4 3;
       }
       .strip-ac {
         fill: var(--ac-fill);
@@ -449,8 +456,12 @@ export class HhCurveChart extends LitElement {
         const x1 = x(edges[i]!);
         const w = x(edges[i + 1]!) - x1;
         const label = stripLabel(zoneName(i as ZoneIndex, Lg), w);
+        const pick = () => this.setUi({ sel: i });
         return svg`<rect class="strip strip-${ZONE_TONE[i]}" data-zone=${i} x=${x1 + 1} y=${sy}
-            width=${Math.max(0, w - 2)} height=${sh} rx="7" stroke-width=${sel === i ? 2 : 0}></rect>
+            width=${Math.max(0, w - 2)} height=${sh} rx="7" stroke-width=${sel === i ? 2 : 0}
+            tabindex="0" role="button" aria-pressed=${String(sel === i)}
+            aria-label=${`${zoneName(i as ZoneIndex, Lg)} · ${zoneRange(i as ZoneIndex, bounds, Lg)}`}
+            @keydown=${(e: KeyboardEvent) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), pick())}></rect>
           ${label ? svg`<text class="strip-t" x=${x1 + w / 2} y=${sy + sh / 2 + 4} text-anchor="middle">${label}</text>` : nothing}`;
       })}
       ${bounds.map((b, i) => {

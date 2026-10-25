@@ -38,6 +38,10 @@ export class HhHeader extends LitElement {
   static override styles = [
     shared,
     css`
+      :host {
+        display: block;
+        container-type: inline-size;
+      }
       .top {
         display: flex;
         flex-wrap: wrap;
@@ -115,6 +119,21 @@ export class HhHeader extends LitElement {
         color: inherit;
         opacity: 0.75;
       }
+      /* phones: the four presets in one row */
+      @container (max-width: 560px) {
+        .top-ctl,
+        .presets {
+          width: 100%;
+        }
+        .presets {
+          flex-wrap: nowrap;
+        }
+        .preset {
+          flex: 1 1 0;
+          min-width: 0;
+          padding: 6px 8px;
+        }
+      }
     `,
   ];
 
@@ -127,7 +146,6 @@ export class HhHeader extends LitElement {
     const L = this.lang;
     return html`<header class="top">
       <div class="title">
-        <span class="eyebrow">Hybrid Heating${this.version ? ` · ${this.version}` : ''}</span>
         <h1>${this.heading || t(L, 'title')}</h1>
         ${this.status ? html`<p class="status ${this.status.tone}" role="status">${this.status.text}</p>` : null}
         ${this.note ? html`<p class="small muted">${this.note}</p>` : null}

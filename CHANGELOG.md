@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.0
+
+Easier to read and to use.
+
+- **Now:** "Why" starts with one plain line: the boiler, the ACs and the load ("Would heat, flow 36° · ACs run by hand · load 1.3 of 8.0 kW").
+- **Floor plan:** tap a room (or focus it and press Enter) for its reading against its own target, what heats it, how its AC runs, and Cold/Hot.
+- **Curve & zones:** the zone list is gone; the strip under the chart picks the zone (by click or keyboard), and the zone editor shows what that zone runs.
+- **System:** before the boiler goes to Control, a note says when your old thermostat holds a different target than the module. The version is shown here instead of the header.
+- **Phone:** the four presets fit one row.
+
 ## 0.4.1
 
 What the card says is now true in every mode.

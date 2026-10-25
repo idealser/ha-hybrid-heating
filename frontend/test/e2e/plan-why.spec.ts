@@ -1,5 +1,4 @@
-import { expect, test } from '@playwright/test';
-import { H, openTab, shadowHtml } from './helpers';
+import { expect, H, openTab, shadowHtml, test } from './helpers';
 
 test('ACs blow and radiators glow when heating', async ({ page }) => {
   await page.goto(H());
