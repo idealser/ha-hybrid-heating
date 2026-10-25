@@ -53,6 +53,9 @@ def radiator_output_kw(
 
 # The heat loss, learned from daily statistics
 
+HEAT_LOSS_WINDOW_DAYS = 28
+HEAT_LOSS_MIN_DAYS = 5
+
 
 @dataclass(frozen=True)
 class DayTally:
@@ -125,8 +128,8 @@ def estimate_heat_loss(
     days: Sequence[DayStats],
     now: datetime,
     *,
-    window_days: int = 28,
-    min_days: int = 5,
+    window_days: int = HEAT_LOSS_WINDOW_DAYS,
+    min_days: int = HEAT_LOSS_MIN_DAYS,
     min_dt: float = 5.0,
     min_spread: float = 3.0,
     max_boiler_w: float = 8000.0,

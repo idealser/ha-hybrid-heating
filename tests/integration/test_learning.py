@@ -114,3 +114,12 @@ async def test_status_tells_the_card_when_suggestions_changed(hass, fake_home, h
     c.learning.revision = 7
     status = (await ws(hass_ws_client, hass, type="hybrid_heating/get_status"))["result"]
     assert status["seq"]["suggestions"] == 7
+
+
+async def test_without_the_recorder_estimates_use_the_model_default(hass, fake_home, hass_ws_client):
+    c = (await setup_integration(hass)).runtime_data
+    assert c.learning.data.heat_loss is None
+    state = hass.states.get("sensor.hybrid_heating_heat_loss")
+    assert state.state == "150.0" and state.attributes["source"] == "model_default"
+    config = (await ws(hass_ws_client, hass, type="hybrid_heating/get_config"))["result"]
+    assert config["model"] == {}

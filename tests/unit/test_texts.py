@@ -221,3 +221,13 @@ def test_codes_emitted_by_tick_have_texts(steps):
 def test_suggestion_texts_name_the_setting(setting, old, new, en, ru):
     r = Reason("system", "suggestion_created", {"setting": setting, "old": old, "new": new})
     assert (render_reason(r, "en"), render_reason(r, "ru")) == (en, ru)
+
+
+def test_heat_loss_texts():
+    short = Reason("system", "heat_loss_insufficient", {"days_used": 3, "min_days": 5})
+    assert render_reason(short, "en") == (
+        "Heat loss: 3 of 5 usable days so far (whole days in season without the ACs); "
+        "estimates keep the default"
+    )
+    found = Reason("system", "heat_loss_estimated", {"w_per_k": 148.3, "days_used": 9})
+    assert render_reason(found, "ru") == "Теплопотери оценены: 148,3 Вт/К по 9 дням"

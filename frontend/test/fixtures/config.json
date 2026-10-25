@@ -189,5 +189,6 @@
   "load_taken": false,
   "ac_taken": false
  },
- "status": "Observe · Warm · Comfort 23.0° · Heating season started: mean 13.8°"
+ "status": "Observe · Warm · Comfort 23.0° · Heating season started: mean 13.8°",
+ "model": {}
 }
