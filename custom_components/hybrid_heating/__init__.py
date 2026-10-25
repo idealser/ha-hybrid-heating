@@ -10,6 +10,7 @@ from homeassistant.helpers.typing import ConfigType
 from .const import DOMAIN
 from .coordinator import HybridHeatingConfigEntry, HybridHeatingCoordinator
 from .storage import HybridStore
+from .websocket import async_register_websocket
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
@@ -17,6 +18,7 @@ PLATFORMS: list[Platform] = [Platform.SWITCH, Platform.SELECT, Platform.SENSOR, 
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    async_register_websocket(hass)  # once for the whole of Home Assistant, not per entry
     return True
 
 
