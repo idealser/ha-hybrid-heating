@@ -210,3 +210,30 @@ def test_background_shift_follows_the_controllers_rule():
         text=lambda r, lang: r.code,
     )
     assert r["background_shift"] == 0.0
+
+
+def test_status_says_while_the_load_holds_the_boiler_off():
+    from datetime import timedelta
+
+    live = with_layers(load=LayerMode.ACTIVE)
+    st = ControllerState.initial(T0)
+    st.load.emergency_until = T0 + timedelta(seconds=15)  # paused 5 s ago, for 20 s
+
+    def status(settings, now):
+        return build_status(
+            settings=settings,
+            snap=snap(),
+            decision=None,
+            state=st,
+            revision=1,
+            log_seq=0,
+            suggestions_seq=0,
+            enabled=True,
+            now=now,
+            language="en",
+            text=lambda r, lang: r.code,
+        )
+
+    assert status(live, T0)["load"]["pausing"] is True  # on every tick of the pause, not only the first
+    assert status(live, T0 + timedelta(seconds=20))["load"]["pausing"] is False
+    assert status(Settings(), T0)["load"]["pausing"] is False  # observed: the shadow state is not paused

@@ -50,7 +50,7 @@ from .entity_map import EntityMap
 from .executor import async_run_commands
 from .learning_manager import LearningManager
 from .snapshot import build_snapshot
-from .status import is_live, load_pending_any, next_load_deadline_any
+from .status import is_live, layer_load_state, load_pending_any, next_load_deadline_any, pausing
 from .storage import HybridStore
 from .takeover import (
     TakeoverState,
@@ -262,6 +262,7 @@ class HybridHeatingCoordinator(DataUpdateCoordinator[TickResult]):
             enabled=self.enabled and not self._stopping,
             starting=starting,
             boiler_observe=observe,
+            load_pause=pausing(layer_load_state(self.settings, self.state), dt_util.now()),
         )
 
     def _load_may_act(self, now: datetime) -> bool:

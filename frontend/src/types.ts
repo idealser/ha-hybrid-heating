@@ -212,6 +212,8 @@ export interface HhStatus {
     water_heater_shed: boolean;
     rods_shed: number;
     shedding: boolean;
+    /** The load layer holds the boiler's heat call off (every tick of the pause). */
+    pausing: boolean;
   };
   reasons: HhReason[];
 }

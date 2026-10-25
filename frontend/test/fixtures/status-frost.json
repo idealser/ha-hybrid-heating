@@ -60,7 +60,8 @@
   "water_heater_on": true,
   "water_heater_shed": false,
   "rods_shed": 0,
-  "shedding": false
+  "shedding": false,
+  "pausing": false
  },
  "reasons": [
   {

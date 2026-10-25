@@ -247,3 +247,44 @@ def test_feedback_and_decision_texts():
     )
     stale = Reason("system", "suggestion_stale", {"setting": "curve.shift"})
     assert render_reason(stale, "ru") == "Подсказка снята: настройку «вся кривая» уже изменили"
+
+
+@pytest.mark.parametrize(
+    ("driver", "en", "ru"),
+    [
+        (23.3, "Boiler on: 0.3° above target 23.0°", "Котёл включён: на 0,3° выше цели 23,0°"),
+        (22.6, "Boiler on: 0.4° below target 23.0°", "Котёл включён: на 0,4° ниже цели 23,0°"),
+        (23.02, "Boiler on: at target 23.0°", "Котёл включён: на цели 23,0°"),
+    ],
+)
+def test_a_running_boiler_says_on_which_side_of_the_target_the_room_is(driver, en, ru):
+    # the PI loop keeps the boiler on up to 0.5° above the target: that is its steady state
+    r = Reason(
+        Layer.BOILER, "smooth_on", {"driver": driver, "target": 23.0, "flow": 46.9, "correction": -0.6}
+    )
+    assert render_reason(r, "en") == f"{en}, flow 46.9° (correction -0.6°)"
+    assert render_reason(r, "ru") == f"{ru}, подача 46,9° (поправка -0,6°)"
+    resumed = Reason(Layer.BOILER, "smooth_resumed", {"driver": driver, "target": 23.0, "flow": 33.0})
+    assert render_reason(resumed, "en").startswith(en.replace("Boiler on", "Boiler resumed"))
+
+
+def test_log_texts_name_settings_and_times_plainly():
+    changed = Reason("system", "settings_changed", {"keys": "curve,layers,room_offsets", "source": "ws"})
+    assert render_reason(changed, "en") == "Settings changed: curve, layer modes, room targets"
+    assert render_reason(changed, "ru") == "Настройки изменены: кривая, режимы слоёв, цели комнат"
+    restored = Reason("system", "restored_after_restart", {"saved_at": "2026-10-25T21:33:12.345678+02:00"})
+    assert render_reason(restored, "en") == "State restored after a restart (saved 2026-10-25 21:33)"
+    reset = Reason("system", "store_section_reset", {"section": "learning"})
+    assert render_reason(reset, "en") == "Could not read the saved learning data: reset to defaults"
+    assert render_reason(reset, "ru") == "Не удалось прочитать сохранённое (данные обучения): сброшено"
+
+
+def test_the_status_line_says_when_the_load_pauses_the_boiler():
+    d = tick(
+        ALL_ACTIVE,
+        snap(rooms={Room.LIVING: 22.0, Room.BEDROOM: 22.0, Room.CHILD: 22.0, Room.BATH: 22.0}),
+        ControllerState.initial(T0),
+    )
+    paused = render_status(d, "en", enabled=True, starting=False, boiler_observe=False, load_pause=True)
+    assert paused.endswith("Load above limit: boiler paused")
+    assert "Boiler on" not in paused
