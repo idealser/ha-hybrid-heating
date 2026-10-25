@@ -6,7 +6,15 @@ import '../components/hh-switch';
 import { define, fire } from '../dom';
 import { t, type Lang } from '../i18n/index';
 import { fKw, fT } from '../logic/format';
-import { setZoneBoiler, setZoneRods, toggleZoneAc, zoneLowerBound, zoneName, zoneRange } from '../logic/zones';
+import {
+  setZoneBoiler,
+  setZoneRods,
+  toggleZoneAc,
+  zoneLowerBound,
+  zoneName,
+  zoneRange,
+  zoneSummary,
+} from '../logic/zones';
 import { shared } from '../styles/shared';
 import { AC_ROOMS, type BoilerZoneMode, type HhModelParams, type HhSettings, type ZoneIndex } from '../types';
 
@@ -61,6 +69,7 @@ export class HhZoneEditor extends LitElement {
       <div class="card-head">
         <h2 id="h-zone">${t(L, 'zone.title', { name: zoneName(i, L) })}</h2>
         <p class="note">${t(L, 'zone_editor.range', { range: zoneRange(i, z.bounds, L) })}</p>
+        <p class="small">${zoneSummary(p, L)}${!s.hybrid && p.ac_rooms.length ? t(L, 'zones.hybrid_off') : ''}</p>
       </div>
       <div class="field">
         <span class="lbl">${t(L, 'zone_editor.acs')}</span>

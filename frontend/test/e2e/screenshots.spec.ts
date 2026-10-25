@@ -1,5 +1,4 @@
-import { expect, test } from '@playwright/test';
-import { H, openTab } from './helpers';
+import { expect, H, openTab, test } from './helpers';
 
 // Baselines per platform (fonts differ): win32 from a Windows run, linux from the Playwright image CI uses.
 for (const theme of ['light', 'dark'] as const) {

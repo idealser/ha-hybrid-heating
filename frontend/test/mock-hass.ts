@@ -59,6 +59,8 @@ export function createMockHass(o: MockOptions = {}): MockHass {
     [controls.hybrid]: { state: config.settings.hybrid ? 'on' : 'off' },
     [controls.preset]: { state: config.settings.preset },
     [controls.boiler_mode]: { state: config.settings.boiler.mode },
+    // the user's old thermostat, still holding its own target while the module observes
+    [String(config.entities.thermostat)]: { state: 'heat', attributes: { temperature: 20 } },
   };
 
   const status = (): HhStatus => {

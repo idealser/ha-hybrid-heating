@@ -12,6 +12,8 @@ export interface WhyItem {
 }
 
 export interface WhyView {
+  /** One plain line: boiler · ACs · load. */
+  summary: string;
   sub: string;
   chips: { label: string; value: string }[];
   items: WhyItem[];
@@ -82,11 +84,15 @@ function average(st: HhStatus, s: HhSettings): { temp: number; target: number } 
 
 const deg = (v: number | null): string => orDash(v, x => `${Math.round(x)}°`);
 
-function acItems(st: HhStatus, s: HhSettings, L: Lang, tz: string): WhyItem[] {
+/** ACs that heat, split by who runs them: the module needs its AC layer in control and the AC taken over. */
+export function acSplit(st: HhStatus, s: HhSettings): { heating: AcRoom[]; byModule: AcRoom[]; byHand: AcRoom[] } {
   const heating = AC_ROOMS.filter(r => acHeats(st, r));
-  // The module runs an AC only with the AC layer in control and the AC taken over; any other one runs by hand.
   const byModule = heating.filter(r => s.layers.ac === 'active' && st.acs[r].owned);
-  const byHand = heating.filter(r => !byModule.includes(r));
+  return { heating, byModule, byHand: heating.filter(r => !byModule.includes(r)) };
+}
+
+function acItems(st: HhStatus, s: HhSettings, L: Lang, tz: string): WhyItem[] {
+  const { heating, byModule, byHand } = acSplit(st, s);
   const vars = { t: fT(s.ac.min_outdoor, L) };
   const offText = (room: AcRoom, all: boolean) => {
     const reason = acOffReason(room, st, s, tz);
@@ -251,6 +257,32 @@ function loadItem(st: HhStatus, s: HhSettings, L: Lang): WhyItem {
   return { pip: 'ok', lead: t(L, 'why.load_ok'), text: t(L, 'why.load_ok_text', { spare: fKw(spare, L) }) };
 }
 
+function summary(st: HhStatus, s: HhSettings, L: Lang): string {
+  const obs = s.layers.boiler !== 'active';
+  const k = (key: string) => (obs ? `sum.obs.${key}` : `sum.${key}`) as I18nKey;
+  let boiler: string;
+  if (!st.decided) boiler = t(L, 'sum.starting');
+  else if (!st.boiler.available) boiler = t(L, 'sum.unavailable');
+  else if (s.zones.policies[st.zone]?.boiler === 'off') boiler = t(L, k('zone_off'));
+  else if (!st.season_active) boiler = t(L, 'sum.season');
+  else if (st.boiler.wanted ?? st.boiler.call_on === true) boiler = t(L, k('on'), { flow: deg(st.flow_target).replace('°', '') });
+  else boiler = t(L, k('paused'));
+  const { byModule, byHand } = acSplit(st, s);
+  const acs = byModule.length
+    ? t(L, byModule.length > 1 ? 'sum.acs_on' : 'sum.ac_on')
+    : byHand.length
+      ? t(L, byHand.length > 1 ? 'sum.acs_hand' : 'sum.ac_hand')
+      : t(L, 'sum.acs_off');
+  const kw = st.load.kw;
+  const load =
+    kw === null
+      ? t(L, 'sum.load_unknown')
+      : kw > s.load.limit_kw
+        ? t(L, 'sum.load_over')
+        : t(L, 'sum.load', { kw: fmt(kw, 1, L), limit: fKw(s.load.limit_kw, L) });
+  return [boiler, acs, load].join(' · ');
+}
+
 export function buildWhy(st: HhStatus, s: HhSettings, L: Lang, tz = 'UTC'): WhyView {
   const sub = t(L, 'why.sub', {
     t: orDash(st.t_out, v => fT(v, L)),
@@ -268,5 +300,5 @@ export function buildWhy(st: HhStatus, s: HhSettings, L: Lang, tz = 'UTC'): WhyV
     .filter(r => NOTABLE_CODES.has(r.code) && r.text)
     .map(r => ({ pip: 'cold' as const, lead: '', text: r.text }));
   const items = [...acItems(st, s, L, tz), boilerItem(st, s, L), ...notable, loadItem(st, s, L)];
-  return { sub, chips, items };
+  return { summary: summary(st, s, L), sub, chips, items };
 }

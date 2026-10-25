@@ -7,9 +7,8 @@ import { define, fire } from '../dom';
 import { t, type Lang } from '../i18n/index';
 import { fmt } from '../logic/format';
 import { getAt, setShift, type StepperKey } from '../logic/steppers';
-import { ZONE_TONE, zoneName, zoneRange, zoneSummary } from '../logic/zones';
 import { shared } from '../styles/shared';
-import type { BoilerMode, HhSettings, UiState, ZoneIndex } from '../types';
+import type { BoilerMode, HhSettings, UiState } from '../types';
 import './hh-curve-chart';
 
 export class HhCurveCard extends LitElement {
@@ -84,60 +83,6 @@ export class HhCurveCard extends LitElement {
         width: 180px;
         max-width: 100%;
       }
-      .zones {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-      }
-      .zone-row {
-        display: grid;
-        grid-template-columns: 12px minmax(0, 1fr) auto;
-        gap: 4px 10px;
-        align-items: center;
-        text-align: left;
-        font: inherit;
-        color: var(--ink);
-        background: transparent;
-        border: 1px solid var(--line);
-        border-radius: 10px;
-        padding: 8px 12px;
-        cursor: pointer;
-      }
-      .zone-row[aria-pressed='true'] {
-        border-color: var(--ink);
-        background: var(--bg);
-      }
-      .dot {
-        width: 12px;
-        height: 12px;
-        border-radius: 4px;
-      }
-      .nm {
-        font-weight: 600;
-      }
-      .rg {
-        font-family: var(--font-data);
-        font-size: 12px;
-        color: var(--muted);
-        white-space: nowrap;
-      }
-      .sm {
-        grid-column: 2/-1;
-        font-size: 12.5px;
-        color: var(--muted);
-      }
-      .dot-ac {
-        background: var(--ac);
-      }
-      .dot-mix {
-        background: var(--mix);
-      }
-      .dot-heat {
-        background: var(--heat);
-      }
-      .dot-deep {
-        background: var(--deep);
-      }
     `,
   ];
 
@@ -173,6 +118,7 @@ export class HhCurveCard extends LitElement {
         .ui=${this.ui}
         .readOnly=${this.readOnly}
       ></hh-curve-chart>
+      <p class="note">${t(L, 'zones.note')}</p>
       <div class="controls">
         <div class="field">
           <label for="shift">${t(L, 'curve.shift')}</label>
@@ -206,25 +152,6 @@ export class HhCurveCard extends LitElement {
         <div id="bg-field" ?hidden=${!s.hybrid}>
           ${this.stepper('curve.ac_background_shift', t(L, 'curve.bg'), `−${fmt(c.ac_background_shift, 0, L)}°`)}
         </div>
-      </div>
-      <div class="card-head">
-        <h3>${t(L, 'zones.title')}</h3>
-        <hh-hint .lang=${L} .text=${t(L, 'zones.note')}></hh-hint>
-      </div>
-      <div class="zones">
-        ${([0, 1, 2, 3] as ZoneIndex[]).map(i => {
-          const p = s.zones.policies[i];
-          return html`<button
-            type="button"
-            class="zone-row"
-            aria-pressed=${String(sel === i)}
-            @click=${() => fire(this, 'hh-ui', { sel: i })}
-          >
-            <span class="dot dot-${ZONE_TONE[i]}"></span><span class="nm">${zoneName(i, L)}</span>
-            <span class="rg">${zoneRange(i, s.zones.bounds, L)}</span>
-            <span class="sm">${zoneSummary(p, L)}${!s.hybrid && p.ac_rooms.length ? t(L, 'zones.hybrid_off') : ''}</span>
-          </button>`;
-        })}
       </div>
     </section>`;
   }

@@ -6,9 +6,17 @@ import '../components/hh-seg';
 import { define, fire } from '../dom';
 import { plural, t, type Lang } from '../i18n/index';
 import { fmt } from '../logic/format';
-import { seasonStatus } from '../logic/panels';
+import { seasonStatus, thermostatGap } from '../logic/panels';
 import { shared } from '../styles/shared';
-import { LAYERS, type HhSettings, type HhStatus, type Layer, type LayerMode, type SeasonMode } from '../types';
+import {
+  LAYERS,
+  type HassEntity,
+  type HhSettings,
+  type HhStatus,
+  type Layer,
+  type LayerMode,
+  type SeasonMode,
+} from '../types';
 
 const SEASON_MODES: SeasonMode[] = ['auto', 'on', 'off'];
 const LAYER_MODES: LayerMode[] = ['off', 'observe', 'active'];
@@ -19,11 +27,19 @@ export class HhSeason extends LitElement {
     settings: { attribute: false },
     status: { attribute: false },
     readOnly: { type: Boolean },
+    version: {},
+    thermostat: { attribute: false },
+    savedBoiler: {},
   };
   declare lang: Lang;
   declare settings: HhSettings | null;
   declare status: HhStatus | null;
   declare readOnly: boolean;
+  declare version: string;
+  /** The old thermostat's state, to warn when its target differs from the module's. */
+  declare thermostat: HassEntity | undefined;
+  /** The boiler layer as saved (the draft may already say Control). */
+  declare savedBoiler: LayerMode;
 
   constructor() {
     super();
@@ -31,6 +47,9 @@ export class HhSeason extends LitElement {
     this.settings = null;
     this.status = null;
     this.readOnly = false;
+    this.version = '';
+    this.thermostat = undefined;
+    this.savedBoiler = 'observe';
   }
 
   static override styles = [
@@ -53,6 +72,16 @@ export class HhSeason extends LitElement {
 
   private edit(next: HhSettings): void {
     fire(this, 'hh-edit', { next });
+  }
+
+  private controlWarning() {
+    const target = this.status?.target;
+    if (this.savedBoiler === 'active' || target === undefined) return nothing;
+    const gap = thermostatGap(this.thermostat, target);
+    if (!gap) return nothing;
+    const L = this.lang;
+    const vars = { th: fmt(gap.thermostat, 1, L), target: fmt(gap.target, 1, L) };
+    return html`<p class="warn">${t(L, 'thermo.gap', vars)}${t(L, 'thermo.control', vars)}</p>`;
   }
 
   override render() {
@@ -103,6 +132,8 @@ export class HhSeason extends LitElement {
           </div>`,
         )}
       </div>
+      ${this.controlWarning()}
+      ${this.version ? html`<p class="small muted">Hybrid Heating ${this.version}</p>` : nothing}
     </section>`;
   }
 }

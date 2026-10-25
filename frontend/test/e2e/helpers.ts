@@ -1,6 +1,22 @@
-import type { Locator, Page } from '@playwright/test';
+import { test as base, type Locator, type Page } from '@playwright/test';
 import { chartGeom } from '../../src/logic/chart-geometry';
 import type { MockHass } from '../mock-hass';
+
+export { expect } from '@playwright/test';
+
+/** A minute after the fixtures were taken ("now" in status-now.json): the card compares their time with the clock. */
+const FIXTURES_NOW = new Date('2026-10-25T14:06:00Z');
+
+/** Every page runs at the fixtures' moment; timers keep running. */
+export const test = base.extend<{ fixturesClock: void }>({
+  fixturesClock: [
+    async ({ page }, use) => {
+      await page.clock.setFixedTime(FIXTURES_NOW);
+      await use();
+    },
+    { auto: true },
+  ],
+});
 
 /** The harness URL with its query parameters. */
 export const H = (q: Record<string, string> = {}): string => `/test/harness/index.html?${new URLSearchParams(q)}`;

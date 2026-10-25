@@ -34,6 +34,7 @@ export function relevantHassChanged(
   prev: HomeAssistant | undefined,
   next: HomeAssistant,
   c: HhControls | null,
+  extra: readonly string[] = [],
 ): boolean {
   if (!prev) return true;
   if (
@@ -42,6 +43,6 @@ export function relevantHassChanged(
     prev.user?.is_admin !== next.user?.is_admin
   )
     return true;
-  if (!c) return false;
-  return [c.enabled, c.hybrid, c.preset, c.boiler_mode].some(id => prev.states[id] !== next.states[id]);
+  const ids = [...(c ? [c.enabled, c.hybrid, c.preset, c.boiler_mode] : []), ...extra];
+  return ids.some(id => prev.states[id] !== next.states[id]);
 }

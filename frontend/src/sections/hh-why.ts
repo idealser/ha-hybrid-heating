@@ -19,6 +19,10 @@ export class HhWhy extends LitElement {
   static override styles = [
     shared,
     css`
+      .summary {
+        font-size: 15px;
+        font-weight: 600;
+      }
       .chips {
         display: flex;
         flex-wrap: wrap;
@@ -81,6 +85,7 @@ export class HhWhy extends LitElement {
     return html`<section class="card" aria-labelledby="h-why">
       <div class="card-head">
         <h2 id="h-why">${t(this.lang, 'section.why')}</h2>
+        <p class="summary">${v.summary}</p>
         <p class="note">${v.sub}</p>
       </div>
       <div class="chips">

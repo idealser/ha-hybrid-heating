@@ -1,5 +1,4 @@
-import { expect, test } from '@playwright/test';
-import { calls, clickChartAt, dragBy, H, openTab } from './helpers';
+import { calls, clickChartAt, dragBy, expect, H, openTab, test } from './helpers';
 
 test('nine draggable points', async ({ page }) => {
   await page.goto(H());
@@ -30,7 +29,7 @@ test('keyboard on a point and on a boundary', async ({ page }) => {
   await expect(page.locator('[data-k="p2"]')).toHaveAttribute('aria-valuetext', '38°');
   await page.locator('[data-k="b0"]').focus();
   await page.keyboard.press('ArrowLeft');
-  await expect(page.locator('hh-curve-card .zone-row').first()).toContainText('above +9°');
+  await expect(page.locator('hh-zone-editor')).toContainText('above +9°');
 });
 
 test('click in the plot sets the probe', async ({ page }) => {
@@ -43,10 +42,10 @@ test('click in the plot sets the probe', async ({ page }) => {
 test('strip click selects a zone', async ({ page }) => {
   await page.goto(H());
   await openTab(page, 'Curve & zones');
-  await expect(page.locator('hh-curve-card .zone-row').first()).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('hh-curve-chart [data-zone="0"]')).toHaveAttribute('aria-pressed', 'true');
   await page.locator('hh-curve-chart [data-zone="2"]').click();
-  await expect(page.locator('hh-curve-card .zone-row').nth(2)).toHaveAttribute('aria-pressed', 'true');
-  await expect(page.locator('hh-curve-card .zone-row').first()).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.locator('hh-curve-chart [data-zone="2"]')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('hh-curve-chart [data-zone="0"]')).toHaveAttribute('aria-pressed', 'false');
 });
 
 test('hybrid off hides the background curve and its stepper', async ({ page }) => {
@@ -56,7 +55,7 @@ test('hybrid off hides the background curve and its stepper', async ({ page }) =
   await page.getByRole('switch', { name: 'Hybrid mode' }).click();
   await expect(page.locator('hh-curve-chart .curve-bg')).toHaveCount(0);
   await expect(page.locator('#bg-field')).toBeHidden();
-  await expect(page.locator('hh-curve-card .zone-row').first()).toContainText('(hybrid mode off)');
+  await expect(page.locator('hh-zone-editor')).toContainText('(hybrid mode off)');
 });
 
 test('save after a boundary change sends only zones.bounds', async ({ page }) => {

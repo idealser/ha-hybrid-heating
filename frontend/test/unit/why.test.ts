@@ -309,3 +309,15 @@ test('before the first decision why says the module is starting', () => {
   });
   expect(JSON.stringify(w)).not.toMatch(/paused|NaN|undefined/);
 });
+
+test('one plain summary line comes first', () => {
+  expect(buildWhy(STATUS_NOW, LIVE, 'en').summary).toBe('Radiators on, flow 36° · ACs heating · load 1.3 of 8.0 kW');
+  expect(buildWhy(STATUS_NOW, SETTINGS, 'en').summary).toBe('Would heat, flow 36° · ACs run by hand · load 1.3 of 8.0 kW');
+  expect(buildWhy(STATUS_NOW, SETTINGS, 'ru').summary).toBe('Грел бы, подача 36° · кондиционеры включены вручную · нагрузка 1,3 из 8,0 кВт');
+  const paused = { ...STATUS_NOW, acs: offAcs(STATUS_NOW), boiler: { ...STATUS_NOW.boiler, wanted: false } } as HhStatus;
+  expect(buildWhy(paused, LIVE, 'en').summary).toBe('Boiler paused · ACs off · load 1.3 of 8.0 kW');
+  const starting = { ...STATUS_NOW, decided: false, load: { ...STATUS_NOW.load, kw: null } } as HhStatus;
+  expect(buildWhy(starting, LIVE, 'en').summary).toBe('Starting · ACs heating · load unknown');
+  const over = { ...STATUS_NOW, load: { ...STATUS_NOW.load, kw: 8.6 } } as HhStatus;
+  expect(buildWhy(over, LIVE, 'en').summary.endsWith('load over the limit')).toBe(true);
+});

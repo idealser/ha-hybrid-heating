@@ -33,3 +33,10 @@ test('theme, language and user changes count; the first hass always does', () =>
   expect(relevantHassChanged(undefined, a, C)).toBe(true);
   expect(relevantHassChanged(a, { ...a, states: { ...a.states, [C.preset]: { state: 'eco' } } }, null)).toBe(false);
 });
+
+test('a watched entity of the house (the old thermostat) counts too', () => {
+  const a = createMockHass();
+  const b = { ...a, states: { ...a.states, 'climate.old': { state: 'heat', attributes: { temperature: 21 } } } };
+  expect(relevantHassChanged(a, b, C)).toBe(false);
+  expect(relevantHassChanged(a, b, C, ['climate.old'])).toBe(true);
+});

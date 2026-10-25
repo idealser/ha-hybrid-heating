@@ -1,5 +1,4 @@
-import { expect, test } from '@playwright/test';
-import { H, openTab, services } from './helpers';
+import { expect, H, openTab, services, test } from './helpers';
 
 test('header with presets from entities', async ({ page }) => {
   await page.goto(H());

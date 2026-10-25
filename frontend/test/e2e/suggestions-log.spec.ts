@@ -1,5 +1,4 @@
-import { expect, test } from '@playwright/test';
-import { calls, H, openTab } from './helpers';
+import { calls, expect, H, openTab, test } from './helpers';
 
 test('apply a suggestion', async ({ page }) => {
   await page.goto(H({ lang: 'ru' }));

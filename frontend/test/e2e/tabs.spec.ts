@@ -1,5 +1,4 @@
-import { expect, test } from '@playwright/test';
-import { H, openTab } from './helpers';
+import { expect, H, openTab, test } from './helpers';
 
 test('opens on Now: the flat, why and the forecast, nothing to tune', async ({ page }) => {
   await page.goto(H());
