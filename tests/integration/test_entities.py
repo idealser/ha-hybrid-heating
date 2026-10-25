@@ -12,6 +12,7 @@ IDS = (
     "sensor.hybrid_heating_heat_loss",
     "binary_sensor.hybrid_heating_boiler_call",
     "binary_sensor.hybrid_heating_load_shedding",
+    "climate.hybrid_heating",
 )
 
 

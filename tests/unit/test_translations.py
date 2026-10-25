@@ -31,6 +31,7 @@ def test_entity_names():
             key: entity["name"]
             for platform in load(lang)["entity"].values()
             for key, entity in platform.items()
+            if key != "thermostat"  # the device's main entity: it takes the device's name
         }
         for lang in ("en", "ru")
     }
@@ -90,3 +91,11 @@ def test_options_pages_mirror_the_setup_pages():
         setup, options = load(lang)["config"]["step"], load(lang)["options"]["step"]
         assert {**options["init"], "description": None} == {**setup["user"], "description": None}
         assert options["rooms"] == setup["rooms"] and options["coexistence"] == setup["coexistence"]
+
+
+def test_the_thermostat_names_the_presets_as_the_select_does():
+    for lang in ("en", "ru"):
+        e = load(lang)["entity"]
+        thermostat = e["climate"]["thermostat"]
+        assert "name" not in thermostat
+        assert thermostat["state_attributes"]["preset_mode"]["state"] == e["select"]["preset"]["state"]

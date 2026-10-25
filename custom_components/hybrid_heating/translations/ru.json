@@ -194,6 +194,20 @@
       "load_shedding": {
         "name": "Сброс нагрузки"
       }
+    },
+    "climate": {
+      "thermostat": {
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "comfort": "Комфорт",
+              "eco": "Эко",
+              "night": "Ночь",
+              "away": "Отъезд"
+            }
+          }
+        }
+      }
     }
   }
 }

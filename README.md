@@ -32,6 +32,7 @@ You can change the entities later under the integration's **Configure**.
 
 | Entity | What it shows |
 | --- | --- |
+| `climate.hybrid_heating` | The module as a thermostat, for tiles, the phone and voice: the temperature the boiler follows, the target in effect (moving it changes that preset's target for good) and the presets. Auto, Heat and Off are the heating season; Off keeps the heating off with the module in charge. |
 | `switch.hybrid_heating_enabled` | The whole module on or off. Off gives everything back. |
 | `switch.hybrid_heating_hybrid_mode` | Heat pumps first, or boiler only. |
 | `select.hybrid_heating_preset` | Comfort, Eco, Night or Away. |

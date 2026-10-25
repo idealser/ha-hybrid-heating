@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.9.0
+
+- **Thermostat:** the module is now one climate entity, `climate.hybrid_heating`, so Home Assistant's own thermostat tile, the phone app and voice assistants can show and change it. It shows the temperature the boiler follows, the target in effect and whether the flat is being heated.
+  - Moving the target changes the preset in effect for good, the same as on the card; with Comfort inside the night window that is Night's target. The steps and limits are the card's.
+  - The presets are the module's four.
+  - Auto, Heat and Off are the heating season (Auto, Always on, Always off). Off keeps the heating off with the module still in charge: switching the module off would hand the boiler back to the old thermostat.
+
 ## 0.8.0
 
 - **Forecast chart:** under the outdoor temperature, the flat's modelled temperature against its target (it cools during Away and Night and warms up after) and the electricity per hour, the boiler and the ACs stacked. A tapped hour is marked across all three and says how warm the flat is then.
