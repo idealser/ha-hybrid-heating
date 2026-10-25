@@ -257,3 +257,60 @@ test('applying a suggestion rebases the draft and refetches suggestions', async 
   expect(count(h, 'hybrid_heating/get_suggestions')).toBe(3);
   st.stop();
 });
+
+
+test('errors the integration answers with are said in the card\'s words', async () => {
+  const { h, st, notes } = mk();
+  await st.start();
+  h.failNext = { code: 'not_ready', message: 'The module has not decided anything yet' };
+  await st.feedback('child', 'cold');
+  expect(notes.at(-1)).toBe(t('en', 'error.not_ready'));
+  h.failNext = { code: 'stale', message: 'The setting was changed since; the suggestion is withdrawn' };
+  await st.applySuggestion('curve10');
+  expect(notes.at(-1)).toBe(t('en', 'error.stale'));
+  h.failNext = { code: 'not_found', message: 'No such suggestion: curve10' };
+  await st.dismissSuggestion('curve10');
+  expect(notes.at(-1)).toBe(t('en', 'error.not_found'));
+  h.failNext = { code: 'unauthorized', message: 'Unauthorized' };
+  await st.dismissSuggestion('curve10');
+  expect(notes.at(-1)).toBe(t('en', 'error.unauthorized'));
+  h.failNext = { code: 'timeout', message: 'no answer' };
+  await st.dismissSuggestion('curve10');
+  expect(notes.at(-1)).toBe(t('en', 'error.generic', { message: 'no answer' }));
+  st.stop();
+});
+
+test('a weather entity without an hourly forecast says so, and is asked again every 30 minutes', async () => {
+  const { h, st } = mk();
+  h.failOn = { 'hybrid_heating/get_forecast': { code: 'forecast_unavailable', message: 'weather.home: no forecast' } };
+  await st.start();
+  expect(st.view.forecast).toEqual({ source: '', updated: '', hours: [], unavailable: true });
+  const asked = count(h, 'hybrid_heating/get_forecast');
+  await vi.advanceTimersByTimeAsync(5 * 60_000); // 20 polls
+  expect(count(h, 'hybrid_heating/get_forecast')).toBe(asked);
+  await vi.advanceTimersByTimeAsync(30 * 60_000);
+  expect(count(h, 'hybrid_heating/get_forecast')).toBeGreaterThan(asked);
+  st.stop();
+});
+
+test('a mark that leads to a suggestion says so', async () => {
+  const { h, st, notes } = mk();
+  await st.start();
+  h.feedbackSuggestion = {
+    id: 'fb:child:cold@2026-10-25T15:00+01:00',
+    kind: 'feedback',
+    state: 'new',
+    created: '2026-10-25T15:00:00+01:00',
+    title: "Child's room: raise its target by 0.3°",
+    detail: '',
+  };
+  await st.feedback('child', 'cold');
+  expect(notes.at(-1)).toBe(
+    t('en', 'feedback.toast_suggestion', {
+      room: t('en', 'room_low.child'),
+      kind: t('en', 'feedback.kind.cold'),
+      title: "Child's room: raise its target by 0.3°",
+    }),
+  );
+  st.stop();
+});

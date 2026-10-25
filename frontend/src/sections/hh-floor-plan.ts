@@ -2,12 +2,14 @@
 import { LitElement, css, html, nothing, svg } from 'lit';
 import '../components/hh-hint';
 import { define, fire } from '../dom';
-import { t, type Lang } from '../i18n/index';
+import { t, type I18nKey, type Lang } from '../i18n/index';
 import { DASH, fDev, fmt } from '../logic/format';
 import { acFlowPaths, deviceStates, glowRect, pointsAttr, roomTint } from '../logic/plan-render';
 import type { FloorPlan, PlanAc, PlanRect } from '../plan/types';
 import { shared } from '../styles/shared';
 import { ROOMS, type AcRoom, type HhAction, type HhSettings, type HhStatus, type Room } from '../types';
+
+const HVAC_MODES = new Set(['cool', 'dry', 'fan_only', 'auto', 'heat_cool']);
 
 export class HhFloorPlan extends LitElement {
   static override properties = {
@@ -291,7 +293,9 @@ export class HhFloorPlan extends LitElement {
     const sp = ac.setpoint === null ? DASH : fmt(ac.setpoint, 0, L);
     const byModule = ac.hvac === 'heat' && this.settings?.layers.ac === 'active' && ac.owned;
     if (byModule) return t(L, 'room.ac_module', { sp });
-    return ac.hvac === 'heat' ? t(L, 'room.ac_hand', { sp }) : t(L, 'room.ac_mode', { mode: ac.hvac });
+    if (ac.hvac === 'heat') return t(L, 'room.ac_hand', { sp });
+    const mode = HVAC_MODES.has(ac.hvac) ? t(L, `hvac.${ac.hvac}` as I18nKey) : ac.hvac;
+    return t(L, 'room.ac_mode', { mode });
   }
 
   override render() {

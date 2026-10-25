@@ -76,6 +76,11 @@ export class HhTabs extends LitElement {
           font-size: 13px;
         }
       }
+      @container (max-width: 380px) {
+        button {
+          padding: 9px 6px;
+        }
+      }
       .dot {
         width: 7px;
         height: 7px;

@@ -321,3 +321,18 @@ test('one plain summary line comes first', () => {
   const over = { ...STATUS_NOW, load: { ...STATUS_NOW.load, kw: 8.6 } } as HhStatus;
   expect(buildWhy(over, LIVE, 'en').summary.endsWith('load over the limit')).toBe(true);
 });
+
+test('a load pause is explained on every tick of it, not only the one that started it', () => {
+  // the boiler reason still says "on" mid-pause: only the status knows the call is held off
+  const mid = { ...STATUS_NOW, load: { ...STATUS_NOW.load, pausing: true }, boiler: { ...STATUS_NOW.boiler, wanted: false } } as HhStatus;
+  expect(buildWhy(mid, LIVE, 'en').items.find(i => i.lead === 'Paused for the load:')).toBeTruthy();
+  expect(buildWhy(mid, LIVE, 'en').items.some(i => i.text.includes('above the target'))).toBe(false);
+});
+
+test('a module that is off says so, not that it is starting', () => {
+  const off = { ...STATUS_NOW, enabled: false, decided: false } as HhStatus;
+  const w = buildWhy(off, LIVE, 'en');
+  expect(w.items[0]).toMatchObject({ pip: 'idle', lead: 'The module is off:' });
+  expect(w.summary.startsWith('Module off')).toBe(true);
+  expect(buildWhy(off, LIVE, 'ru').items[0]!.lead).toBe('Модуль выключен:');
+});

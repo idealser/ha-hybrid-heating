@@ -210,6 +210,21 @@ export class HybridHeatingCard extends LitElement {
     });
   }
 
+  /** Cold/Hot: the integration learns from marks, and the module has a decision to keep with one. */
+  private get canMark(): boolean {
+    const v = this._view;
+    return !!v && v.suggestions !== null && v.status?.enabled === true && v.status.decided;
+  }
+
+  /** On one column (a phone) the zone editor is far below the chart: bring it into view when a zone is picked. */
+  private onUi(e: CustomEvent<Partial<UiState>>): void {
+    this._ui = { ...this._ui!, ...e.detail };
+    if (e.detail.sel !== undefined && this.clientWidth < 940)
+      void this.updateComplete.then(() =>
+        this.renderRoot.querySelector('hh-zone-editor')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }),
+      );
+  }
+
   /** Where the forecast starts: the season and the mean of the room readings now. */
   private get forecastStart(): ForecastStart | null {
     const st = this._view?.status;
@@ -294,7 +309,7 @@ export class HybridHeatingCard extends LitElement {
           .status=${v.status}
           .offsets=${this.running?.room_offsets ?? {}}
           .settings=${this.running}
-          .learning=${v.suggestions !== null}
+          .learning=${this.canMark}
         ></hh-floor-plan>`;
       case 'why':
         return v.status && this.running
@@ -339,11 +354,17 @@ export class HybridHeatingCard extends LitElement {
           .lang=${L}
           .settings=${settings}
           .status=${v.status}
-          .learning=${v.suggestions !== null}
+          .learning=${this.canMark}
           .readOnly=${!this.admin}
         ></hh-rooms>`;
       case 'load':
-        return html`<hh-load .lang=${L} .settings=${settings} .status=${v.status} .readOnly=${!this.admin}></hh-load>`;
+        return html`<hh-load
+          .lang=${L}
+          .settings=${settings}
+          .running=${this.running}
+          .status=${v.status}
+          .readOnly=${!this.admin}
+        ></hh-load>`;
       case 'season':
         return html`<hh-season
           .lang=${L}
@@ -428,7 +449,7 @@ export class HybridHeatingCard extends LitElement {
       class="wrap"
       @hh-action=${this.onAction}
       @hh-edit=${(e: CustomEvent<{ next: HhSettings }>) => this.store?.edit(e.detail.next)}
-      @hh-ui=${(e: CustomEvent<Partial<UiState>>) => (this._ui = { ...this._ui!, ...e.detail })}
+      @hh-ui=${(e: CustomEvent<Partial<UiState>>) => this.onUi(e)}
     >
       ${header}
       <hh-tabs

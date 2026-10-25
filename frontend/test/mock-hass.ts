@@ -8,6 +8,7 @@ import type {
   HhLogEntry,
   HhSettings,
   HhStatus,
+  HhForecast,
   HhSuggestion,
   HomeAssistant,
 } from '../src/types';
@@ -29,6 +30,12 @@ export interface MockHass extends HomeAssistant {
   failNext?: { code: string; message: string };
   /** Commands that keep failing until removed from here. */
   failOn: Record<string, { code: string; message: string }>;
+  /** What the next Cold/Hot marks lead to (none by default). */
+  feedbackSuggestion?: HhSuggestion;
+  /** Changes the status the next polls return (a test sets it, then fires visibilitychange to poll). */
+  statusPatch?: (s: HhStatus) => HhStatus;
+  /** Changes the forecast the next reads return. */
+  forecastPatch?: (f: HhForecast) => HhForecast;
   bumpConfig(changes: DeepPartial<HhSettings>): void;
   bumpLog(): void;
 }
@@ -66,7 +73,8 @@ export function createMockHass(o: MockOptions = {}): MockHass {
   const status = (): HhStatus => {
     const base = structuredClone(STATUSES[o.status ?? 'now']);
     const preset = states[controls.preset]!.state as HhStatus['preset'];
-    return { ...base, revision: config.revision, seq: { ...base.seq, log: logSeq }, preset };
+    const st = { ...base, revision: config.revision, seq: { ...base.seq, log: logSeq }, preset };
+    return hass.statusPatch ? hass.statusPatch(st) : st;
   };
 
   const hass: MockHass = {
@@ -113,7 +121,7 @@ export function createMockHass(o: MockOptions = {}): MockHass {
           plan = msg.plan ?? null;
           return { plan } as T;
         case 'hybrid_heating/get_forecast':
-          return structuredClone(FORECAST) as T;
+          return structuredClone(hass.forecastPatch ? hass.forecastPatch(FORECAST) : FORECAST) as T;
         case 'hybrid_heating/get_suggestions':
           return { suggestions: structuredClone(suggestions[l]) } as T;
         case 'hybrid_heating/apply_suggestion': {
@@ -135,7 +143,7 @@ export function createMockHass(o: MockOptions = {}): MockHass {
           }
           return {} as T;
         case 'hybrid_heating/feedback':
-          return { suggestion: null } as T;
+          return { suggestion: hass.feedbackSuggestion ?? null } as T;
         default:
           throw { ...UNKNOWN };
       }

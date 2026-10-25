@@ -248,6 +248,8 @@ export interface HhForecast {
   hours: HhForecastHour[];
   source: string;
   updated: string;
+  /** Set by the card: the weather entity gave no hourly forecast (forecast_unavailable). */
+  unavailable?: boolean;
 }
 
 export interface HhSuggestion {
@@ -298,7 +300,8 @@ export type SectionKey =
 export interface UiState {
   sel: number;
   probe: number | null;
-  fsel: number | null;
+  /** The tapped forecast hour, by its time: a refreshed forecast starts an hour later. */
+  fsel: string | null;
 }
 
 /** What a section asks the card to do (the `hh-action` event). */
