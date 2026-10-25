@@ -168,7 +168,15 @@ export const en = {
   'chart.point': 'Flow at {t}',
   'chart.bound': 'Boundary between {a} and {b}',
   'unit.kwh': 'kWh',
-  'forecast.note': 'The colour is the zone the heating will be in. Tap an hour to check it below.',
+  'forecast.note':
+    'The colour is the zone the heating will be in. Tap an hour, or use the arrow keys, to see what runs then; '
+    + 'the what-if on Curve & zones follows it. The estimate starts from the rooms now: a warm flat cools before the heating has to start.',
+  'forecast.hour': '{when}: zone “{zone}”: {what}.',
+  'forecast.hour_coast': '{when}: zone “{zone}”: the flat cools to {t}°, no heating needed yet.',
+  'forecast.hour_off': '{when}: out of the heating season, no heating.',
+  'forecast.hour_flow': 'flow {flow}',
+  'forecast.hour_kw': 'about {kw} kW',
+  'forecast.no_season': 'Out of the heating season: no heating in these 48 h.',
   'forecast.aria': 'Temperature forecast for 48 hours with the heating zones',
   'forecast.per48': '{currency} in 48 h',
   'forecast.boiler_only': 'boiler alone: {cost}',

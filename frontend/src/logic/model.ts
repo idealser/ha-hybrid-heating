@@ -1,11 +1,11 @@
 // Mirror of core/model.py, plus the "what happens in this weather" estimate and forecast totals.
-import { type Lang, t } from '../i18n/index';
+import { type I18nKey, type Lang, plural, t } from '../i18n/index';
 import type { AcRoom, HhForecastHour, HhModelParams, HhSettings, ZoneIndex } from '../types';
 import { AC_ROOMS } from '../types';
 import { dayLabel, effectiveTarget, inNightWindow, localTime, presetTarget } from './context';
 import { flowFor } from './curve';
-import { fT } from './format';
-import { zoneIndex, zoneName, zoneSummary } from './zones';
+import { fF, fmt, fT } from './format';
+import { acText, zoneIndex, zoneName, zoneSummary } from './zones';
 
 const AC_RATED_AT_C = 7;
 const AC_LIMIT_C = -15;
@@ -20,6 +20,8 @@ export const DEFAULT_MODEL: HhModelParams = {
   rod_kw: 2.0,
   ac_rated_kw: { living: 3.5, bedroom: 2.7 },
   ac_share: { living: 0.42, bedroom: 0.23 },
+  // The rooms of the season replay's model (2.6 + 1.3 + 1.3): a first guess until it is learned
+  capacity_kwh_per_k: 5.2,
 };
 
 export function withModelDefaults(m?: Partial<HhModelParams>): HhModelParams {
@@ -117,23 +119,115 @@ export function probeDaily(p: ProbeResult, m: HhModelParams): { kwh: number; cos
 }
 
 /** Each forecast hour with the target in effect at that local time; night = the night preset is in effect. */
+/** Where the forecast starts: the season and the rooms now (from the status). */
+export interface ForecastStart {
+  seasonActive: boolean;
+  windowMean: number | null;
+  /** Mean of the room readings now; null starts the flat at the first hour's target. */
+  indoor: number | null;
+}
+
+export interface ForecastRow {
+  /** In the heating season: the module heats at all. */
+  heats: boolean;
+  target: number;
+  /** The flat's mean temperature at the end of the hour. */
+  indoor: number;
+  heatKwh: number;
+  /** The electricity for that heat: the ACs at their COP, the boiler at 1. */
+  electricKwh: number;
+  /** Where the heat comes from in this hour's weather, held at the target. */
+  p: ProbeResult;
+}
+
+/** Whether the module heats in each hour: the core's season rule on the rolling mean of the forecast,
+ * started from the window mean the module has now. */
+export function seasonByHour(
+  s: HhSettings,
+  hours: HhForecastHour[],
+  now: { seasonActive: boolean; windowMean: number | null },
+): boolean[] {
+  const ss = s.season;
+  if (ss.mode !== 'auto') return hours.map(() => ss.mode === 'on');
+  const w = ss.window_hours;
+  let active = now.seasonActive;
+  return hours.map((_, i) => {
+    const known = hours.slice(Math.max(0, i - w + 1), i + 1).map(h => h.t_out);
+    const missing = w - known.length;
+    const sum = known.reduce((a, b) => a + b, 0);
+    const mean = missing > 0 ? (now.windowMean === null ? null : (sum + now.windowMean * missing) / w) : sum / w;
+    if (mean !== null) active = active ? mean < ss.threshold + ss.hysteresis : mean < ss.threshold;
+    return active;
+  });
+}
+
+/** The forecast hour by hour: a warm flat cools on its stored heat before the heating starts, a cold one
+ * warms up as fast as the heaters allow, and out of season nothing is heated. */
+export function forecastRun(
+  s: HhSettings,
+  m: HhModelParams,
+  hours: HhForecastHour[],
+  tz: string,
+  start: ForecastStart,
+): ForecastRow[] {
+  const season = seasonByHour(s, hours, start);
+  const c = m.capacity_kwh_per_k;
+  const loss = (inside: number, tOut: number) => (m.h_w_per_k * (inside - tOut) - m.gains_w) / 1000;
+  let indoor: number | null = start.indoor;
+  return hours.map((h, i) => {
+    const hhmm = localTime(h.ts, tz).hhmm;
+    const [, target] = effectiveTarget(s.targets, s.preset, hhmm);
+    // AC night modes: inside the night window with any preset, and all day on Night (as the core)
+    const p = probe(s, m, h.t_out, { target, night: s.preset === 'night' || inNightWindow(s.targets, hhmm) });
+    let t = indoor ?? target;
+    let heat = 0;
+    const free = t - loss(t, h.t_out) / c;
+    if (!season[i]) t = free;
+    else if (free >= target) t = free; // the flat coasts on its stored heat
+    else {
+      const cap = p.boilerCapKw + AC_ROOMS.reduce((a, r) => a + (p.acKw[r] > 0 ? acCapacityKw(m.ac_rated_kw[r], h.t_out) : 0), 0);
+      const need = t > target ? c * (target - free) : Math.max(0, loss(target, h.t_out)) + c * (target - t);
+      heat = Math.min(need, Math.max(cap, p.demandKw));
+      t = heat < need ? t + (heat - loss(t, h.t_out)) / c : target;
+    }
+    indoor = t;
+    const electricKwh = heat === 0 ? 0 : p.demandKw > 0 ? (p.electricKw * heat) / p.demandKw : heat;
+    return { heats: season[i]!, target, indoor: t, heatKwh: heat, electricKwh, p };
+  });
+}
+
 export function forecastTotals(
   s: HhSettings,
   m: HhModelParams,
   hours: HhForecastHour[],
   tz: string,
-): { kwh: number; cost: number; boilerOnlyCost: number } {
-  let kwh = 0;
-  let demand = 0;
-  for (const h of hours) {
-    const hhmm = localTime(h.ts, tz).hhmm;
-    const [, target] = effectiveTarget(s.targets, s.preset, hhmm);
-    // AC night modes: inside the night window with any preset, and all day on Night (as the core)
-    const p = probe(s, m, h.t_out, { target, night: s.preset === 'night' || inNightWindow(s.targets, hhmm) });
-    kwh += p.electricKw;
-    demand += p.demandKw;
+  start: ForecastStart,
+): { kwh: number; cost: number; boilerOnlyCost: number; heatedHours: number } {
+  const rows = forecastRun(s, m, hours, tz, start);
+  const kwh = rows.reduce((a, r) => a + r.electricKwh, 0);
+  const heat = rows.reduce((a, r) => a + r.heatKwh, 0);
+  return {
+    kwh,
+    cost: kwh * m.tariff_per_kwh,
+    boilerOnlyCost: heat * m.tariff_per_kwh,
+    heatedHours: rows.filter(r => r.heats).length,
+  };
+}
+
+/** The line for a tapped hour: what runs then and about how much it draws. */
+export function forecastHourLine(s: HhSettings, h: HhForecastHour, row: ForecastRow, tz: string, lang: Lang): string {
+  const when = `${dayLabel(h.ts, tz, lang)}, ${localTime(h.ts, tz).hhmm}, ${fT(h.t_out, lang)}`;
+  if (!row.heats) return t(lang, 'forecast.hour_off', { when });
+  const zone = zoneName(row.p.zone, lang);
+  if (row.heatKwh === 0) return t(lang, 'forecast.hour_coast', { when, zone, t: fmt(row.indoor, 1, lang) });
+  const policy = s.zones.policies[row.p.zone];
+  const running = { ...policy, ac_rooms: AC_ROOMS.filter(r => row.p.acKw[r] > 0) };
+  const parts = [acText(running, lang), t(lang, `boiler_sum.${policy.boiler}` as I18nKey)];
+  if (policy.boiler !== 'off') {
+    parts.push(plural(lang, 'rods', policy.max_rods), t(lang, 'forecast.hour_flow', { flow: fF(row.p.flow, lang) }));
   }
-  return { kwh, cost: kwh * m.tariff_per_kwh, boilerOnlyCost: demand * m.tariff_per_kwh };
+  parts.push(t(lang, 'forecast.hour_kw', { kw: fmt(row.electricKwh, 1, lang) }));
+  return t(lang, 'forecast.hour', { when, zone, what: parts.join(' · ') });
 }
 
 /** Temperature axis for the forecast strip: 3° of room each side, ticks on multiples of 5 inside. */
