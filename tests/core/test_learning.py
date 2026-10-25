@@ -5,6 +5,7 @@ import pytest
 
 from custom_components.hybrid_heating.core.controller import ControllerState, tick
 from custom_components.hybrid_heating.core.learning import (
+    Mark,
     MorningSample,
     Resolution,
     StaleSuggestion,
@@ -12,11 +13,20 @@ from custom_components.hybrid_heating.core.learning import (
     band_of,
     current_value,
     curve_suggestion,
+    feedback_suggestion,
+    make_mark,
     morning_sample,
     suggestion_patch,
     tick_sample,
 )
-from custom_components.hybrid_heating.core.types import CurveSettings, Layer, LayerMode, Room, Settings
+from custom_components.hybrid_heating.core.types import (
+    CurveSettings,
+    Layer,
+    LayerMode,
+    Preset,
+    Room,
+    Settings,
+)
 from tests.conftest import ALL_ACTIVE, T0, TZ, snap, with_layers
 
 D1, D2, D3 = date(2026, 11, 10), date(2026, 11, 11), date(2026, 11, 12)
@@ -200,3 +210,129 @@ def test_no_sample_without_a_boiler_decision():
     s = snap(rooms=dict.fromkeys(Room))
     st = ControllerState.initial(T0)
     assert tick_sample(ALL_ACTIVE, s, tick(ALL_ACTIVE, s, st), st) is None
+
+
+# Cold/Hot marks
+
+NOWF = datetime(2026, 11, 12, 20, 0, tzinfo=TZ)
+
+
+def mk(room, kind, when, t_out=6.2):
+    return Mark(
+        at=when,
+        room=room,
+        kind=kind,
+        room_temp=22.1,
+        target=23.0,
+        t_out=t_out,
+        preset=Preset.COMFORT,
+        zone=1,
+        flow_target=44.0,
+        ac_hvac=None,
+        ac_setpoint=None,
+    )
+
+
+def two(room, kind, **kw):
+    return [mk(room, kind, NOWF - timedelta(hours=26), **kw), mk(room, kind, NOWF, **kw)]
+
+
+def test_a_mark_keeps_what_the_room_was_like():
+    s = snap()
+    d = tick(ALL_ACTIVE, s, ControllerState.initial(T0))
+    m = make_mark(Room.LIVING, "hot", ALL_ACTIVE, s, d)
+    assert (m.at, m.room_temp, m.target, m.t_out, m.zone, m.preset, m.ac_hvac, m.ac_setpoint) == (
+        T0,
+        23.3,
+        23.0,
+        13.8,
+        0,
+        Preset.COMFORT,
+        "off",
+        24,
+    )
+    child = make_mark(Room.CHILD, "cold", ALL_ACTIVE, s, d)
+    assert (child.target, child.room_temp, child.ac_hvac, child.ac_setpoint) == (22.0, 22.6, None, None)
+    assert child.flow_target == d.flow_target
+
+
+@pytest.mark.parametrize(
+    ("room", "kind", "setting", "old", "new"),
+    [
+        (Room.CHILD, "cold", "room_offsets.child", -1.0, -0.7),
+        (Room.CHILD, "hot", "room_offsets.child", -1.0, -1.3),
+        (Room.BATH, "cold", "curve.shift", 0.0, 1.0),
+        (Room.BATH, "hot", "curve.shift", 0.0, -1.0),
+        (Room.LIVING, "cold", "room_offsets.living", 0.0, 0.3),
+        (Room.BEDROOM, "hot", "room_offsets.bedroom", 0.0, -0.3),
+    ],
+)
+def test_two_similar_marks_make_a_suggestion_for_that_room(room, kind, setting, old, new):
+    sg = feedback_suggestion(two(room, kind), room, kind, Settings(), [], NOWF)
+    assert sg is not None
+    assert (sg.key, sg.kind, sg.setting, sg.old, sg.new, sg.band, sg.room) == (
+        f"fb:{room}:{kind}",
+        "feedback",
+        setting,
+        old,
+        new,
+        5,
+        room,
+    )
+    assert sg.evidence == {"marks": 2, "room_temp": 22.1, "t_out": 6.2}
+
+
+@pytest.mark.parametrize(
+    "marks",
+    [
+        [mk(Room.CHILD, "cold", NOWF)],
+        [mk(Room.CHILD, "cold", NOWF - timedelta(minutes=20)), mk(Room.CHILD, "cold", NOWF)],  # one complaint
+        [mk(Room.CHILD, "cold", NOWF - timedelta(days=8)), mk(Room.CHILD, "cold", NOWF)],  # too long ago
+        [mk(Room.CHILD, "hot", NOWF - timedelta(hours=5)), mk(Room.CHILD, "cold", NOWF)],
+        [mk(Room.BATH, "cold", NOWF - timedelta(hours=5)), mk(Room.CHILD, "cold", NOWF)],
+    ],
+)
+def test_marks_that_do_not_count(marks):
+    assert feedback_suggestion(marks, Room.CHILD, "cold", Settings(), [], NOWF) is None
+
+
+def test_room_levers_stay_within_their_limits():
+    def offsets(**o):
+        return replace(Settings(), room_offsets={Room(k): v for k, v in o.items()})
+
+    assert (
+        feedback_suggestion(two(Room.CHILD, "cold"), Room.CHILD, "cold", offsets(child=3.0), [], NOWF) is None
+    )
+    edge = feedback_suggestion(two(Room.LIVING, "cold"), Room.LIVING, "cold", offsets(living=2.9), [], NOWF)
+    assert edge is not None and edge.new == 3.0
+    shifted = replace(Settings(), curve=replace(CurveSettings(), shift=-10.0))
+    assert feedback_suggestion(two(Room.BATH, "hot"), Room.BATH, "hot", shifted, [], NOWF) is None
+
+
+def test_a_dismissed_room_suggestion_waits_in_similar_weather_only():
+    sg = feedback_suggestion(two(Room.BATH, "cold"), Room.BATH, "cold", Settings(), [], NOWF)
+    assert sg is not None
+    dismissed = [Resolution(sg, "dismissed", NOWF - timedelta(days=3))]
+    after = [mk(Room.BATH, "cold", NOWF - timedelta(days=2)), mk(Room.BATH, "cold", NOWF)]
+    assert feedback_suggestion(after, Room.BATH, "cold", Settings(), dismissed, NOWF) is None
+    colder = [
+        mk(Room.BATH, "cold", NOWF - timedelta(days=2), t_out=-1.0),
+        mk(Room.BATH, "cold", NOWF, t_out=-2.0),
+    ]
+    again = feedback_suggestion(colder, Room.BATH, "cold", Settings(), dismissed, NOWF)
+    assert again is not None and again.band == 0
+    # marks from before the dismissal are not counted again
+    straddling = [
+        mk(Room.BATH, "cold", NOWF - timedelta(days=4), t_out=-1.0),
+        mk(Room.BATH, "cold", NOWF, t_out=-1.0),
+    ]
+    assert feedback_suggestion(straddling, Room.BATH, "cold", Settings(), dismissed, NOWF) is None
+
+
+def test_a_mark_without_outdoor_reading_still_counts():
+    marks = [
+        mk(Room.LIVING, "cold", NOWF - timedelta(hours=3), t_out=None),
+        mk(Room.LIVING, "cold", NOWF, t_out=None),
+    ]
+    sg = feedback_suggestion(marks, Room.LIVING, "cold", Settings(), [], NOWF)
+    assert sg is not None and sg.band is None and sg.evidence == {"marks": 2, "room_temp": 22.1}
