@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.0
+
+- **Forecast chart:** under the outdoor temperature, the flat's modelled temperature against its target (it cools during Away and Night and warms up after) and the electricity per hour, the boiler and the ACs stacked. A tapped hour is marked across all three and says how warm the flat is then.
+- **Curve learning in smooth mode:** the room correction covers for a curve point that is off, so the rooms still reach their targets. The module now also watches what the correction adds, per 5° outdoor band, while the boiler runs its curve. A band where it adds or takes off 1.5° or more on average, on 3 days within a week, suggests moving that point by 1.5°.
+- **Curve changes:** in smooth mode, the curve takes over what the correction had already added, so the flow does not jump twice after a change.
+
 ## 0.7.0
 
 The forecast explains itself and the estimate is closer to the flat; fixes from a whole-plugin audit.
