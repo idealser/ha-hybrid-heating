@@ -46,6 +46,7 @@ HA_MODULES = {
     "binary_sensor",
     "websocket",
     "diagnostics",
+    "alerts",
 }
 
 

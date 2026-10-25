@@ -16,6 +16,7 @@ from custom_components.hybrid_heating.takeover import (
     Wants,
     apply_user_override,
     is_user_override,
+    plan_reassert,
     plan_takeover,
     wants_for,
 )
@@ -307,3 +308,15 @@ def test_apply_user_override():
 )
 def test_is_user_override(old, new, own, res):
     assert is_user_override(old, new, own) is res
+
+
+def test_reassert_switches_a_held_thermostat_off_again():
+    prev = {"hvac_mode": "heat", "temperature": 21.5}
+    s = TakeoverState(thermostat_prev=dict(prev))
+    cmds, rs = plan_reassert(s, Wants(True, False, False, False), now_view(), E)
+    assert cmds == [Command("climate", "set_hvac_mode", {"entity_id": TH, "hvac_mode": "off"})]
+    assert codes(rs) == ["thermostat_reasserted"] and s.thermostat_prev == prev
+    off = now_view() | {TH: st("off")}
+    assert plan_reassert(s, Wants(True, False, False, False), off, E) == ([], [])
+    assert plan_reassert(TakeoverState(), Wants(True, False, False, False), now_view(), E) == ([], [])
+    assert plan_reassert(s, NONE, now_view(), E) == ([], [])

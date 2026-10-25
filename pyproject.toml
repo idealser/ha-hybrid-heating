@@ -33,7 +33,7 @@ select = ["E", "F", "W", "I", "B", "BLE", "UP", "SIM", "RUF"]
 # Home Assistant entities declare _attr_* defaults as class attributes; ClassVar would break their typing
 ignore = ["RUF012"]
 # Russian docs and copy legitimately contain Cyrillic letters and the minus sign
-allowed-confusables = ["−", "а", "б", "е", "о", "р", "с", "у", "х", "А", "В", "Е", "К", "М", "Н", "О", "Р", "С", "Т", "Х"]
+allowed-confusables = ["−", "а", "б", "г", "е", "о", "р", "с", "у", "х", "А", "В", "Е", "К", "М", "Н", "О", "Р", "С", "Т", "Х"]
 
 [tool.mypy]
 python_version = "3.14"

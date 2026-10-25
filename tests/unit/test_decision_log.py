@@ -109,3 +109,26 @@ def test_from_data_skips_garbage():
     assert len(DecisionLog.from_data(data).to_data()) == 1
     assert DecisionLog.from_data("junk").to_data() == []
     assert DecisionLog.from_data(None).to_data() == []
+
+
+def test_identical_outcomes_are_logged_once():
+    log = DecisionLog()
+    skipped = [ActionOutcome(Action(ActionKind.BOILER_CALL, True), "skipped", "unavailable")]
+    assert log.record_tick(T0, dec("smooth_on"), skipped) is True
+    for i in range(1, 10):
+        assert log.record_tick(T0 + sec(60 * i), dec("smooth_on"), skipped) is False
+    ok = [ActionOutcome(Action(ActionKind.BOILER_CALL, True), "ok", None)]
+    assert log.record_tick(T0 + sec(600), dec("smooth_on"), ok) is True
+    assert len(log.to_data()) == 2
+
+
+def test_identical_failed_system_entries_are_logged_once():
+    log = DecisionLog()
+    cmd = Command("climate", "set_temperature", {"entity_id": "climate.thermostat"})
+    failed = [CommandResult(cmd, "failed", "timeout")]
+    for i in range(5):
+        log.record_system(T0 + sec(i), [Reason("system", "thermostat_restored")], failed)
+    assert len(log.to_data()) == 1
+    log.record_system(T0 + sec(9), [Reason("system", "settings_changed")])
+    log.record_system(T0 + sec(10), [Reason("system", "settings_changed")])
+    assert len(log.to_data()) == 3  # entries without failures are always kept

@@ -51,6 +51,7 @@ SYSTEM_CODES = (
     "thermostat_taken",
     "thermostat_restored",
     "thermostat_user_override",
+    "thermostat_reasserted",
     "automation_disabled",
     "automation_restored",
     "automation_user_override",
@@ -65,6 +66,7 @@ SYSTEM_CODES = (
     "module_disabled",
     "restored_after_restart",
     "store_section_reset",
+    "setup_failed_released",
 )
 
 
@@ -179,6 +181,10 @@ TEXTS: Mapping[str, Mapping[str, str]] = {
         "Thermostat switched on by hand: the boiler is handed back to it",
         "Термостат включили вручную: котёл возвращён ему",
     ),
+    "thermostat_reasserted": _t(
+        "Thermostat was on after a restart: switched off again, Hybrid Heating drives the boiler",
+        "Термостат после перезапуска был включён: снова выключен, котлом управляет Hybrid Heating",
+    ),
     "automation_disabled": _t(
         "Overpower automation turned off while the Load layer is active",
         "Автоматизация от перегрузки выключена, пока слой нагрузки активен",
@@ -212,6 +218,10 @@ TEXTS: Mapping[str, Mapping[str, str]] = {
     "restored_after_restart": _t(
         "State restored after a restart (saved {saved_at})",
         "Состояние восстановлено после перезапуска (сохранено {saved_at})",
+    ),
+    "setup_failed_released": _t(
+        "Start-up failed: control given back until the next attempt",
+        "Запуск не удался: управление возвращено до следующей попытки",
     ),
     "store_section_reset": _t(
         "Saved {section} could not be read and was reset",

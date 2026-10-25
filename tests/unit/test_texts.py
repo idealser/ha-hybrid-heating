@@ -34,7 +34,7 @@ SMOOTH = Reason(Layer.BOILER, "smooth_on", {"driver": 22.6, "target": 23.0, "flo
 
 
 def test_every_known_code_has_en_and_ru():
-    assert len(CORE_CODES) == 31 and len(SYSTEM_CODES) == 17
+    assert len(CORE_CODES) == 31 and len(SYSTEM_CODES) == 19
     assert len(set(CORE_CODES + SYSTEM_CODES)) == len(CORE_CODES + SYSTEM_CODES)
     for code in CORE_CODES + SYSTEM_CODES:
         assert set(TEXTS[code]) == {"en", "ru"}, code

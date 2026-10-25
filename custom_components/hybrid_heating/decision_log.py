@@ -30,13 +30,20 @@ class DecisionLog:
     def __init__(self, entries: Iterable[dict[str, Any]] = ()) -> None:
         self._entries: deque[dict[str, Any]] = deque(entries, maxlen=LOG_SIZE)
         self.last_codes: frozenset[tuple[str, str]] = frozenset()
+        self._last_outcomes: tuple[tuple[Any, ...], ...] = ()
+        self._last_failed_system: tuple[Any, ...] | None = None
 
     def record_tick(self, now: datetime, decision: Decision, outcomes: Sequence[ActionOutcome]) -> bool:
         """Log a tick if it acted or brought a reason that the previous tick did not have."""
         codes = frozenset((str(to_data(r.layer)), r.code) for r in decision.reasons)
         new = codes - self.last_codes
         self.last_codes = codes
-        if not outcomes and not new:
+        signature = tuple(
+            (o.action.kind, o.action.value, o.action.room, o.status, o.detail) for o in outcomes
+        )
+        repeated = signature == self._last_outcomes  # e.g. the same command skipped every tick
+        self._last_outcomes = signature
+        if not new and (not outcomes or repeated):
             return False
         self._entries.append(
             {
@@ -65,6 +72,15 @@ class DecisionLog:
     def record_system(
         self, now: datetime, reasons: Sequence[Reason], results: Sequence[CommandResult] = ()
     ) -> None:
+        """Log a system event. A give-back that keeps failing the same way is logged once."""
+        failing = bool(results) and all(r.status != "ok" for r in results)
+        signature = (
+            tuple((r.layer, r.code) for r in reasons),
+            tuple((r.command, r.status, r.detail) for r in results),
+        )
+        if failing and signature == self._last_failed_system:
+            return
+        self._last_failed_system = signature if failing else None
         self._entries.append(
             {
                 "ts": now.isoformat(),

@@ -20,6 +20,7 @@ from custom_components.hybrid_heating.status import (
     load_pending,
     load_pending_any,
     load_shedding_active,
+    next_load_deadline,
 )
 from tests.conftest import T0, sec
 
@@ -64,3 +65,15 @@ def test_desired_call_and_shedding():
     assert layer_load_state(Settings(), st2) is st2.shadow_load
     all_active = replace(Settings(), layers=MappingProxyType(dict.fromkeys(Layer, LayerMode.ACTIVE)))
     assert layer_load_state(all_active, st2) is st2.load
+
+
+def test_next_load_deadline():
+    s = Settings().load  # shed after 5 s
+    assert next_load_deadline(LoadState(), s, T0) is None
+    assert next_load_deadline(LoadState(over_since=T0), s, T0 + sec(2)) == T0 + sec(5)
+    assert (
+        next_load_deadline(LoadState(over_since=T0), s, T0 + sec(6)) is None
+    )  # already due: ticks handle it
+    paused = LoadState(over_since=T0, emergency_until=T0 + sec(20))
+    assert next_load_deadline(paused, s, T0 + sec(6)) == T0 + sec(20)
+    assert next_load_deadline(LoadState(emergency_until=T0 - sec(1)), s, T0) is None

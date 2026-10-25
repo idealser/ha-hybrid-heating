@@ -6,7 +6,8 @@ from datetime import datetime
 
 from .core.controller import ControllerState
 from .core.load import LoadState
-from .core.types import BoilerMode, Decision, Layer, LayerMode, Settings
+from .core.timeutil import after, before
+from .core.types import BoilerMode, Decision, Layer, LayerMode, LoadSettings, Settings
 
 
 def load_pending(st: LoadState, now: datetime) -> bool:
@@ -47,3 +48,18 @@ def desired_call(
     if "rooms_unavailable" in codes:
         return True
     return state.boiler.call if settings.boiler.mode is BoilerMode.SMOOTH else state.boiler.classic_on
+
+
+def next_load_deadline(st: LoadState, s: LoadSettings, now: datetime) -> datetime | None:
+    """When the load layer next needs a tick: the end of the hold time, or the end of a boiler pause.
+
+    Fast ticks are as far apart as the hold time, so without this the shed lands one tick late.
+    """
+    dues: list[datetime] = []
+    if st.over_since is not None:
+        due = after(st.over_since, s.shed_after_s)
+        if before(now, due):
+            dues.append(due)
+    if st.emergency_until is not None and before(now, st.emergency_until):
+        dues.append(st.emergency_until)
+    return min(dues, key=lambda d: d.timestamp()) if dues else None

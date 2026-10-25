@@ -221,6 +221,39 @@ def plan_takeover(
     return cmds, reasons
 
 
+def plan_reassert(
+    st: TakeoverState, wants: Wants, view: StateView, entities: EntityMap
+) -> tuple[list[Command], list[Reason]]:
+    """Right after a start: a thermostat the module holds but finds on is switched off again.
+
+    Home Assistant may restore a thermostat to its initial mode instead of the off it was left in.
+    What to give back later stays as it was saved.
+    """
+    thermostat = view.get(entities.thermostat)
+    if not wants.boiler or st.thermostat_prev is None or thermostat is None or not is_available(thermostat):
+        return [], []
+    if thermostat.state == "off":
+        return [], []
+    off = Command("climate", "set_hvac_mode", {"entity_id": entities.thermostat, "hvac_mode": "off"})
+    return [off], [_system("thermostat_reasserted")]
+
+
+def pending_giveback(st: TakeoverState, entities: EntityMap) -> list[str]:
+    """What the module still holds and could not give back, for a note to the user."""
+    items: list[str] = []
+    if st.thermostat_prev is not None:
+        prev = st.thermostat_prev
+        items.append(f"{entities.thermostat}: {prev.get('hvac_mode')}, {prev.get('temperature')}°")
+    if st.boiler_prev is not None:
+        prev_b = st.boiler_prev
+        items.append(
+            f"{entities.boiler_flow}: {prev_b.get('flow')}°, {entities.boiler_rods}: {prev_b.get('rods')}"
+        )
+    if st.automation_disabled and entities.overpower_automation is not None:
+        items.append(f"{entities.overpower_automation}: on")
+    return items
+
+
 def is_user_override(old: str | None, new: str | None, own: bool) -> bool:
     """Someone else switched the entity on from off (not this module, not a reconnect)."""
     return not own and old == "off" and new not in (None, "off", "unavailable", "unknown")

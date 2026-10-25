@@ -11,7 +11,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
 
 from .codec import from_data, restore_controller_state, settings_from_saved
-from .const import DOMAIN, SAVE_DELAY_S, STORAGE_VERSION
+from .const import DOMAIN, STORAGE_VERSION
 from .core.controller import ControllerState
 from .core.types import Settings
 from .decision_log import DecisionLog
@@ -29,6 +29,7 @@ class Loaded:
     log: DecisionLog
     saved_at: datetime | None
     reset_sections: tuple[str, ...]
+    failures: int = 0  # failed ticks in a row, kept across setup retries and restarts
 
 
 def _enabled(data: Any) -> bool:
@@ -40,6 +41,12 @@ def _enabled(data: Any) -> bool:
 def _controller(data: Any, now: datetime) -> ControllerState:
     from_data(ControllerState, data, strict=False)  # raises if unreadable, so the reset is reported
     return restore_controller_state(data, now)
+
+
+def _failures(data: Any) -> int:
+    if not isinstance(data, int) or isinstance(data, bool) or data < 0:
+        raise ValueError(f"failures must be a count, got {data!r}")
+    return data
 
 
 def _window(data: Any) -> OutdoorWindow:
@@ -81,6 +88,7 @@ class HybridStore:
         state = section("controller", lambda d: _controller(d, now), ControllerState.initial(now))
         takeover = section("takeover", lambda d: from_data(TakeoverState, d, strict=False), TakeoverState())
         window = section("window", _window, OutdoorWindow())
+        failures = section("failures", _failures, 0)
         return Loaded(
             enabled=enabled,
             settings=settings,
@@ -90,17 +98,12 @@ class HybridStore:
             log=DecisionLog.from_data(log_raw.get("entries") if isinstance(log_raw, dict) else None),
             saved_at=_saved_at(data.get("saved_at")) if data else None,
             reset_sections=tuple(reset),
+            failures=failures,
         )
 
     async def async_save_now(self, state_data: dict[str, Any], log_data: dict[str, Any]) -> None:
         await self._state.async_save(state_data)
         await self._log.async_save(log_data)
-
-    def schedule_save(
-        self, state_func: Callable[[], dict[str, Any]], log_func: Callable[[], dict[str, Any]]
-    ) -> None:
-        self._state.async_delay_save(state_func, SAVE_DELAY_S)
-        self._log.async_delay_save(log_func, SAVE_DELAY_S)
 
     async def async_remove(self) -> None:
         await self._state.async_remove()
