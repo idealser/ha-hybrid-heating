@@ -2,7 +2,7 @@
 
 Heating control for a flat with an electric boiler and radiators, plus heat-pump air conditioners in some rooms.
 
-**Status:** early development. The control logic, the Home Assistant integration and the dashboard card are done and tested; suggestions and the forecast come next. A fresh install only observes: it logs what it would do and changes nothing until you switch a layer to Active.
+**Status:** early development. The control logic, the Home Assistant integration, the dashboard card, the suggestions and the forecast are done and tested; the ACs' own rollout comes next. A fresh install only observes: it logs what it would do and changes nothing until you switch a layer to Active.
 
 ## What it does
 
@@ -39,7 +39,7 @@ You can change the entities later under the integration's **Configure**.
 | `sensor.hybrid_heating_flow_target` | The flow temperature the module wants. |
 | `sensor.hybrid_heating_zone` | The current weather zone. |
 | `sensor.hybrid_heating_status` | One line: zone, preset, target and what the boiler is doing. |
-| `sensor.hybrid_heating_heat_loss` | The heat loss estimate (W/K). |
+| `sensor.hybrid_heating_heat_loss` | The heat loss the estimates use (W/K): learned every Monday from the recorder's daily statistics, the 150 W/K default until there are enough whole heating days without the ACs. |
 | `binary_sensor.hybrid_heating_boiler_call` | Whether the module wants the boiler to heat. |
 | `binary_sensor.hybrid_heating_load_shedding` | Whether it is shedding load (or would, in observe mode). |
 
@@ -50,7 +50,7 @@ You can change the entities later under the integration's **Configure**.
 The integration serves its own card and adds it to your dashboards' resources, so there is nothing to install or write in YAML. (A dashboard in YAML mode gets it as an extra module instead.)
 
 1. Edit a dashboard, **Add card**, and pick **Hybrid Heating**. It is meant to be the only card on a **Panel** view, or a full-width card in a Sections view.
-2. The card has four tabs. **Now** shows the flat (tap a room for its details and Cold/Hot), why the module does what it does and the forecast. **Curve & zones** has the flow curve (drag its points), the weather zones (pick one on the strip under the chart, drag the boundaries between them) and a what-if estimate. **Rooms & power** has the room targets, the ACs' night modes and the load limit. **System** has each layer's mode (Off, Observe, Control), the heating season and the decision log. Presets and hybrid mode switch at once; every other change is a draft until you press **Save** in the bar that appears.
+2. The card has four tabs. **Now** shows the flat (tap a room for its details and Cold/Hot), why the module does what it does and the forecast. **Curve & zones** has the flow curve (drag its points), the weather zones (pick one on the strip under the chart, drag the boundaries between them) and a what-if estimate. **Rooms & power** has the room targets, the ACs' night modes and the load limit. **System** has each layer's mode (Off, Observe, Control), the heating season, the suggestions and the decision log. Mark a room Cold or Hot when it feels wrong: similar marks, and three mornings in a row off target, lead to suggestions an admin applies or dismisses. Presets and hybrid mode switch at once; every other change is a draft until you press **Save** in the bar that appears.
 3. Only administrators can change settings. Other users see the same card read-only, and can still switch presets.
 
 The card follows the language of your Home Assistant profile (English or Russian) and its theme, including dark mode. Its options, set in the card editor or in YAML:
