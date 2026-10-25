@@ -12,5 +12,6 @@ export default defineConfig({
   use: { baseURL: 'http://localhost:5179', timezoneId: 'UTC', locale: 'en-US' },
   snapshotPathTemplate: '{testDir}/__screenshots__/{platform}/{arg}{ext}',
   updateSnapshots: 'missing',
-  expect: { toHaveScreenshot: { maxDiffPixelRatio: 0.01 } },
+  // Baselines are per platform, so rendering is deterministic: 1% let a row of new controls pass unseen.
+  expect: { toHaveScreenshot: { maxDiffPixelRatio: 0.001 } },
 });
