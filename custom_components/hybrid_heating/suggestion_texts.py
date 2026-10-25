@@ -45,6 +45,23 @@ CURVE = {
         ),
     ),
 }
+# The same titles, from what the room correction did over the week (smooth mode)
+CURVE_CORRECTION = {
+    "up": _t(
+        "For {hours} h over {days} days in this weather the room correction added {corr}° to the curve on "
+        "average to keep the rooms at their targets. Raising the point lets it react to sun and wind again.",
+        "За {days} {days_word} ({hours} ч) в такую погоду поправка по комнатам "  # noqa: RUF001
+        "в среднем добавляла к кривой {corr}°, чтобы держать цели. "
+        "Если поднять точку, поправка снова сможет реагировать на солнце и ветер.",
+    ),
+    "down": _t(
+        "For {hours} h over {days} days in this weather the room correction took {corr}° off the curve on "
+        "average to keep the rooms at their targets. Lowering the point lets it react to sun and wind again.",
+        "За {days} {days_word} ({hours} ч) в такую погоду поправка по комнатам "  # noqa: RUF001
+        "в среднем убавляла от кривой {corr}°, чтобы держать цели. "
+        "Если опустить точку, поправка снова сможет реагировать на солнце и ветер.",
+    ),
+}
 ROOM_TITLES = {
     ("offset", "cold"): _t("{room}: raise its target by {by}°", "{room}: поднять цель на {by}°"),
     ("offset", "hot"): _t("{room}: lower its target by {by}°", "{room}: снизить цель на {by}°"),
@@ -106,13 +123,30 @@ def _lang(lang: str) -> str:
     return lang if lang in LANGS else "en"
 
 
+def _days(n: int, lang: str) -> str:
+    if lang == "en":
+        return "day" if n == 1 else "days"
+    if n % 10 == 1 and n % 100 != 11:
+        return "день"
+    return "дня" if n % 10 in (2, 3, 4) and n % 100 not in (12, 13, 14) else "дней"
+
+
 def _curve_texts(sg: Suggestion, lang: str) -> tuple[str, str]:
     direction = "up" if sg.new > sg.old else "down"
     title, detail = CURVE[direction]
     ev = sg.evidence
     point = _num(float(sg.band or 0), lang, signed=True) + "°"
+    heading = title[lang].format(point=point, old=_num(sg.old, lang), new=_num(sg.new, lang))
+    if "mean_correction" in ev:  # from the room correction, not from mornings short of the target
+        days = int(ev.get("days", 0))
+        return heading, CURVE_CORRECTION[direction][lang].format(
+            hours=_num(float(ev.get("hours", 0)), lang),
+            days=days,
+            days_word=_days(days, lang),
+            corr=_num(abs(float(ev["mean_correction"])), lang),
+        )
     return (
-        title[lang].format(point=point, old=_num(sg.old, lang), new=_num(sg.new, lang)),
+        heading,
         detail[lang].format(
             t_min=_num(float(ev.get("t_min", 0)), lang, signed=True),
             t_max=_num(float(ev.get("t_max", 0)), lang, signed=True),

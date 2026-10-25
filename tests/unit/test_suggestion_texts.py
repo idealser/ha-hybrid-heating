@@ -129,3 +129,22 @@ def test_a_short_week_names_the_value_still_in_use():
     at = datetime(2026, 11, 9, 4, 30, tzinfo=TZ)
     short = HeatLossEstimate("insufficient_data", None, None, None, 3, 28, at)
     assert heat_loss_view(short, "en", used=148.0, default=150.0)["detail"].endswith("Estimates use 148 W/K.")
+
+
+def test_a_correction_suggestion_says_what_the_correction_did():
+    from custom_components.hybrid_heating.core.learning import CorrectionDay, correction_suggestions
+
+    days = [
+        CorrectionDay(D1, 5, 2.0 * 120, 120),
+        CorrectionDay(D2, 5, 2.0 * 120, 120),
+        CorrectionDay(D3, 5, 2.0 * 120, 120),
+    ]
+    (sg,) = correction_suggestions(days, Settings(), [], NOW)
+    en = suggestion_view(sg, "new", "en")
+    assert en["title"] == "Raise the +5° point from 44.5° to 46°"
+    assert en["detail"] == (
+        "For 6 h over 3 days in this weather the room correction added 2° to the curve on average to keep "
+        "the rooms at their targets. Raising the point lets it react to sun and wind again."
+    )
+    ru = suggestion_view(sg, "new", "ru")["detail"]
+    assert ru.startswith("За 3 дня (6 ч) в такую погоду поправка по комнатам в среднем добавляла к кривой 2°")  # noqa: RUF001

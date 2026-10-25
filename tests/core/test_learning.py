@@ -5,6 +5,7 @@ import pytest
 
 from custom_components.hybrid_heating.core.controller import ControllerState, tick
 from custom_components.hybrid_heating.core.learning import (
+    CorrectionDay,
     LearningData,
     Mark,
     MorningSample,
@@ -12,6 +13,7 @@ from custom_components.hybrid_heating.core.learning import (
     StaleSuggestion,
     TickSample,
     band_of,
+    correction_suggestions,
     current_value,
     curve_suggestion,
     feedback_suggestion,
@@ -19,6 +21,7 @@ from custom_components.hybrid_heating.core.learning import (
     make_mark,
     morning_sample,
     prune,
+    record_correction,
     suggestion_patch,
     tick_sample,
     upsert_pending,
@@ -430,3 +433,77 @@ def test_lever_changes():
         "room_offsets.child",
     ]
     assert lever_changes(a, replace(a, preset=a.preset)) == []
+
+
+# The room correction as a signal: in smooth mode the PI loop covers for a curve point that is off
+
+
+def cd(day, band, mean, minutes=120):
+    return CorrectionDay(day=day, band=band, total=mean * minutes, minutes=minutes)
+
+
+def test_corrections_add_up_per_day_and_band():
+    days: list[CorrectionDay] = []
+    days = record_correction(days, datetime(2026, 11, 12, 10, 0, tzinfo=TZ), 6.0, 2.0)
+    days = record_correction(days, datetime(2026, 11, 12, 10, 1, tzinfo=TZ), 6.4, 3.0)
+    days = record_correction(days, datetime(2026, 11, 12, 10, 2, tzinfo=TZ), 9.0, 1.0)  # another band
+    days = record_correction(days, datetime(2026, 11, 13, 10, 0, tzinfo=TZ), 6.0, 2.0)  # another day
+    assert days == [
+        CorrectionDay(date(2026, 11, 12), 5, 5.0, 2),
+        CorrectionDay(date(2026, 11, 12), 10, 1.0, 1),
+        CorrectionDay(date(2026, 11, 13), 5, 2.0, 1),
+    ]
+
+
+def test_a_correction_that_keeps_adding_raises_the_point():
+    days = [cd(D1, 5, 2.2), cd(D2, 5, 1.8), cd(D3, 5, 2.0)]
+    (sg,) = correction_suggestions(days, Settings(), [], NOW)
+    assert (sg.key, sg.kind, sg.setting, sg.old, sg.new, sg.band) == (
+        "curve:5:up",
+        "curve",
+        "curve.points.5",
+        44.5,
+        46.0,
+        5,
+    )
+    assert sg.evidence == {"days": 3, "hours": 6.0, "mean_correction": 2.0}
+
+
+def test_a_correction_that_keeps_taking_off_lowers_the_point():
+    (sg,) = correction_suggestions([cd(D1, 0, -1.6), cd(D2, 0, -2.0), cd(D3, 0, -1.7)], Settings(), [], NOW)
+    assert (sg.key, sg.old, sg.new) == ("curve:0:down", 49.5, 48.0)
+
+
+@pytest.mark.parametrize(
+    "days",
+    [
+        [cd(D1, 5, 1.2), cd(D2, 5, 1.4), cd(D3, 5, 1.3)],  # within what the correction is for
+        [cd(D2, 5, 2.0), cd(D3, 5, 2.0)],  # two days are not enough
+        [cd(D1, 5, 2.0, minutes=30), cd(D2, 5, 2.0), cd(D3, 5, 2.0)],  # half an hour is not a day
+        [cd(date(2026, 11, 1), 5, 2.0), cd(D2, 5, 2.0), cd(D3, 5, 2.0)],  # older than a week
+        [cd(D1, 5, 2.0), cd(D2, 10, 2.0), cd(D3, 0, 2.0)],  # three bands, a day each
+    ],
+)
+def test_no_correction_suggestion(days):
+    assert correction_suggestions(days, Settings(), [], NOW) == []
+
+
+def test_correction_suggestions_keep_the_curve_rising_and_wait_after_a_dismissal():
+    days = [cd(D1, 5, 2.0), cd(D2, 5, 2.0), cd(D3, 5, 2.0)]
+    pts = tuple((t, 45.5 if t == 0 else f) for t, f in CurveSettings().points)
+    assert (
+        correction_suggestions(days, replace(Settings(), curve=replace(CurveSettings(), points=pts)), [], NOW)
+        == []
+    )
+    (sg,) = correction_suggestions(days, Settings(), [], NOW)
+    dismissed = [Resolution(sg, "dismissed", NOW - timedelta(days=1))]
+    assert correction_suggestions(days, Settings(), dismissed, NOW) == []
+
+
+def test_a_tick_sample_carries_the_correction():
+    s = snap()
+    st = ControllerState.initial(T0)
+    d = tick(ALL_ACTIVE, s, st)
+    ts = tick_sample(ALL_ACTIVE, s, d, st)
+    reason = next(r for r in d.reasons if "correction" in r.data)
+    assert ts is not None and ts.correction == reason.data["correction"]
