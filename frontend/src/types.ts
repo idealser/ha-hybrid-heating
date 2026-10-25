@@ -136,6 +136,8 @@ export interface HhModelParams {
   rod_kw: number;
   ac_rated_kw: Record<AcRoom, number>;
   ac_share: Record<AcRoom, number>;
+  /** Heat stored per degree of the flat: how slowly it cools or warms (kWh/K). */
+  capacity_kwh_per_k: number;
 }
 
 /** This integration's own entities, which the card drives through their services. */

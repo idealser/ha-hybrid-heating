@@ -7,7 +7,7 @@ import { pickLang, t, type Lang } from './i18n/index';
 import { diffSettings, withLive } from './logic/draft';
 import { normalizeConfig, type NormalConfig } from './logic/config';
 import { hassLanguage, liveFromHass, relevantHassChanged } from './logic/hass';
-import { withModelDefaults } from './logic/model';
+import { type ForecastStart, withModelDefaults } from './logic/model';
 import { dirtyTabs, statusLine, TABS, visibleTabs, type TabKey } from './logic/tabs';
 import { buildWhy } from './logic/why';
 import { SCHEMATIC } from './plan/builtin';
@@ -210,6 +210,15 @@ export class HybridHeatingCard extends LitElement {
     });
   }
 
+  /** Where the forecast starts: the season and the mean of the room readings now. */
+  private get forecastStart(): ForecastStart | null {
+    const st = this._view?.status;
+    if (!st) return null;
+    const temps = Object.values(st.rooms).filter((v): v is number => v !== null);
+    const indoor = temps.length ? temps.reduce((a, b) => a + b, 0) / temps.length : null;
+    return { seasonActive: st.season_active, windowMean: st.t_out_window_mean, indoor };
+  }
+
   /** The old thermostat (the System tab compares its target with the module's). */
   private get thermostatId(): string | undefined {
     const id = this._view?.config?.entities.thermostat;
@@ -306,6 +315,7 @@ export class HybridHeatingCard extends LitElement {
           .model=${this.model}
           .forecast=${v.forecast}
           .fsel=${this._ui?.fsel ?? null}
+          .start=${this.forecastStart}
           .tz=${this.tz}
         ></hh-forecast>`;
       case 'probe':

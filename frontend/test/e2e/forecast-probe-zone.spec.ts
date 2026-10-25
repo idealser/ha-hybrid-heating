@@ -3,7 +3,7 @@ import { expect, H, openTab, test } from './helpers';
 test('forecast totals and summary with the card tariff', async ({ page }) => {
   await page.goto(H({ lang: 'ru', tariff: '0.30', currency: '¤' }));
   const big = page.locator('hh-forecast .big');
-  await expect(big.nth(0)).toHaveText('65');
+  await expect(big.nth(0)).toHaveText('66'); // hour by hour: setbacks coast, mornings warm up
   await expect(big.nth(1)).toHaveText('20');
   await expect(page.locator('hh-forecast')).toContainText('¤ за 48 ч');
   await expect(page.locator('hh-forecast')).toContainText('Холоднее всего вт 27 в 03:00, −4,6°: зона «Мороз».');
@@ -97,4 +97,41 @@ test('read-only: the zone editor cannot change anything', async ({ page }) => {
   await page.goto(H({ admin: '0' }));
   await openTab(page, 'Curve & zones');
   await expect(page.locator('hh-zone-editor').getByRole('switch', { name: 'Bedroom' })).toBeDisabled();
+});
+
+test('a tapped hour says what runs then; tapping it again clears it', async ({ page }) => {
+  await page.goto(H());
+  const bar = page.locator('hh-forecast .fc-bar').nth(36);
+  const line = page.locator('hh-forecast .hour');
+  await bar.click();
+  await expect(line).toHaveText(
+    /^Tue 27, 03:00, −4\.6°: zone “Frost”: both ACs · boiler main · 3 rods · flow \d+(\.\d)?° · about \d+\.\d kW\.$/,
+  );
+  await bar.click();
+  await expect(line).toHaveCount(0);
+  await expect(page.locator('hh-forecast .fc-sel')).toHaveCount(0);
+});
+
+test('the hours work from the keyboard', async ({ page }) => {
+  await page.goto(H());
+  const line = page.locator('hh-forecast .hour');
+  await page.locator('hh-forecast svg').focus();
+  await page.keyboard.press('ArrowRight'); // nothing picked yet: the first hour
+  await expect(line).toContainText('Sun 25, 15:00');
+  await page.keyboard.press('ArrowRight');
+  await expect(line).toContainText('Sun 25, 16:00');
+  await page.keyboard.press('End');
+  await expect(line).toContainText('Tue 27, 14:00');
+  await page.keyboard.press('Escape');
+  await expect(line).toHaveCount(0);
+});
+
+test('out of the heating season the forecast costs nothing', async ({ page }) => {
+  await page.goto(H());
+  await openTab(page, 'System');
+  await page.locator('hh-season').getByRole('button', { name: 'Always off' }).click();
+  await openTab(page, 'Now');
+  await expect(page.locator('hh-forecast')).toContainText('Out of the heating season: no heating in these 48 h.');
+  await page.locator('hh-forecast .fc-bar').nth(3).click();
+  await expect(page.locator('hh-forecast .hour')).toContainText('out of the heating season, no heating.');
 });
