@@ -15,7 +15,11 @@ export type StepperKey =
   | 'load.restore_kw'
   | 'season.threshold'
   | 'season.window_hours'
-  | 'season.hysteresis';
+  | 'season.hysteresis'
+  | 'room_offsets.living'
+  | 'room_offsets.bedroom'
+  | 'room_offsets.child'
+  | 'room_offsets.bath';
 
 export const STEPPERS: Record<StepperKey, { min: number; max: number; step: number }> = {
   'curve.flow_min': { min: 20, max: 45, step: 1 },
@@ -31,6 +35,10 @@ export const STEPPERS: Record<StepperKey, { min: number; max: number; step: numb
   'season.threshold': { min: 10, max: 22, step: 0.5 },
   'season.window_hours': { min: 1, max: 48, step: 1 },
   'season.hysteresis': { min: 0.5, max: 3, step: 0.5 },
+  'room_offsets.living': { min: -3, max: 3, step: 0.1 },
+  'room_offsets.bedroom': { min: -3, max: 3, step: 0.1 },
+  'room_offsets.child': { min: -3, max: 3, step: 0.1 },
+  'room_offsets.bath': { min: -3, max: 3, step: 0.1 },
 };
 
 const round2 = (v: number) => Math.round(v * 100) / 100;
@@ -38,7 +46,7 @@ const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v
 
 export function getAt(s: HhSettings, key: StepperKey): number {
   const [group, field] = key.split('.') as [keyof HhSettings, string];
-  return (s[group] as unknown as Record<string, number>)[field]!;
+  return (s[group] as unknown as Record<string, number | undefined>)[field] ?? 0; // a room without an offset
 }
 
 function setAt(s: HhSettings, key: StepperKey, v: number): HhSettings {

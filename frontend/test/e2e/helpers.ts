@@ -63,6 +63,14 @@ export async function dragBy(page: Page, target: Locator, dx: number, dy: number
   await page.mouse.up();
 }
 
+/** Change what the fake status says, then let the card poll it at once. */
+export async function patchStatus(page: Page, patch: string): Promise<void> {
+  await page.evaluate(src => {
+    (window as unknown as Hh).__hh.hass.statusPatch = new Function('s', `return (${src})(s)`) as never;
+    document.dispatchEvent(new Event('visibilitychange'));
+  }, patch);
+}
+
 /** Switch the card to one of its tabs by name. */
 export async function openTab(page: Page, name: string): Promise<void> {
   await page.getByRole('tab', { name: new RegExp(`^${name}`) }).click();

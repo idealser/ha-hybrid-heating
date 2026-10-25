@@ -166,7 +166,9 @@ function boilerItem(st: HhStatus, s: HhSettings, L: Lang): WhyItem {
   if (!st.season_active) return { pip: 'idle', lead: t(L, 'why.season_idle'), text: t(L, k('season_idle_text')) };
   // The module's decision, not the device: in observe mode the old thermostat drives the call.
   const heating = st.boiler.wanted ?? st.boiler.call_on === true;
-  if (!heating && s.layers.load === 'active' && st.reasons.some(r => r.code === 'pause_boiler'))
+  // The pause reason comes only with the tick that starts it; the status flag holds for all of it.
+  const paused = st.load.pausing || st.reasons.some(r => r.code === 'pause_boiler');
+  if (!heating && s.layers.load === 'active' && paused)
     return { pip: 'cold', lead: t(L, 'why.load_pause'), text: t(L, 'why.load_pause_text', { s: s.load.pause_s }) };
   if (s.boiler.mode === 'smooth') {
     if (!heating)
@@ -261,7 +263,8 @@ function summary(st: HhStatus, s: HhSettings, L: Lang): string {
   const obs = s.layers.boiler !== 'active';
   const k = (key: string) => (obs ? `sum.obs.${key}` : `sum.${key}`) as I18nKey;
   let boiler: string;
-  if (!st.decided) boiler = t(L, 'sum.starting');
+  if (!st.enabled) boiler = t(L, 'sum.disabled');
+  else if (!st.decided) boiler = t(L, 'sum.starting');
   else if (!st.boiler.available) boiler = t(L, 'sum.unavailable');
   else if (s.zones.policies[st.zone]?.boiler === 'off') boiler = t(L, k('zone_off'));
   else if (!st.season_active) boiler = t(L, 'sum.season');
@@ -299,6 +302,9 @@ export function buildWhy(st: HhStatus, s: HhSettings, L: Lang, tz = 'UTC'): WhyV
   const notable = st.reasons
     .filter(r => NOTABLE_CODES.has(r.code) && r.text)
     .map(r => ({ pip: 'cold' as const, lead: '', text: r.text }));
-  const items = [...acItems(st, s, L, tz), boilerItem(st, s, L), ...notable, loadItem(st, s, L)];
+  // Switched off, the module decides nothing: the old thermostat and automation run the house.
+  const items = st.enabled
+    ? [...acItems(st, s, L, tz), boilerItem(st, s, L), ...notable, loadItem(st, s, L)]
+    : [{ pip: 'idle' as const, lead: t(L, 'why.disabled'), text: t(L, 'why.disabled_text') }];
   return { summary: summary(st, s, L), sub, chips, items };
 }

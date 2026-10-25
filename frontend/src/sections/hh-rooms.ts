@@ -6,7 +6,8 @@ import '../components/hh-seg';
 import { define, fire } from '../dom';
 import { t, type Lang } from '../i18n/index';
 import { DASH, fDev, fmt } from '../logic/format';
-import type { StepperKey } from '../logic/steppers';
+import { stepSetting, type StepperKey } from '../logic/steppers';
+import '../components/hh-stepper';
 import { shared } from '../styles/shared';
 import { ROOMS, type AcRoom, type HhAction, type HhSettings, type HhStatus, type NightMode, type Room } from '../types';
 
@@ -86,6 +87,12 @@ export class HhRooms extends LitElement {
         border-color: var(--heat);
         color: var(--heat);
       }
+      .offset {
+        grid-column: 1/-1;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
       .nightsel {
         grid-column: 1/-1;
         display: flex;
@@ -98,6 +105,23 @@ export class HhRooms extends LitElement {
 
   private target(key: StepperKey, label: string, value: number) {
     return stepperField(this, this.settings!, key, label, `${fmt(value, 1, this.lang)}°`, this.readOnly);
+  }
+
+  /** The room's target against the preset: the child sleeps cooler by default. */
+  private offset(room: Room) {
+    const s = this.settings!;
+    const L = this.lang;
+    const key = `room_offsets.${room}` as StepperKey;
+    const label = t(L, 'rooms.offset', { room: t(L, `room.${room}`) });
+    return html`<div class="offset">
+      <span class="by">${t(L, 'rooms.offset_short')}</span>
+      <hh-stepper
+        .label=${label}
+        .text=${`${fDev(s.room_offsets[room] ?? 0, L)}°`}
+        .disabled=${this.readOnly}
+        @hh-step=${(e: CustomEvent<{ dir: -1 | 1 }>) => fire(this, 'hh-edit', { next: stepSetting(s, key, e.detail.dir) })}
+      ></hh-stepper>
+    </div>`;
   }
 
   private row(room: Room) {
@@ -115,6 +139,7 @@ export class HhRooms extends LitElement {
           ? html`<span class="muted small">${fDev(temp - (target + (s.room_offsets[room] ?? 0)), L)}</span>`
           : nothing}</span
       >
+      ${this.offset(room)}
       ${this.learning
         ? html`<div class="fb">
             <button type="button" class="cold" @click=${() => feedback('cold')}>${t(L, 'feedback.cold')}</button>

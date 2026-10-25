@@ -76,8 +76,12 @@ export class CardStore {
     const err = e instanceof HhApiError ? e : new HhApiError('unknown_error', String(e));
     if (err.code === 'unknown_command') return t(this.o.lang(), 'error.not_set_up');
     if (err.code === 'not_loaded') return t(this.o.lang(), 'error.not_loaded');
-    if (err.code === 'invalid_config') return err.message;
-    return t(this.o.lang(), 'error.generic', { message: err.message });
+    const lang = this.o.lang();
+    if (err.code === 'invalid_config') return t(lang, 'error.invalid_config', { message: err.message });
+    // Answers the integration gives in English: the card says them in its own words.
+    const known = ['not_ready', 'stale', 'not_found', 'unauthorized'] as const;
+    for (const code of known) if (err.code === code) return t(lang, `error.${code}`);
+    return t(lang, 'error.generic', { message: err.message });
   }
 
   /**
@@ -119,9 +123,17 @@ export class CardStore {
     }
   }
 
-  private async forecast() {
+  /** The forecast, asked every 30 minutes. No hourly forecast from the weather entity is an answer too: it
+   * is kept (and said) until the next ask; any other failure leaves it unloaded for the next poll. */
+  private async forecast(): Promise<HhForecast | null | undefined> {
     this.forecastAt = Date.now();
-    return this.optional(() => this.api.getForecast());
+    try {
+      return await this.api.getForecast();
+    } catch (e) {
+      if (e instanceof HhApiError && e.code === 'forecast_unavailable')
+        return { source: '', updated: '', hours: [], unavailable: true };
+      return undefined;
+    }
   }
 
   private async load(): Promise<void> {
@@ -241,7 +253,12 @@ export class CardStore {
       const lang = this.o.lang();
       const r = await this.api.feedback(room, kind, lang);
       if (!r) return; // this integration does not take feedback yet
-      this.o.notify(t(lang, 'feedback.toast', { room: t(lang, `room_low.${room}`), kind: t(lang, `feedback.kind.${kind}`) }));
+      const said = { room: t(lang, `room_low.${room}`), kind: t(lang, `feedback.kind.${kind}`) };
+      this.o.notify(
+        r.suggestion
+          ? t(lang, 'feedback.toast_suggestion', { ...said, title: r.suggestion.title })
+          : t(lang, 'feedback.toast', said),
+      );
       if (r.suggestion) await this.refreshSuggestions();
     });
   }

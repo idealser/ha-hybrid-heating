@@ -26,7 +26,7 @@ export class HhForecastStrip extends LitElement {
   declare settings: HhSettings | null;
   declare model: HhModelParams | null;
   declare forecast: HhForecast | null | undefined;
-  declare fsel: number | null;
+  declare fsel: string | null;
   /** The season and the rooms now; without a status the flat starts at its target, in season. */
   declare start: ForecastStart | null;
   declare tz: string;
@@ -117,14 +117,20 @@ export class HhForecastStrip extends LitElement {
     return forecastRun(this.settings!, this.model!, this.forecast!.hours, this.tz, start);
   }
 
+  /** The tapped hour's place in the hours now, or null (none, or no longer in the forecast). */
+  private selIndex(): number | null {
+    const i = this.fsel === null ? -1 : (this.forecast?.hours.findIndex(h => h.ts === this.fsel) ?? -1);
+    return i >= 0 ? i : null;
+  }
+
   private pick(i: number | null): void {
     const h = i === null ? undefined : this.forecast!.hours[i];
-    fire(this, 'hh-ui', h ? { fsel: i, probe: h.t_out } : { fsel: null });
+    fire(this, 'hh-ui', h ? { fsel: h.ts, probe: h.t_out } : { fsel: null });
   }
 
   private onKey(e: KeyboardEvent): void {
     const n = this.forecast!.hours.length;
-    const cur = this.fsel;
+    const cur = this.selIndex();
     const next: Record<string, number | null> = {
       ArrowRight: cur === null ? 0 : Math.min(n - 1, cur + 1),
       ArrowLeft: cur === null ? 0 : Math.max(0, cur - 1),
@@ -151,7 +157,7 @@ export class HhForecastStrip extends LitElement {
     const { tmin, tmax, ticks } = forecastScale(hours.map(h => h.t_out));
     const y = (v: number) => B - ((v - tmin) / (tmax - tmin)) * (B - T);
     const every = W < 520 ? 12 : 6;
-    const sel = this.fsel !== null && this.fsel < hours.length ? this.fsel : null;
+    const sel = this.selIndex();
     const line = hours.map((h, i) => `${i ? 'L' : 'M'}${(left + i * bw + bw / 2).toFixed(1)} ${y(h.t_out).toFixed(1)}`).join(' ');
     return html`<svg viewBox="0 0 ${W} ${H}" role="group" tabindex="0" aria-label=${t(L, 'forecast.aria')}
       @mousedown=${(e: MouseEvent) => e.preventDefault() /* a click picks an hour; Tab brings the focus */}
@@ -187,8 +193,9 @@ export class HhForecastStrip extends LitElement {
     const f = this.forecast;
     if (f === undefined) return html`<p class="note">…</p>`;
     if (f === null) return html`<p class="note">${t(L, 'stage5.forecast')}</p>`;
+    if (f.unavailable) return html`<p class="note">${t(L, 'forecast.unavailable')}</p>`;
     if (!f.hours.length) return html`<p class="note">${t(L, 'forecast.empty')}</p>`;
-    const sel = this.fsel !== null && this.fsel < f.hours.length ? this.fsel : null;
+    const sel = this.selIndex();
     const row = sel === null || !this.model ? null : this.rows()[sel]!;
     return html`${this.strip()}
       ${row ? html`<p class="hour" aria-live="polite">${forecastHourLine(this.settings!, f.hours[sel!]!, row, this.tz, L)}</p>` : nothing}

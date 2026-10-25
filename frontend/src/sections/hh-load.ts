@@ -15,11 +15,14 @@ export class HhLoad extends LitElement {
   static override properties = {
     lang: {},
     settings: { attribute: false },
+    running: { attribute: false },
     status: { attribute: false },
     readOnly: { type: Boolean },
   };
   declare lang: Lang;
   declare settings: HhSettings | null;
+  /** The saved settings: whether the layer acts now is not a draft. */
+  declare running: HhSettings | null;
   declare status: HhStatus | null;
   declare readOnly: boolean;
 
@@ -27,6 +30,7 @@ export class HhLoad extends LitElement {
     super();
     this.lang = 'en';
     this.settings = null;
+    this.running = null;
     this.status = null;
     this.readOnly = false;
   }
@@ -80,7 +84,7 @@ export class HhLoad extends LitElement {
     const kw = this.status?.load.kw ?? null;
     const limit = s.load.limit_kw;
     const m = loadMeter(kw, limit, SCALE_KW);
-    const shed = this.status ? shedNow(this.status, s, L) : null;
+    const shed = this.status ? shedNow(this.status, this.running ?? s, L) : null;
     return html`<section class="card" aria-labelledby="h-load">
       <div class="card-head">
         <h2 id="h-load">${t(L, 'section.load')}</h2>
