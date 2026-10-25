@@ -6,7 +6,7 @@ from typing import Any
 
 from .codec import to_data
 from .core.ac import AcState
-from .core.boiler import budget_remaining
+from .core.boiler import budget_remaining, driver_temperature
 from .core.context import effective_target, zone_index
 from .core.controller import ControllerState
 from .core.curve import flow_for
@@ -99,17 +99,37 @@ def layer_ac_state(settings: Settings, state: ControllerState) -> AcState:
     return state.ac if is_live(settings, Layer.AC) else state.shadow_ac
 
 
+def _follows_coldest(settings: Settings, zone: int) -> bool:
+    return settings.hybrid and settings.zones.policies[zone].boiler is BoilerZoneMode.BACKUP
+
+
+def _normalised(settings: Settings, snap: Snapshot) -> dict[Room, float]:
+    """The driver rooms' readings less their target offsets, as the controller compares them."""
+    return {
+        r: v - settings.room_offsets.get(r, 0.0) for r in DRIVER_ROOMS if (v := snap.rooms.get(r)) is not None
+    }
+
+
+def boiler_driver(settings: Settings, snap: Snapshot | None, decision: Decision | None) -> float | None:
+    """The temperature the boiler follows, also while it idles (season off, boiler off in the zone)."""
+    if decision is None or snap is None:
+        return None
+    reason = next((r for r in decision.reasons if r.layer is Layer.BOILER and "driver" in r.data), None)
+    if reason is not None:
+        value = reason.data["driver"]
+        assert isinstance(value, (int, float))
+        return float(value)
+    t = driver_temperature(_normalised(settings, snap), _follows_coldest(settings, decision.zone))
+    return round(t, 2) if t is not None else None
+
+
 def _driver(
     settings: Settings, snap: Snapshot | None, zone: int, boiler_reason: Reason | None
 ) -> dict[str, Any]:
-    follows_coldest = settings.hybrid and settings.zones.policies[zone].boiler is BoilerZoneMode.BACKUP
+    follows_coldest = _follows_coldest(settings, zone)
     room: Room | None = None
     if follows_coldest and snap is not None:
-        normalised = {
-            r: v - settings.room_offsets.get(r, 0.0)
-            for r in DRIVER_ROOMS
-            if (v := snap.rooms.get(r)) is not None
-        }
+        normalised = _normalised(settings, snap)
         room = min(normalised, key=lambda r: normalised[r]) if normalised else None
     temp = boiler_reason.data.get("driver") if boiler_reason is not None else None
     return {"mode": "coldest" if follows_coldest else "average", "room": to_data(room), "temp": temp}

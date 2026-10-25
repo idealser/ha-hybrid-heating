@@ -194,6 +194,20 @@
       "load_shedding": {
         "name": "Load shedding"
       }
+    },
+    "climate": {
+      "thermostat": {
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "comfort": "Comfort",
+              "eco": "Eco",
+              "night": "Night",
+              "away": "Away"
+            }
+          }
+        }
+      }
     }
   }
 }

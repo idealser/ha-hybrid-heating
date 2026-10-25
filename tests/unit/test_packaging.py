@@ -29,6 +29,7 @@ HA_MODULES = {
     "select",
     "sensor",
     "binary_sensor",
+    "climate",
     "websocket",
     "websocket_learning",
     "weather_forecast",

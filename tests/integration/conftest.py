@@ -70,6 +70,7 @@ class ServiceRecorder:
             if (
                 registry is hass.services
                 and isinstance(entity_id, str)
+                and entity_id != f"{domain}.{DOMAIN}"  # the module's own thermostat
                 and not entity_id.startswith(f"{domain}.{DOMAIN}_")
             ):
                 return await recorder._handle(
