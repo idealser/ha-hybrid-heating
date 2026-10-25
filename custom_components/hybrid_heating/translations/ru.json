@@ -139,5 +139,61 @@
     "error": {
       "entity_not_found": "Такой сущности нет в Home Assistant."
     }
+  },
+  "entity": {
+    "switch": {
+      "enabled": {
+        "name": "Включено"
+      },
+      "hybrid_mode": {
+        "name": "Гибридный режим"
+      }
+    },
+    "select": {
+      "preset": {
+        "name": "Пресет",
+        "state": {
+          "comfort": "Комфорт",
+          "eco": "Эко",
+          "night": "Ночь",
+          "away": "Отъезд"
+        }
+      },
+      "boiler_mode": {
+        "name": "Режим котла",
+        "state": {
+          "smooth": "Плавный",
+          "classic": "Классический"
+        }
+      }
+    },
+    "sensor": {
+      "flow_target": {
+        "name": "Целевая подача"
+      },
+      "zone": {
+        "name": "Зона",
+        "state": {
+          "warm": "Тепло",
+          "cool": "Прохладно",
+          "frost": "Мороз",
+          "severe_frost": "Сильный мороз"
+        }
+      },
+      "status": {
+        "name": "Статус"
+      },
+      "heat_loss": {
+        "name": "Теплопотери"
+      }
+    },
+    "binary_sensor": {
+      "boiler_call": {
+        "name": "Запрос тепла"
+      },
+      "load_shedding": {
+        "name": "Сброс нагрузки"
+      }
+    }
   }
 }

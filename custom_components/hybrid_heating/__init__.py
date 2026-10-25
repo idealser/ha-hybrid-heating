@@ -13,7 +13,7 @@ from .storage import HybridStore
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
-PLATFORMS: list[Platform] = []
+PLATFORMS: list[Platform] = [Platform.SWITCH, Platform.SELECT, Platform.SENSOR, Platform.BINARY_SENSOR]
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:

@@ -139,5 +139,61 @@
     "error": {
       "entity_not_found": "This entity doesn't exist in Home Assistant."
     }
+  },
+  "entity": {
+    "switch": {
+      "enabled": {
+        "name": "Enabled"
+      },
+      "hybrid_mode": {
+        "name": "Hybrid mode"
+      }
+    },
+    "select": {
+      "preset": {
+        "name": "Preset",
+        "state": {
+          "comfort": "Comfort",
+          "eco": "Eco",
+          "night": "Night",
+          "away": "Away"
+        }
+      },
+      "boiler_mode": {
+        "name": "Boiler mode",
+        "state": {
+          "smooth": "Smooth",
+          "classic": "Classic"
+        }
+      }
+    },
+    "sensor": {
+      "flow_target": {
+        "name": "Flow target"
+      },
+      "zone": {
+        "name": "Zone",
+        "state": {
+          "warm": "Warm",
+          "cool": "Cool",
+          "frost": "Frost",
+          "severe_frost": "Severe frost"
+        }
+      },
+      "status": {
+        "name": "Status"
+      },
+      "heat_loss": {
+        "name": "Heat loss"
+      }
+    },
+    "binary_sensor": {
+      "boiler_call": {
+        "name": "Boiler call"
+      },
+      "load_shedding": {
+        "name": "Load shedding"
+      }
+    }
   }
 }
