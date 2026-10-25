@@ -580,14 +580,14 @@ var Fe = class {
 	applySuggestion(e, t) {
 		return this.ws({
 			type: "hybrid_heating/apply_suggestion",
-			id: e,
+			suggestion_id: e,
 			language: t
 		});
 	}
 	async dismissSuggestion(e) {
 		await this.ws({
 			type: "hybrid_heating/dismiss_suggestion",
-			id: e
+			suggestion_id: e
 		});
 	}
 	feedback(e, t, n) {

@@ -231,3 +231,19 @@ def test_heat_loss_texts():
     )
     found = Reason("system", "heat_loss_estimated", {"w_per_k": 148.3, "days_used": 9})
     assert render_reason(found, "ru") == "Теплопотери оценены: 148,3 Вт/К по 9 дням"
+
+
+def test_feedback_and_decision_texts():
+    marked = Reason("system", "feedback_marked", {"room": "child", "mark": "cold"})
+    assert (render_reason(marked, "en"), render_reason(marked, "ru")) == (
+        "Child's room marked too cold",
+        "Детская: отметка «холодно»",
+    )
+    applied = Reason(
+        "system", "suggestion_applied", {"setting": "room_offsets.living", "old": 0.0, "new": -0.3}
+    )
+    assert (
+        render_reason(applied, "en") == "Suggestion applied: the living room target offset from 0.0° to -0.3°"
+    )
+    stale = Reason("system", "suggestion_stale", {"setting": "curve.shift"})
+    assert render_reason(stale, "ru") == "Подсказка снята: настройку «вся кривая» уже изменили"

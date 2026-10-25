@@ -3,7 +3,7 @@ import { calls, expect, H, openTab, test } from './helpers';
 test('apply a suggestion', async ({ page }) => {
   await page.goto(H({ lang: 'ru' }));
   await page.locator('hh-suggestions').getByRole('button', { name: 'Применить' }).click();
-  expect((await calls(page)).some(c => c.type === 'hybrid_heating/apply_suggestion' && c.id === 'curve10')).toBe(true);
+  expect((await calls(page)).some(c => c.type === 'hybrid_heating/apply_suggestion' && c.suggestion_id === 'curve10')).toBe(true);
   await expect(page.locator('#toast')).toHaveText('Применено: Поднять точку +10° с 39,5° до 41°');
   await expect(page.locator('hh-suggestions')).toHaveCount(0); // nothing new is left on Now
   await openTab(page, 'Система');
@@ -17,7 +17,7 @@ test('dismiss a suggestion', async ({ page }) => {
   await page.locator('hh-suggestions').getByRole('button', { name: 'Не надо' }).click();
   expect((await calls(page)).filter(c => c.type === 'hybrid_heating/dismiss_suggestion').at(-1)).toEqual({
     type: 'hybrid_heating/dismiss_suggestion',
-    id: 'curve10',
+    suggestion_id: 'curve10',
   });
   await openTab(page, 'Система');
   await expect(page.locator('hh-suggestions')).toContainText(

@@ -63,6 +63,16 @@ TEXTS: Mapping[str, Mapping[str, str]] = {
     "suggestion_created": _t(
         "New suggestion: {setting} from {old}° to {new}°", "Новая подсказка: {setting} с {old}° на {new}°"
     ),
+    "suggestion_applied": _t(
+        "Suggestion applied: {setting} from {old}° to {new}°",
+        "Подсказка применена: {setting} с {old}° на {new}°",
+    ),
+    "suggestion_dismissed": _t("Suggestion dismissed: {setting}", "Подсказка отклонена: {setting}"),
+    "suggestion_stale": _t(
+        "Suggestion withdrawn: {setting} was changed meanwhile",
+        "Подсказка снята: настройку «{setting}» уже изменили",
+    ),
+    "feedback_marked": _t("{room} marked too {mark}", "{room}: отметка «{mark}»"),
     # Air conditioners
     "ac_started": _t(
         "{room}: AC started, setpoint {setpoint}°", "{room}: кондиционер включён, уставка {setpoint}°"
@@ -207,6 +217,10 @@ ROOMS_LOW: Mapping[str, Mapping[str, str]] = {
     "ru": {"living": "гостиная", "bedroom": "спальня", "child": "детская", "bath": "ванная"},
 }
 OBSERVE_SUFFIX: Mapping[str, str] = {"en": " (observe only)", "ru": " (только наблюдение)"}
+MARK_NAMES: Mapping[str, Mapping[str, str]] = {
+    "en": {"cold": "cold", "hot": "hot"},
+    "ru": {"cold": "холодно", "hot": "жарко"},
+}
 SIGNED_KEYS = frozenset({"correction", "error"})
 ALERTS: Mapping[str, Mapping[str, str]] = {
     "unreachable": _t(
@@ -275,6 +289,8 @@ def setting_name(setting: str, lang: str) -> str:
 def _value(key: str, value: Any, lang: str) -> str:
     if key == "setting" and isinstance(value, str):
         return setting_name(value, lang)
+    if key == "mark" and isinstance(value, str):
+        return MARK_NAMES[lang].get(value, value)
     if key == "room" and isinstance(value, str):
         return ROOM_NAMES[lang].get(value, value)
     if key == "rooms" and isinstance(value, str):

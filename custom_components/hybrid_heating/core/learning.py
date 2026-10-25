@@ -286,10 +286,13 @@ class Mark:
     ac_setpoint: float | None
 
 
-def make_mark(room: Room, kind: MarkKind, settings: Settings, snap: Snapshot, d: Decision) -> Mark:
+def make_mark(
+    room: Room, kind: MarkKind, settings: Settings, snap: Snapshot, d: Decision, at: datetime | None = None
+) -> Mark:
+    """What the room was like: the last tick's readings and decision; `at` is when the mark was made."""
     ac = room in AC_ROOMS
     return Mark(
-        at=snap.now,
+        at=at or snap.now,
         room=room,
         kind=kind,
         room_temp=snap.rooms.get(room),
@@ -383,7 +386,8 @@ def upsert_pending(pending: Sequence[Suggestion], sg: Suggestion) -> list[Sugges
     return [p for p in pending if p.key != sg.key] + [sg]
 
 
-def _fresh(settings: Settings, sg: Suggestion) -> bool:
+def is_fresh(settings: Settings, sg: Suggestion) -> bool:
+    """The setting still has the value the suggestion started from."""
     try:
         return abs(current_value(settings, sg.setting) - sg.old) <= 1e-6
     except ValueError, KeyError:
@@ -398,7 +402,7 @@ def prune(
     return LearningData(
         marks=[m for m in data.marks if before(now - ls.keep_marks, m.at)],
         mornings=[m for m in data.mornings if m.day > today - ls.keep_mornings],
-        pending=[p for p in data.pending if _fresh(settings, p)],
+        pending=[p for p in data.pending if is_fresh(settings, p)],
         resolutions=[r for r in data.resolutions if before(now - ls.keep_resolutions, r.at)],
         tallies={d: t for d, t in data.tallies.items() if d > today - ls.keep_tallies},
         heat_loss=data.heat_loss,

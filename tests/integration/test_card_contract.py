@@ -64,10 +64,3 @@ async def test_status_follows_the_settings_revision(hass, fake_home, hass_ws_cli
     await c.async_patch_settings({"targets": {"comfort": 22.0}}, "ws")
     status = (await ws(hass_ws_client, hass, type="hybrid_heating/get_status"))["result"]
     assert status["revision"] == 2 and status["seq"]["log"] == c.log.revision
-
-
-async def test_stage5_commands_are_absent_for_now(hass, fake_home, hass_ws_client):
-    await setup_integration(hass)
-    for cmd in ("get_suggestions",):
-        msg = await ws(hass_ws_client, hass, type=f"hybrid_heating/{cmd}")
-        assert not msg["success"] and msg["error"]["code"] == "unknown_command"

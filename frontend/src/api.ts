@@ -91,11 +91,11 @@ export class HhApi {
   }
 
   applySuggestion(id: string, lang: Lang): Promise<HhConfigReply> {
-    return this.ws({ type: 'hybrid_heating/apply_suggestion', id, language: lang });
+    return this.ws({ type: 'hybrid_heating/apply_suggestion', suggestion_id: id, language: lang });
   }
 
   async dismissSuggestion(id: string): Promise<void> {
-    await this.ws({ type: 'hybrid_heating/dismiss_suggestion', id });
+    await this.ws({ type: 'hybrid_heating/dismiss_suggestion', suggestion_id: id });
   }
 
   feedback(room: Room, kind: 'cold' | 'hot', lang: Lang): Promise<HhFeedbackReply | null> {
