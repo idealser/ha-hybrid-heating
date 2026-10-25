@@ -41,7 +41,7 @@ def not_loaded(connection: ActiveConnection, msg: dict[str, Any]) -> None:
     connection.send_error(msg["id"], "not_loaded", "Hybrid Heating is not set up or not loaded")
 
 
-def _config(c: HybridHeatingCoordinator) -> dict[str, Any]:
+def config_reply(c: HybridHeatingCoordinator) -> dict[str, Any]:
     return {**c.config_view(), "status": c.data.status}
 
 
@@ -52,7 +52,7 @@ def ws_get_config(hass: HomeAssistant, connection: ActiveConnection, msg: dict[s
     if c is None:
         not_loaded(connection, msg)
         return
-    connection.send_result(msg["id"], _config(c))
+    connection.send_result(msg["id"], config_reply(c))
 
 
 @require_admin
@@ -68,7 +68,7 @@ async def ws_set_config(hass: HomeAssistant, connection: ActiveConnection, msg: 
     except ValueError as err:
         connection.send_error(msg["id"], "invalid_config", str(err))
         return
-    connection.send_result(msg["id"], _config(c))
+    connection.send_result(msg["id"], config_reply(c))
 
 
 def _with_texts(entry: dict[str, Any], lang: str) -> dict[str, Any]:

@@ -15,16 +15,23 @@ from homeassistant.helpers.start import async_at_started
 from homeassistant.util import dt as dt_util
 
 from .codec import from_data, to_data
-from .const import SAVE_DELAY_S
+from .const import DEFAULT_HEAT_LOSS_W_PER_K, SAVE_DELAY_S
 from .core.controller import ControllerState
 from .core.learning import (
     LEARNING,
     LearningData,
+    MarkKind,
+    Resolution,
+    StaleSuggestion,
     Suggestion,
     TickSample,
     curve_suggestion,
+    feedback_suggestion,
+    is_fresh,
+    make_mark,
     morning_sample,
     prune,
+    suggestion_patch,
     tick_sample,
     upsert_pending,
 )
@@ -37,7 +44,8 @@ from .core.model import (
     update_tally,
 )
 from .core.timeutil import before
-from .core.types import Decision, Reason, Settings, Snapshot
+from .core.types import Decision, Reason, Room, Settings, Snapshot
+from .suggestion_texts import heat_loss_view, suggestion_view
 
 if TYPE_CHECKING:
     from .coordinator import HybridHeatingCoordinator
@@ -45,6 +53,15 @@ if TYPE_CHECKING:
 LOGGER = logging.getLogger(__package__)
 HEAT_LOSS_EVERY = timedelta(days=7)  # on Mondays at 04:30, or at a start when the last one is older
 UNITS = {"power": "W", "temperature": "°C"}
+RESOLVED_SHOWN = timedelta(days=7)  # applied and dismissed suggestions stay in the list a week
+
+
+class NotReady(Exception):
+    """No decision yet (starting, or the module is off): a mark would have nothing to keep."""
+
+
+class NoSuchSuggestion(Exception):
+    """Not among the pending suggestions (decided already, withdrawn, or never there)."""
 
 
 def heat_loss_reason(e: HeatLossEstimate) -> Reason:
@@ -195,6 +212,93 @@ class LearningManager:
         )
 
     # Suggestions
+
+    def views(self, lang: str) -> list[dict[str, Any]]:
+        """What the card lists: new suggestions, the heat loss, then what was decided this week."""
+        now = dt_util.now()
+        out = [suggestion_view(s, "new", lang) for s in reversed(self.data.pending)]
+        if self.data.heat_loss is not None:
+            out.append(heat_loss_view(self.data.heat_loss, DEFAULT_HEAT_LOSS_W_PER_K, lang))
+        out += [
+            suggestion_view(r.suggestion, r.action, lang)
+            for r in reversed(self.data.resolutions)
+            if before(now - RESOLVED_SHOWN, r.at)
+        ]
+        return out
+
+    def _pending(self, suggestion_id: str) -> Suggestion:
+        sg = next((s for s in self.data.pending if s.id == suggestion_id), None)
+        if sg is None:
+            raise NoSuchSuggestion(suggestion_id)
+        return sg
+
+    def _withdraw(self, stale: list[Suggestion], now: datetime) -> None:
+        self.data.pending = [p for p in self.data.pending if p not in stale]
+        self.revision += 1
+        for sg in stale:
+            data: dict[str, float | str | bool] = {"setting": sg.setting}
+            self._c.log.record_system(now, [Reason("system", "suggestion_stale", data)])
+
+    @callback
+    def on_settings_changed(self, now: datetime) -> None:
+        """Someone changed a setting a suggestion was about: it no longer applies."""
+        stale = [p for p in self.data.pending if not is_fresh(self._c.settings, p)]
+        if stale:
+            self._withdraw(stale, now)
+            self._c.store.async_delay_save_learning(self._to_data, SAVE_DELAY_S)
+
+    async def _async_decided(self) -> None:
+        self.revision += 1
+        await self.async_save()
+        await self._c.async_flush()
+
+    async def async_apply(self, suggestion_id: str) -> None:
+        """NoSuchSuggestion, or StaleSuggestion / ValueError if it no longer applies."""
+        now = dt_util.now()
+        sg = self._pending(suggestion_id)
+        try:
+            patch = suggestion_patch(self._c.settings, sg)
+        except StaleSuggestion:
+            self._withdraw([sg], now)
+            await self.async_save()
+            raise
+        self.data.pending.remove(sg)  # first, so the settings change does not withdraw it as stale
+        try:
+            await self._c.async_patch_settings(patch, "suggestion")
+        except ValueError:
+            self.data.pending.append(sg)
+            raise
+        self.data.resolutions.append(Resolution(sg, "applied", now))
+        data: dict[str, float | str | bool] = {"setting": sg.setting, "old": sg.old, "new": sg.new}
+        self._c.log.record_system(now, [Reason("system", "suggestion_applied", data)])
+        await self._async_decided()
+
+    async def async_dismiss(self, suggestion_id: str) -> None:
+        now = dt_util.now()
+        sg = self._pending(suggestion_id)
+        self.data.pending.remove(sg)
+        self.data.resolutions.append(Resolution(sg, "dismissed", now))
+        data: dict[str, float | str | bool] = {"setting": sg.setting}
+        self._c.log.record_system(now, [Reason("system", "suggestion_dismissed", data)])
+        await self._async_decided()
+
+    async def async_feedback(self, room: Room, kind: MarkKind) -> Suggestion | None:
+        """Keep a Cold/Hot mark; the suggestion it leads to, if any. NotReady before the first decision."""
+        result = self._c.data
+        if result is None or result.decision is None:
+            raise NotReady
+        now = dt_util.now()
+        settings = self._c.settings
+        self.data.marks.append(make_mark(room, kind, settings, result.snapshot, result.decision, at=now))
+        data: dict[str, float | str | bool] = {"room": room.value, "mark": kind}
+        self._c.log.record_system(now, [Reason("system", "feedback_marked", data)])
+        sg = feedback_suggestion(self.data.marks, room, kind, settings, self.data.resolutions, now)
+        if sg is not None:
+            self.offer(sg, now)
+            sg = next(p for p in self.data.pending if p.key == sg.key)  # the one shown already, if the same
+        await self.async_save()
+        await self._c.async_flush()
+        return sg
 
     def offer(self, sg: Suggestion, now: datetime) -> bool:
         """Add a suggestion (one per key); True if the card has something new to show."""

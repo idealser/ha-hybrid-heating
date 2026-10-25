@@ -448,7 +448,7 @@ class HybridHeatingCoordinator(DataUpdateCoordinator[TickResult]):
         await self.async_refresh()
 
     async def async_patch_settings(
-        self, patch: Mapping[str, Any], source: Literal["ws", "entity"]
+        self, patch: Mapping[str, Any], source: Literal["ws", "entity", "suggestion"]
     ) -> Settings:
         """Merge a partial settings change; ValueError leaves the settings as they were."""
         async with self._lock:
@@ -465,6 +465,7 @@ class HybridHeatingCoordinator(DataUpdateCoordinator[TickResult]):
         new = merge_settings(self.settings, patch)
         self.settings = new
         self.revision += 1
+        self.learning.on_settings_changed(now)
         changed = Reason("system", "settings_changed", {"keys": ",".join(sorted(patch)), "source": source})
         await self._apply_takeover(now, self._wants(), [*extra, changed])
         return new

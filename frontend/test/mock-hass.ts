@@ -83,6 +83,8 @@ export function createMockHass(o: MockOptions = {}): MockHass {
     async callWS<T>(msg: Record<string, unknown>): Promise<T> {
       hass.calls.push(msg);
       const type = String(msg.type);
+      // Home Assistant's callWS sets the message's own id: a field of that name never reaches the integration.
+      if ('id' in msg) throw { code: 'invalid_format', message: "'id' is the websocket message id" };
       if (o.backend === false || (o.stage5 === false && STAGE5.has(type))) throw { ...UNKNOWN };
       if (hass.failOn[type]) throw { ...hass.failOn[type] };
       if (hass.failNext) {
@@ -116,10 +118,10 @@ export function createMockHass(o: MockOptions = {}): MockHass {
           return { suggestions: structuredClone(suggestions[l]) } as T;
         case 'hybrid_heating/apply_suggestion': {
           for (const key of ['en', 'ru'] as const) {
-            const s = suggestions[key].find(x => x.id === msg.id);
+            const s = suggestions[key].find(x => x.id === msg.suggestion_id);
             if (s) s.state = 'applied';
           }
-          if (msg.id === 'curve10') {
+          if (msg.suggestion_id === 'curve10') {
             const points = structuredClone(config.settings.curve.points);
             points[2] = [10, 41];
             config = { ...config, revision: config.revision + 1, settings: { ...config.settings, curve: { ...config.settings.curve, points } } };
@@ -128,7 +130,7 @@ export function createMockHass(o: MockOptions = {}): MockHass {
         }
         case 'hybrid_heating/dismiss_suggestion':
           for (const key of ['en', 'ru'] as const) {
-            const s = suggestions[key].find(x => x.id === msg.id);
+            const s = suggestions[key].find(x => x.id === msg.suggestion_id);
             if (s) s.state = 'dismissed';
           }
           return {} as T;
