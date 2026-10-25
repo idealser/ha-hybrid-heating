@@ -70,3 +70,17 @@ test('hidden sections are not drawn', async ({ page }) => {
   await expect(page.locator('hh-log')).toHaveCount(0);
   await expect(page.locator('hh-forecast')).toHaveCount(0);
 });
+
+test('the card keeps its own side padding (a panel view gives it none)', async ({ page }) => {
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto(H());
+    await expect(page.locator('hh-footer')).toBeVisible();
+    const card = (await page.locator('hybrid-heating-card').boundingBox())!;
+    const header = (await page.locator('hh-header').boundingBox())!;
+    const footer = (await page.locator('hh-footer').boundingBox())!;
+    expect(header.x - card.x).toBeGreaterThanOrEqual(16);
+    expect(card.x + card.width - (footer.x + footer.width)).toBeGreaterThanOrEqual(16);
+    expect(header.y - card.y).toBeGreaterThanOrEqual(16);
+  }
+});

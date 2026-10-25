@@ -5021,10 +5021,17 @@ R("hybrid-heating-card", class extends F {
         display: block;
         container-type: inline-size;
       }
+      /* The card is a whole page: a panel view gives it the full width with no margin of its own. */
       .wrap {
         display: flex;
         flex-direction: column;
         gap: 16px;
+        padding: 16px max(16px, env(safe-area-inset-right, 0px)) 24px max(16px, env(safe-area-inset-left, 0px));
+      }
+      @container (min-width: 900px) {
+        .wrap {
+          padding: 24px 24px 32px;
+        }
       }
       .two {
         display: grid;

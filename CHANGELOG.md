@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.2
+
+- The card has its own side padding. A panel view gives a card the full width with no margin, so the content touched the edges.
+
 ## 0.3.1
 
 - "Why" explains the module's own boiler decision. In observe mode the heat call still belongs to the old thermostat, so the card said "the boiler is paused" while the module would heat. The status now reports it as `boiler.wanted`.
