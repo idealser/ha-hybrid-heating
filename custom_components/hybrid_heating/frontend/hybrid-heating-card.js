@@ -58,23 +58,23 @@ var e = globalThis, t = e.ShadowRoot && (e.ShadyCSS === void 0 || e.ShadyCSS.nat
 		}
 		return n;
 	}
-}, v = (e, t) => !l(e, t), y = {
+}, re = (e, t) => !l(e, t), v = {
 	attribute: !0,
 	type: String,
 	converter: _,
 	reflect: !1,
 	useDefault: !1,
-	hasChanged: v
+	hasChanged: re
 };
 Symbol.metadata ??= Symbol("metadata"), h.litPropertyMetadata ??= /* @__PURE__ */ new WeakMap();
-var b = class extends HTMLElement {
+var y = class extends HTMLElement {
 	static addInitializer(e) {
 		this._$Ei(), (this.l ??= []).push(e);
 	}
 	static get observedAttributes() {
 		return this.finalize(), this._$Eh && [...this._$Eh.keys()];
 	}
-	static createProperty(e, t = y) {
+	static createProperty(e, t = v) {
 		if (t.state && (t.attribute = !1), this._$Ei(), this.prototype.hasOwnProperty(e) && ((t = Object.create(t)).wrapped = !0), this.elementProperties.set(e, t), !t.noAccessor) {
 			let n = Symbol(), r = this.getPropertyDescriptor(e, n, t);
 			r !== void 0 && u(this.prototype, e, r);
@@ -100,7 +100,7 @@ var b = class extends HTMLElement {
 		};
 	}
 	static getPropertyOptions(e) {
-		return this.elementProperties.get(e) ?? y;
+		return this.elementProperties.get(e) ?? v;
 	}
 	static _$Ei() {
 		if (this.hasOwnProperty(g("elementProperties"))) return;
@@ -187,7 +187,7 @@ var b = class extends HTMLElement {
 	requestUpdate(e, t, n, r = !1, i) {
 		if (e !== void 0) {
 			let a = this.constructor;
-			if (!1 === r && (i = this[e]), n ??= a.getPropertyOptions(e), !((n.hasChanged ?? v)(i, t) || n.useDefault && n.reflect && i === this._$Ej?.get(e) && !this.hasAttribute(a._$Eu(e, n)))) return;
+			if (!1 === r && (i = this[e]), n ??= a.getPropertyOptions(e), !((n.hasChanged ?? re)(i, t) || n.useDefault && n.reflect && i === this._$Ej?.get(e) && !this.hasAttribute(a._$Eu(e, n)))) return;
 			this.C(e, t, n);
 		}
 		!1 === this.isUpdatePending && (this._$ES = this._$EP());
@@ -251,88 +251,88 @@ var b = class extends HTMLElement {
 	updated(e) {}
 	firstUpdated(e) {}
 };
-b.elementStyles = [], b.shadowRootOptions = { mode: "open" }, b[g("elementProperties")] = /* @__PURE__ */ new Map(), b[g("finalized")] = /* @__PURE__ */ new Map(), ne?.({ ReactiveElement: b }), (h.reactiveElementVersions ??= []).push("2.1.2");
+y.elementStyles = [], y.shadowRootOptions = { mode: "open" }, y[g("elementProperties")] = /* @__PURE__ */ new Map(), y[g("finalized")] = /* @__PURE__ */ new Map(), ne?.({ ReactiveElement: y }), (h.reactiveElementVersions ??= []).push("2.1.2");
 // node_modules/lit-html/lit-html.js
-var re = globalThis, ie = (e) => e, x = re.trustedTypes, ae = x ? x.createPolicy("lit-html", { createHTML: (e) => e }) : void 0, oe = "$lit$", S = `lit$${Math.random().toFixed(9).slice(2)}$`, se = "?" + S, ce = `<${se}>`, C = document, w = () => C.createComment(""), T = (e) => e === null || typeof e != "object" && typeof e != "function", le = Array.isArray, ue = (e) => le(e) || typeof e?.[Symbol.iterator] == "function", de = "[ 	\n\f\r]", E = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, fe = /-->/g, pe = />/g, D = RegExp(`>|${de}(?:([^\\s"'>=/]+)(${de}*=${de}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`, "g"), me = /'/g, he = /"/g, ge = /^(?:script|style|textarea|title)$/i, _e = (e) => (t, ...n) => ({
+var ie = globalThis, ae = (e) => e, b = ie.trustedTypes, oe = b ? b.createPolicy("lit-html", { createHTML: (e) => e }) : void 0, se = "$lit$", x = `lit$${Math.random().toFixed(9).slice(2)}$`, ce = "?" + x, le = `<${ce}>`, S = document, C = () => S.createComment(""), w = (e) => e === null || typeof e != "object" && typeof e != "function", ue = Array.isArray, de = (e) => ue(e) || typeof e?.[Symbol.iterator] == "function", fe = "[ 	\n\f\r]", T = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, pe = /-->/g, me = />/g, E = RegExp(`>|${fe}(?:([^\\s"'>=/]+)(${fe}*=${fe}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`, "g"), he = /'/g, ge = /"/g, _e = /^(?:script|style|textarea|title)$/i, ve = (e) => (t, ...n) => ({
 	_$litType$: e,
 	strings: t,
 	values: n
-}), O = _e(1), k = _e(2), A = Symbol.for("lit-noChange"), j = Symbol.for("lit-nothing"), ve = /* @__PURE__ */ new WeakMap(), M = C.createTreeWalker(C, 129);
-function ye(e, t) {
-	if (!le(e) || !e.hasOwnProperty("raw")) throw Error("invalid template strings array");
-	return ae === void 0 ? t : ae.createHTML(t);
+}), D = ve(1), O = ve(2), k = Symbol.for("lit-noChange"), A = Symbol.for("lit-nothing"), ye = /* @__PURE__ */ new WeakMap(), j = S.createTreeWalker(S, 129);
+function be(e, t) {
+	if (!ue(e) || !e.hasOwnProperty("raw")) throw Error("invalid template strings array");
+	return oe === void 0 ? t : oe.createHTML(t);
 }
-var be = (e, t) => {
-	let n = e.length - 1, r = [], i, a = t === 2 ? "<svg>" : t === 3 ? "<math>" : "", o = E;
+var xe = (e, t) => {
+	let n = e.length - 1, r = [], i, a = t === 2 ? "<svg>" : t === 3 ? "<math>" : "", o = T;
 	for (let t = 0; t < n; t++) {
 		let n = e[t], s, c, l = -1, u = 0;
-		for (; u < n.length && (o.lastIndex = u, c = o.exec(n), c !== null);) u = o.lastIndex, o === E ? c[1] === "!--" ? o = fe : c[1] === void 0 ? c[2] === void 0 ? c[3] !== void 0 && (o = D) : (ge.test(c[2]) && (i = RegExp("</" + c[2], "g")), o = D) : o = pe : o === D ? c[0] === ">" ? (o = i ?? E, l = -1) : c[1] === void 0 ? l = -2 : (l = o.lastIndex - c[2].length, s = c[1], o = c[3] === void 0 ? D : c[3] === "\"" ? he : me) : o === he || o === me ? o = D : o === fe || o === pe ? o = E : (o = D, i = void 0);
-		let d = o === D && e[t + 1].startsWith("/>") ? " " : "";
-		a += o === E ? n + ce : l >= 0 ? (r.push(s), n.slice(0, l) + oe + n.slice(l) + S + d) : n + S + (l === -2 ? t : d);
+		for (; u < n.length && (o.lastIndex = u, c = o.exec(n), c !== null);) u = o.lastIndex, o === T ? c[1] === "!--" ? o = pe : c[1] === void 0 ? c[2] === void 0 ? c[3] !== void 0 && (o = E) : (_e.test(c[2]) && (i = RegExp("</" + c[2], "g")), o = E) : o = me : o === E ? c[0] === ">" ? (o = i ?? T, l = -1) : c[1] === void 0 ? l = -2 : (l = o.lastIndex - c[2].length, s = c[1], o = c[3] === void 0 ? E : c[3] === "\"" ? ge : he) : o === ge || o === he ? o = E : o === pe || o === me ? o = T : (o = E, i = void 0);
+		let d = o === E && e[t + 1].startsWith("/>") ? " " : "";
+		a += o === T ? n + le : l >= 0 ? (r.push(s), n.slice(0, l) + se + n.slice(l) + x + d) : n + x + (l === -2 ? t : d);
 	}
-	return [ye(e, a + (e[n] || "<?>") + (t === 2 ? "</svg>" : t === 3 ? "</math>" : "")), r];
-}, xe = class e {
+	return [be(e, a + (e[n] || "<?>") + (t === 2 ? "</svg>" : t === 3 ? "</math>" : "")), r];
+}, Se = class e {
 	constructor({ strings: t, _$litType$: n }, r) {
 		let i;
 		this.parts = [];
-		let a = 0, o = 0, s = t.length - 1, c = this.parts, [l, u] = be(t, n);
-		if (this.el = e.createElement(l, r), M.currentNode = this.el.content, n === 2 || n === 3) {
+		let a = 0, o = 0, s = t.length - 1, c = this.parts, [l, u] = xe(t, n);
+		if (this.el = e.createElement(l, r), j.currentNode = this.el.content, n === 2 || n === 3) {
 			let e = this.el.content.firstChild;
 			e.replaceWith(...e.childNodes);
 		}
-		for (; (i = M.nextNode()) !== null && c.length < s;) {
+		for (; (i = j.nextNode()) !== null && c.length < s;) {
 			if (i.nodeType === 1) {
-				if (i.hasAttributes()) for (let e of i.getAttributeNames()) if (e.endsWith(oe)) {
-					let t = u[o++], n = i.getAttribute(e).split(S), r = /([.?@])?(.*)/.exec(t);
+				if (i.hasAttributes()) for (let e of i.getAttributeNames()) if (e.endsWith(se)) {
+					let t = u[o++], n = i.getAttribute(e).split(x), r = /([.?@])?(.*)/.exec(t);
 					c.push({
 						type: 1,
 						index: a,
 						name: r[2],
 						strings: n,
-						ctor: r[1] === "." ? we : r[1] === "?" ? Te : r[1] === "@" ? Ee : P
+						ctor: r[1] === "." ? Ee : r[1] === "?" ? De : r[1] === "@" ? Oe : Te
 					}), i.removeAttribute(e);
-				} else e.startsWith(S) && (c.push({
+				} else e.startsWith(x) && (c.push({
 					type: 6,
 					index: a
 				}), i.removeAttribute(e));
-				if (ge.test(i.tagName)) {
-					let e = i.textContent.split(S), t = e.length - 1;
+				if (_e.test(i.tagName)) {
+					let e = i.textContent.split(x), t = e.length - 1;
 					if (t > 0) {
-						i.textContent = x ? x.emptyScript : "";
-						for (let n = 0; n < t; n++) i.append(e[n], w()), M.nextNode(), c.push({
+						i.textContent = b ? b.emptyScript : "";
+						for (let n = 0; n < t; n++) i.append(e[n], C()), j.nextNode(), c.push({
 							type: 2,
 							index: ++a
 						});
-						i.append(e[t], w());
+						i.append(e[t], C());
 					}
 				}
 			} else if (i.nodeType === 8) {
-				if (i.data === se) c.push({
+				if (i.data === ce) c.push({
 					type: 2,
 					index: a
 				});
 				else {
 					let e = -1;
-					for (; (e = i.data.indexOf(S, e + 1)) !== -1;) c.push({
+					for (; (e = i.data.indexOf(x, e + 1)) !== -1;) c.push({
 						type: 7,
 						index: a
-					}), e += S.length - 1;
+					}), e += x.length - 1;
 				}
 			}
 			a++;
 		}
 	}
 	static createElement(e, t) {
-		let n = C.createElement("template");
+		let n = S.createElement("template");
 		return n.innerHTML = e, n;
 	}
 };
-function N(e, t, n = e, r) {
-	if (t === A) return t;
-	let i = r === void 0 ? n._$Cl : n._$Co?.[r], a = T(t) ? void 0 : t._$litDirective$;
-	return i?.constructor !== a && (i?._$AO?.(!1), a === void 0 ? i = void 0 : (i = new a(e), i._$AT(e, n, r)), r === void 0 ? n._$Cl = i : (n._$Co ??= [])[r] = i), i !== void 0 && (t = N(e, i._$AS(e, t.values), i, r)), t;
+function M(e, t, n = e, r) {
+	if (t === k) return t;
+	let i = r === void 0 ? n._$Cl : n._$Co?.[r], a = w(t) ? void 0 : t._$litDirective$;
+	return i?.constructor !== a && (i?._$AO?.(!1), a === void 0 ? i = void 0 : (i = new a(e), i._$AT(e, n, r)), r === void 0 ? n._$Cl = i : (n._$Co ??= [])[r] = i), i !== void 0 && (t = M(e, i._$AS(e, t.values), i, r)), t;
 }
-var Se = class {
+var Ce = class {
 	constructor(e, t) {
 		this._$AV = [], this._$AN = void 0, this._$AD = e, this._$AM = t;
 	}
@@ -343,28 +343,28 @@ var Se = class {
 		return this._$AM._$AU;
 	}
 	u(e) {
-		let { el: { content: t }, parts: n } = this._$AD, r = (e?.creationScope ?? C).importNode(t, !0);
-		M.currentNode = r;
-		let i = M.nextNode(), a = 0, o = 0, s = n[0];
+		let { el: { content: t }, parts: n } = this._$AD, r = (e?.creationScope ?? S).importNode(t, !0);
+		j.currentNode = r;
+		let i = j.nextNode(), a = 0, o = 0, s = n[0];
 		for (; s !== void 0;) {
 			if (a === s.index) {
 				let t;
-				s.type === 2 ? t = new Ce(i, i.nextSibling, this, e) : s.type === 1 ? t = new s.ctor(i, s.name, s.strings, this, e) : s.type === 6 && (t = new De(i, this, e)), this._$AV.push(t), s = n[++o];
+				s.type === 2 ? t = new we(i, i.nextSibling, this, e) : s.type === 1 ? t = new s.ctor(i, s.name, s.strings, this, e) : s.type === 6 && (t = new ke(i, this, e)), this._$AV.push(t), s = n[++o];
 			}
-			a !== s?.index && (i = M.nextNode(), a++);
+			a !== s?.index && (i = j.nextNode(), a++);
 		}
-		return M.currentNode = C, r;
+		return j.currentNode = S, r;
 	}
 	p(e) {
 		let t = 0;
 		for (let n of this._$AV) n !== void 0 && (n.strings === void 0 ? n._$AI(e[t]) : (n._$AI(e, n, t), t += n.strings.length - 2)), t++;
 	}
-}, Ce = class e {
+}, we = class e {
 	get _$AU() {
 		return this._$AM?._$AU ?? this._$Cv;
 	}
 	constructor(e, t, n, r) {
-		this.type = 2, this._$AH = j, this._$AN = void 0, this._$AA = e, this._$AB = t, this._$AM = n, this.options = r, this._$Cv = r?.isConnected ?? !0;
+		this.type = 2, this._$AH = A, this._$AN = void 0, this._$AA = e, this._$AB = t, this._$AM = n, this.options = r, this._$Cv = r?.isConnected ?? !0;
 	}
 	get parentNode() {
 		let e = this._$AA.parentNode, t = this._$AM;
@@ -377,7 +377,7 @@ var Se = class {
 		return this._$AB;
 	}
 	_$AI(e, t = this) {
-		e = N(this, e, t), T(e) ? e === j || e == null || e === "" ? (this._$AH !== j && this._$AR(), this._$AH = j) : e !== this._$AH && e !== A && this._(e) : e._$litType$ === void 0 ? e.nodeType === void 0 ? ue(e) ? this.k(e) : this._(e) : this.T(e) : this.$(e);
+		e = M(this, e, t), w(e) ? e === A || e == null || e === "" ? (this._$AH !== A && this._$AR(), this._$AH = A) : e !== this._$AH && e !== k && this._(e) : e._$litType$ === void 0 ? e.nodeType === void 0 ? de(e) ? this.k(e) : this._(e) : this.T(e) : this.$(e);
 	}
 	O(e) {
 		return this._$AA.parentNode.insertBefore(e, this._$AB);
@@ -386,36 +386,36 @@ var Se = class {
 		this._$AH !== e && (this._$AR(), this._$AH = this.O(e));
 	}
 	_(e) {
-		this._$AH !== j && T(this._$AH) ? this._$AA.nextSibling.data = e : this.T(C.createTextNode(e)), this._$AH = e;
+		this._$AH !== A && w(this._$AH) ? this._$AA.nextSibling.data = e : this.T(S.createTextNode(e)), this._$AH = e;
 	}
 	$(e) {
-		let { values: t, _$litType$: n } = e, r = typeof n == "number" ? this._$AC(e) : (n.el === void 0 && (n.el = xe.createElement(ye(n.h, n.h[0]), this.options)), n);
+		let { values: t, _$litType$: n } = e, r = typeof n == "number" ? this._$AC(e) : (n.el === void 0 && (n.el = Se.createElement(be(n.h, n.h[0]), this.options)), n);
 		if (this._$AH?._$AD === r) this._$AH.p(t);
 		else {
-			let e = new Se(r, this), n = e.u(this.options);
+			let e = new Ce(r, this), n = e.u(this.options);
 			e.p(t), this.T(n), this._$AH = e;
 		}
 	}
 	_$AC(e) {
-		let t = ve.get(e.strings);
-		return t === void 0 && ve.set(e.strings, t = new xe(e)), t;
+		let t = ye.get(e.strings);
+		return t === void 0 && ye.set(e.strings, t = new Se(e)), t;
 	}
 	k(t) {
-		le(this._$AH) || (this._$AH = [], this._$AR());
+		ue(this._$AH) || (this._$AH = [], this._$AR());
 		let n = this._$AH, r, i = 0;
-		for (let a of t) i === n.length ? n.push(r = new e(this.O(w()), this.O(w()), this, this.options)) : r = n[i], r._$AI(a), i++;
+		for (let a of t) i === n.length ? n.push(r = new e(this.O(C()), this.O(C()), this, this.options)) : r = n[i], r._$AI(a), i++;
 		i < n.length && (this._$AR(r && r._$AB.nextSibling, i), n.length = i);
 	}
 	_$AR(e = this._$AA.nextSibling, t) {
 		for (this._$AP?.(!1, !0, t); e !== this._$AB;) {
-			let t = ie(e).nextSibling;
-			ie(e).remove(), e = t;
+			let t = ae(e).nextSibling;
+			ae(e).remove(), e = t;
 		}
 	}
 	setConnected(e) {
 		this._$AM === void 0 && (this._$Cv = e, this._$AP?.(e));
 	}
-}, P = class {
+}, Te = class {
 	get tagName() {
 		return this.element.tagName;
 	}
@@ -423,47 +423,47 @@ var Se = class {
 		return this._$AM._$AU;
 	}
 	constructor(e, t, n, r, i) {
-		this.type = 1, this._$AH = j, this._$AN = void 0, this.element = e, this.name = t, this._$AM = r, this.options = i, n.length > 2 || n[0] !== "" || n[1] !== "" ? (this._$AH = Array(n.length - 1).fill(/* @__PURE__ */ new String()), this.strings = n) : this._$AH = j;
+		this.type = 1, this._$AH = A, this._$AN = void 0, this.element = e, this.name = t, this._$AM = r, this.options = i, n.length > 2 || n[0] !== "" || n[1] !== "" ? (this._$AH = Array(n.length - 1).fill(/* @__PURE__ */ new String()), this.strings = n) : this._$AH = A;
 	}
 	_$AI(e, t = this, n, r) {
 		let i = this.strings, a = !1;
-		if (i === void 0) e = N(this, e, t, 0), a = !T(e) || e !== this._$AH && e !== A, a && (this._$AH = e);
+		if (i === void 0) e = M(this, e, t, 0), a = !w(e) || e !== this._$AH && e !== k, a && (this._$AH = e);
 		else {
 			let r = e, o, s;
-			for (e = i[0], o = 0; o < i.length - 1; o++) s = N(this, r[n + o], t, o), s === A && (s = this._$AH[o]), a ||= !T(s) || s !== this._$AH[o], s === j ? e = j : e !== j && (e += (s ?? "") + i[o + 1]), this._$AH[o] = s;
+			for (e = i[0], o = 0; o < i.length - 1; o++) s = M(this, r[n + o], t, o), s === k && (s = this._$AH[o]), a ||= !w(s) || s !== this._$AH[o], s === A ? e = A : e !== A && (e += (s ?? "") + i[o + 1]), this._$AH[o] = s;
 		}
 		a && !r && this.j(e);
 	}
 	j(e) {
-		e === j ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, e ?? "");
+		e === A ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, e ?? "");
 	}
-}, we = class extends P {
+}, Ee = class extends Te {
 	constructor() {
 		super(...arguments), this.type = 3;
 	}
 	j(e) {
-		this.element[this.name] = e === j ? void 0 : e;
+		this.element[this.name] = e === A ? void 0 : e;
 	}
-}, Te = class extends P {
+}, De = class extends Te {
 	constructor() {
 		super(...arguments), this.type = 4;
 	}
 	j(e) {
-		this.element.toggleAttribute(this.name, !!e && e !== j);
+		this.element.toggleAttribute(this.name, !!e && e !== A);
 	}
-}, Ee = class extends P {
+}, Oe = class extends Te {
 	constructor(e, t, n, r, i) {
 		super(e, t, n, r, i), this.type = 5;
 	}
 	_$AI(e, t = this) {
-		if ((e = N(this, e, t, 0) ?? j) === A) return;
-		let n = this._$AH, r = e === j && n !== j || e.capture !== n.capture || e.once !== n.once || e.passive !== n.passive, i = e !== j && (n === j || r);
+		if ((e = M(this, e, t, 0) ?? A) === k) return;
+		let n = this._$AH, r = e === A && n !== A || e.capture !== n.capture || e.once !== n.once || e.passive !== n.passive, i = e !== A && (n === A || r);
 		r && this.element.removeEventListener(this.name, this, n), i && this.element.addEventListener(this.name, this, e), this._$AH = e;
 	}
 	handleEvent(e) {
 		typeof this._$AH == "function" ? this._$AH.call(this.options?.host ?? this.element, e) : this._$AH.handleEvent(e);
 	}
-}, De = class {
+}, ke = class {
 	constructor(e, t, n) {
 		this.element = e, this.type = 6, this._$AN = void 0, this._$AM = t, this.options = n;
 	}
@@ -471,18 +471,18 @@ var Se = class {
 		return this._$AM._$AU;
 	}
 	_$AI(e) {
-		N(this, e);
+		M(this, e);
 	}
-}, Oe = re.litHtmlPolyfillSupport;
-Oe?.(xe, Ce), (re.litHtmlVersions ??= []).push("3.3.3");
-var ke = (e, t, n) => {
+}, Ae = ie.litHtmlPolyfillSupport;
+Ae?.(Se, we), (ie.litHtmlVersions ??= []).push("3.3.3");
+var je = (e, t, n) => {
 	let r = n?.renderBefore ?? t, i = r._$litPart$;
 	if (i === void 0) {
 		let e = n?.renderBefore ?? null;
-		r._$litPart$ = i = new Ce(t.insertBefore(w(), e), e, void 0, n ?? {});
+		r._$litPart$ = i = new we(t.insertBefore(C(), e), e, void 0, n ?? {});
 	}
 	return i._$AI(e), i;
-}, Ae = globalThis, F = class extends b {
+}, Me = globalThis, N = class extends y {
 	constructor() {
 		super(...arguments), this.renderOptions = { host: this }, this._$Do = void 0;
 	}
@@ -492,7 +492,7 @@ var ke = (e, t, n) => {
 	}
 	update(e) {
 		let t = this.render();
-		this.hasUpdated || (this.renderOptions.isConnected = this.isConnected), super.update(e), this._$Do = ke(t, this.renderRoot, this.renderOptions);
+		this.hasUpdated || (this.renderOptions.isConnected = this.isConnected), super.update(e), this._$Do = je(t, this.renderRoot, this.renderOptions);
 	}
 	connectedCallback() {
 		super.connectedCallback(), this._$Do?.setConnected(!0);
@@ -501,28 +501,28 @@ var ke = (e, t, n) => {
 		super.disconnectedCallback(), this._$Do?.setConnected(!1);
 	}
 	render() {
-		return A;
+		return k;
 	}
 };
-F._$litElement$ = !0, F.finalized = !0, Ae.litElementHydrateSupport?.({ LitElement: F });
-var je = Ae.litElementPolyfillSupport;
-je?.({ LitElement: F }), (Ae.litElementVersions ??= []).push("4.2.2");
+N._$litElement$ = !0, N.finalized = !0, Me.litElementHydrateSupport?.({ LitElement: N });
+var Ne = Me.litElementPolyfillSupport;
+Ne?.({ LitElement: N }), (Me.litElementVersions ??= []).push("4.2.2");
 // src/api.ts
-var Me = class extends Error {
+var P = class extends Error {
 	code;
 	constructor(e, t) {
 		super(t), this.code = e, this.name = "HhApiError";
 	}
 };
-function Ne(e) {
+function Pe(e) {
 	return typeof e == "object" && !!e && e.code === "unknown_command";
 }
-function Pe(e) {
-	if (e instanceof Me) return e;
+function Fe(e) {
+	if (e instanceof P) return e;
 	let t = typeof e == "object" && e ? e : {};
-	return new Me(String(t.code ?? "unknown_error"), String(t.message ?? e));
+	return new P(String(t.code ?? "unknown_error"), String(t.message ?? e));
 }
-var Fe = class {
+var Ie = class {
 	getHass;
 	constructor(e) {
 		this.getHass = e;
@@ -531,14 +531,14 @@ var Fe = class {
 		try {
 			return await this.getHass().callWS(e);
 		} catch (e) {
-			throw Pe(e);
+			throw Fe(e);
 		}
 	}
 	async optional(e) {
 		try {
 			return await this.ws(e);
 		} catch (e) {
-			if (Ne(e)) return null;
+			if (Pe(e)) return null;
 			throw e;
 		}
 	}
@@ -612,18 +612,18 @@ var Fe = class {
 	}
 };
 // src/dom.ts
-function I(e, t, n) {
+function F(e, t, n) {
 	e.dispatchEvent(new CustomEvent(t, {
 		detail: n,
 		bubbles: !0,
 		composed: !0
 	}));
 }
-function L(e, t) {
+function I(e, t) {
 	customElements.get(e) || customElements.define(e, t);
 }
 // src/i18n/index.ts
-var Ie = {
+var Le = {
 	en: {
 		title: "Heating",
 		"preset.comfort": "Comfort",
@@ -688,7 +688,12 @@ var Ie = {
 		read_only: "Only an administrator can change settings.",
 		"error.not_set_up": "Hybrid Heating is not set up. Add the integration in Settings → Devices & services.",
 		"error.not_loaded": "Hybrid Heating is starting or not loaded yet. The card tries again by itself.",
-		"error.generic": "Hybrid Heating did not answer: {message}",
+		"error.generic": "Hybrid Heating could not do that: {message}",
+		"error.invalid_config": "Not saved: {message}",
+		"error.not_ready": "The module has not decided anything yet: try again in a minute.",
+		"error.stale": "That suggestion no longer applies: its setting was changed meanwhile.",
+		"error.not_found": "That suggestion is gone: it was decided or withdrawn already.",
+		"error.unauthorized": "Only an administrator can change this.",
 		"stage5.forecast": "The forecast arrives with the “Suggestions and forecast” update.",
 		"stage5.suggestions": "Suggestions arrive with the “Suggestions and forecast” update.",
 		"forecast.change": "{day}, around {hhmm} it will be {t}: zone “{zone}”, {summary}. ",
@@ -794,11 +799,18 @@ var Ie = {
 		"chart.point": "Flow at {t}",
 		"chart.bound": "Boundary between {a} and {b}",
 		"unit.kwh": "kWh",
-		"forecast.note": "The colour is the zone the heating will be in. Tap an hour to check it below.",
+		"forecast.note": "The colour is the zone the heating will be in. Tap an hour, or use the arrow keys, to see what runs then; the what-if on Curve & zones follows it. The estimate starts from the rooms now: a warm flat cools before the heating has to start.",
+		"forecast.hour": "{when}: zone “{zone}”: {what}.",
+		"forecast.hour_coast": "{when}: zone “{zone}”: the flat cools to {t}°, no heating needed yet.",
+		"forecast.hour_off": "{when}: out of the heating season, no heating.",
+		"forecast.hour_flow": "flow {flow}",
+		"forecast.hour_kw": "about {kw} kW",
+		"forecast.no_season": "Out of the heating season: no heating in these 48 h.",
 		"forecast.aria": "Temperature forecast for 48 hours with the heating zones",
 		"forecast.per48": "{currency} in 48 h",
 		"forecast.boiler_only": "boiler alone: {cost}",
 		"forecast.empty": "No forecast yet.",
+		"forecast.unavailable": "The weather entity gives no hourly forecast right now. The card asks again in half an hour.",
 		"probe.note": "An estimate from your flat’s heat-loss model: about {h} W per degree of difference.",
 		"probe.out": "Outside",
 		"probe.zone": "zone “{name}”",
@@ -842,6 +854,7 @@ var Ie = {
 		"feedback.kind.cold": "cold",
 		"feedback.kind.hot": "hot",
 		"feedback.toast": "Noted: {room}, {kind}",
+		"feedback.toast_suggestion": "Noted: {room}, {kind}. Suggestion: {title}",
 		"load.note": "Keeps the whole flat under the power limit.",
 		"load.limit": "Limit",
 		"load.restore": "Restore below",
@@ -906,6 +919,8 @@ var Ie = {
 		"hint.more": "More",
 		"hint.less": "Less",
 		"why.starting": "Starting:",
+		"why.disabled": "The module is off:",
+		"why.disabled_text": "the old thermostat and automation run the heating.",
 		"why.starting_text": "the module makes its first decision within a couple of minutes.",
 		"why.obs.smooth_on": "Would keep the radiators warm:",
 		"why.obs.smooth_on_text": "flow {flow}°{parts}. It would follow {follows}.",
@@ -947,6 +962,7 @@ var Ie = {
 		"log.failed": "Failed: {n}",
 		"log.skipped": "Skipped: {n}",
 		"sum.starting": "Starting",
+		"sum.disabled": "Module off",
 		"sum.unavailable": "Boiler unavailable",
 		"sum.zone_off": "Boiler off",
 		"sum.obs.zone_off": "Would keep the boiler off",
@@ -971,6 +987,8 @@ var Ie = {
 		"room.ac_module": "AC: heating, set to {sp}°",
 		"room.ac_hand": "AC: run by hand, set to {sp}°",
 		"room.ac_mode": "AC: run by hand in {mode} mode",
+		"rooms.offset": "{room} vs preset",
+		"rooms.offset_short": "Target vs preset",
 		"room.ac_off": "AC: off",
 		"room.ac_unavailable": "AC: unavailable",
 		close: "Close",
@@ -1041,7 +1059,12 @@ var Ie = {
 		read_only: "Менять настройки может только администратор.",
 		"error.not_set_up": "Hybrid Heating не настроен. Добавьте интеграцию в «Настройки → Устройства и службы».",
 		"error.not_loaded": "Hybrid Heating ещё запускается или не загружен. Карточка попробует снова сама.",
-		"error.generic": "Hybrid Heating не ответил: {message}",
+		"error.generic": "Hybrid Heating не смог это сделать: {message}",
+		"error.invalid_config": "Не сохранено: {message}",
+		"error.not_ready": "Модуль ещё ничего не решил: попробуйте через минуту.",
+		"error.stale": "Подсказка больше не подходит: её настройку уже изменили.",
+		"error.not_found": "Этой подсказки уже нет: по ней уже решили или её сняли.",
+		"error.unauthorized": "Это может изменить только администратор.",
 		"stage5.forecast": "Прогноз появится с обновлением «Подсказки и прогноз».",
 		"stage5.suggestions": "Подсказки появятся с обновлением «Подсказки и прогноз».",
 		"forecast.change": "{day}, около {hhmm} станет {t}: зона «{zone}», {summary}. ",
@@ -1147,11 +1170,18 @@ var Ie = {
 		"chart.point": "Подача при {t}",
 		"chart.bound": "Граница зон «{a}» и «{b}»",
 		"unit.kwh": "кВт·ч",
-		"forecast.note": "Цвет — зона, в которой окажется отопление. Нажмите на час, чтобы проверить его ниже.",
+		"forecast.note": "Цвет — зона, в которой окажется отопление. Нажмите на час или используйте стрелки, чтобы увидеть, что тогда работает; оценка «Что будет» на вкладке «Кривая» следует за ним. Расчёт начинается с нынешних температур: тёплая квартира сначала остывает.",
+		"forecast.hour": "{when}: зона «{zone}»: {what}.",
+		"forecast.hour_coast": "{when}: зона «{zone}»: квартира остывает до {t}°, отопление пока не нужно.",
+		"forecast.hour_off": "{when}: вне отопительного сезона, отопления нет.",
+		"forecast.hour_flow": "подача {flow}",
+		"forecast.hour_kw": "около {kw} кВт",
+		"forecast.no_season": "Вне отопительного сезона: в эти 48 ч отопления нет.",
 		"forecast.aria": "Прогноз температуры на 48 часов с зонами отопления",
 		"forecast.per48": "{currency} за 48 ч",
 		"forecast.boiler_only": "только котлом: {cost}",
 		"forecast.empty": "Прогноза пока нет.",
+		"forecast.unavailable": "Погода сейчас не даёт почасового прогноза. Карточка спросит снова через полчаса.",
 		"probe.note": "Оценка по модели теплопотерь вашей квартиры: около {h} Вт на градус разницы.",
 		"probe.out": "На улице",
 		"probe.zone": "зона «{name}»",
@@ -1195,6 +1225,7 @@ var Ie = {
 		"feedback.kind.cold": "холодно",
 		"feedback.kind.hot": "жарко",
 		"feedback.toast": "Учту: {room}, {kind}",
+		"feedback.toast_suggestion": "Учту: {room}, {kind}. Подсказка: {title}",
 		"load.note": "Чтобы вся квартира не превышала лимит по мощности.",
 		"load.limit": "Лимит",
 		"load.restore": "Возвращать, когда ниже",
@@ -1259,6 +1290,8 @@ var Ie = {
 		"hint.more": "Подробнее",
 		"hint.less": "Короче",
 		"why.starting": "Запуск:",
+		"why.disabled": "Модуль выключен:",
+		"why.disabled_text": "отоплением управляют прежний термостат и автоматизация.",
 		"why.starting_text": "первое решение модуль примет в течение пары минут.",
 		"why.obs.smooth_on": "Держал бы радиаторы тёплыми:",
 		"why.obs.smooth_on_text": "подача {flow}°{parts}. Котёл следил бы {follows}.",
@@ -1300,6 +1333,7 @@ var Ie = {
 		"log.failed": "Не выполнено: {n}",
 		"log.skipped": "Пропущено: {n}",
 		"sum.starting": "Запуск",
+		"sum.disabled": "Модуль выключен",
 		"sum.unavailable": "Котёл недоступен",
 		"sum.zone_off": "Котёл выключен",
 		"sum.obs.zone_off": "Не включал бы котёл",
@@ -1324,6 +1358,8 @@ var Ie = {
 		"room.ac_module": "Кондиционер: греет, уставка {sp}°",
 		"room.ac_hand": "Кондиционер: включён вручную, уставка {sp}°",
 		"room.ac_mode": "Кондиционер: включён вручную, режим «{mode}»",
+		"rooms.offset": "{room}: от пресета",
+		"rooms.offset_short": "Цель от пресета",
 		"room.ac_off": "Кондиционер: выключен",
 		"room.ac_unavailable": "Кондиционер: недоступен",
 		close: "Закрыть",
@@ -1331,22 +1367,22 @@ var Ie = {
 		"thermo.control": " В режиме «Управлять» модуль будет греть до {target}°: если это слишком тепло, сначала поправьте цели."
 	}
 };
-function Le(e) {
+function Re(e) {
 	return e && e.toLowerCase().startsWith("ru") ? "ru" : "en";
 }
-function R(e, t, n) {
-	let r = Ie[e][t];
+function L(e, t, n) {
+	let r = Le[e][t];
 	return n ? r.replace(/{(\w+)}/g, (e, t) => t in n ? String(n[t]) : e) : r;
 }
-var Re = {
+var ze = {
 	en: new Intl.PluralRules("en"),
 	ru: new Intl.PluralRules("ru")
 };
-function ze(e, t, n) {
-	return R(e, `${t}.${Re[e].select(n)}`, { n });
+function Be(e, t, n) {
+	return L(e, `${t}.${ze[e].select(n)}`, { n });
 }
 // src/logic/config.ts
-var Be = [
+var Ve = [
 	"plan",
 	"why",
 	"forecast",
@@ -1358,12 +1394,12 @@ var Be = [
 	"season",
 	"suggestions",
 	"log"
-], Ve = (e) => Be.includes(e);
-function He(e) {
+], He = (e) => Ve.includes(e);
+function Ue(e) {
 	if (typeof e != "object" || !e || Array.isArray(e)) throw Error("Invalid configuration");
 	let t = e, n = t.hide_sections ?? [];
 	if (!Array.isArray(n)) throw Error("hide_sections must be a list");
-	for (let e of n) if (!Ve(e)) throw Error(`Unknown section: ${String(e)}`);
+	for (let e of n) if (!He(e)) throw Error(`Unknown section: ${String(e)}`);
 	let r = t.tariff_per_kwh;
 	if (r !== void 0 && (typeof r != "number" || !Number.isFinite(r) || r < 0)) throw Error("tariff_per_kwh must be a number of at least 0");
 	if (t.currency !== void 0 && typeof t.currency != "string") throw Error("currency must be text");
@@ -1374,43 +1410,43 @@ function He(e) {
 	};
 }
 // src/types.ts
-var Ue = [
+var We = [
 	"living",
 	"bedroom",
 	"child",
 	"bath"
-], z = ["living", "bedroom"], We = [
+], R = ["living", "bedroom"], Ge = [
 	"living",
 	"bedroom",
 	"child"
-], Ge = [
+], Ke = [
 	"comfort",
 	"eco",
 	"night",
 	"away"
-], Ke = [
+], qe = [
 	"boiler",
 	"ac",
 	"load"
 ];
 // src/logic/hass.ts
-function qe(e, t) {
+function Je(e, t) {
 	let n = e.states[t]?.state;
 	return n === "on" || n !== "off" && null;
 }
-function Je(e, t) {
+function Ye(e, t) {
 	let n = e.states[t.preset]?.state;
 	return {
-		hybrid: qe(e, t.hybrid),
-		preset: Ge.includes(n) ? n : null,
-		enabled: qe(e, t.enabled)
+		hybrid: Je(e, t.hybrid),
+		preset: Ke.includes(n) ? n : null,
+		enabled: Je(e, t.enabled)
 	};
 }
-function B(e) {
+function Xe(e) {
 	return e.locale?.language ?? e.language;
 }
-function Ye(e, t, n, r = []) {
-	return !e || e.themes?.darkMode !== t.themes?.darkMode || B(e) !== B(t) || e.user?.is_admin !== t.user?.is_admin || [...n ? [
+function Ze(e, t, n, r = []) {
+	return !e || e.themes?.darkMode !== t.themes?.darkMode || Xe(e) !== Xe(t) || e.user?.is_admin !== t.user?.is_admin || [...n ? [
 		n.enabled,
 		n.hybrid,
 		n.preset,
@@ -1418,7 +1454,7 @@ function Ye(e, t, n, r = []) {
 	] : [], ...r].some((n) => e.states[n] !== t.states[n]);
 }
 // src/styles/tokens.ts
-var Xe = o`
+var Qe = o`
   :host {
     --bg: var(--primary-background-color);
     --surface: var(--ha-card-background, var(--card-background-color));
@@ -1460,7 +1496,7 @@ var Xe = o`
     --warn-ink: #f2c86c;
     color-scheme: dark;
   }
-`, V = o`
+`, z = o`
   :host {
     color: var(--ink);
     font-family: var(--font-body);
@@ -1590,7 +1626,7 @@ var Xe = o`
     outline: 2px solid var(--cold);
     outline-offset: 2px;
   }
-`, Ze = "hybrid-heating-plan-changed", Qe = class extends F {
+`, $e = "hybrid-heating-plan-changed", et = class extends N {
 	static properties = {
 		hass: { attribute: !1 },
 		_config: { state: !0 },
@@ -1600,8 +1636,8 @@ var Xe = o`
 		super(), this._planNote = "";
 	}
 	static styles = [
-		Xe,
-		V,
+		Qe,
+		z,
 		o`
       .form {
         display: flex;
@@ -1632,10 +1668,10 @@ var Xe = o`
     `
 	];
 	setConfig(e) {
-		this._config = He(e);
+		this._config = Ue(e);
 	}
 	get uiLang() {
-		return Le(this.hass ? B(this.hass) : void 0);
+		return Re(this.hass ? Xe(this.hass) : void 0);
 	}
 	change(e) {
 		let t = {
@@ -1643,7 +1679,7 @@ var Xe = o`
 			...e
 		};
 		for (let [e, n] of Object.entries(t)) (n === void 0 || n === "") && delete t[e];
-		this._config = He(t), I(this, "config-changed", { config: this._config });
+		this._config = Ue(t), F(this, "config-changed", { config: this._config });
 	}
 	toggle(e, t) {
 		let n = this._config.hide_sections.filter((t) => t !== e);
@@ -1655,10 +1691,10 @@ var Xe = o`
 			await this.hass.callWS({
 				type: "hybrid_heating/set_plan",
 				plan: e
-			}), this._planNote = R(t, e === null ? "editor.plan_cleared" : "editor.plan_done"), window.dispatchEvent(new CustomEvent(Ze));
+			}), this._planNote = L(t, e === null ? "editor.plan_cleared" : "editor.plan_done"), window.dispatchEvent(new CustomEvent($e));
 		} catch (e) {
 			let n = typeof e == "object" && e && "message" in e ? String(e.message) : String(e);
-			this._planNote = R(t, "editor.plan_error", { message: n });
+			this._planNote = L(t, "editor.plan_error", { message: n });
 		}
 	}
 	async upload(e) {
@@ -1666,41 +1702,41 @@ var Xe = o`
 		if (t) try {
 			await this.setPlan(JSON.parse(await t.text()));
 		} catch (e) {
-			this._planNote = R(this.uiLang, "editor.plan_error", { message: e.message });
+			this._planNote = L(this.uiLang, "editor.plan_error", { message: e.message });
 		}
 	}
 	render() {
 		let e = this._config;
-		if (!e) return j;
+		if (!e) return A;
 		let t = this.uiLang, n = (e) => e.target.value.trim();
-		return O`<div class="form">
+		return D`<div class="form">
       <div class="field">
-        <label for="title">${R(t, "editor.title")}</label>
+        <label for="title">${L(t, "editor.title")}</label>
         <input
           type="text"
           id="title"
           name="title"
-          placeholder=${R(t, "title")}
+          placeholder=${L(t, "title")}
           .value=${e.title ?? ""}
           @change=${(e) => this.change({ title: n(e) || void 0 })}
         />
       </div>
       <div class="field">
-        <span class="lbl">${R(t, "editor.sections")}</span>
+        <span class="lbl">${L(t, "editor.sections")}</span>
         <div class="checks">
-          ${Be.map((n) => O`<label>
+          ${Ve.map((n) => D`<label>
               <input
                 type="checkbox"
                 name=${n}
                 .checked=${!e.hide_sections.includes(n)}
                 @change=${(e) => this.toggle(n, e.target.checked)}
-              />${R(t, `section.${n}`)}
+              />${L(t, `section.${n}`)}
             </label>`)}
         </div>
       </div>
       <div class="pair">
         <div class="field">
-          <label for="tariff">${R(t, "editor.tariff")}</label>
+          <label for="tariff">${L(t, "editor.tariff")}</label>
           <input
             type="number"
             id="tariff"
@@ -1712,7 +1748,7 @@ var Xe = o`
           />
         </div>
         <div class="field">
-          <label for="currency">${R(t, "editor.currency")}</label>
+          <label for="currency">${L(t, "editor.currency")}</label>
           <input
             type="text"
             id="currency"
@@ -1724,41 +1760,41 @@ var Xe = o`
         </div>
       </div>
       <div class="field">
-        <label for="plan">${R(t, "editor.plan")}</label>
-        <p class="note">${R(t, "editor.plan_note")}</p>
+        <label for="plan">${L(t, "editor.plan")}</label>
+        <p class="note">${L(t, "editor.plan_note")}</p>
         <div class="pair">
           <input type="file" id="plan" name="plan_file" accept=".json,application/json" @change=${this.upload} />
-          <button class="btn sm" type="button" @click=${() => this.setPlan(null)}>${R(t, "editor.plan_reset")}</button>
+          <button class="btn sm" type="button" @click=${() => this.setPlan(null)}>${L(t, "editor.plan_reset")}</button>
         </div>
-        ${this._planNote ? O`<p class="small" role="status">${this._planNote}</p>` : j}
+        ${this._planNote ? D`<p class="small" role="status">${this._planNote}</p>` : A}
       </div>
     </div>`;
 	}
-}, H = (e) => typeof e == "object" && !!e && !Array.isArray(e);
-function U(e, t) {
+}, B = (e) => typeof e == "object" && !!e && !Array.isArray(e);
+function V(e, t) {
 	if (e === t) return !0;
-	if (Array.isArray(e) && Array.isArray(t)) return e.length === t.length && e.every((e, n) => U(e, t[n]));
-	if (H(e) && H(t)) {
+	if (Array.isArray(e) && Array.isArray(t)) return e.length === t.length && e.every((e, n) => V(e, t[n]));
+	if (B(e) && B(t)) {
 		let n = Object.keys(e);
-		return n.length === Object.keys(t).length && n.every((n) => U(e[n], t[n]));
+		return n.length === Object.keys(t).length && n.every((n) => V(e[n], t[n]));
 	}
 	return !1;
 }
-function $e(e, t) {
-	if (!H(e) || !H(t)) return structuredClone(t);
+function tt(e, t) {
+	if (!B(e) || !B(t)) return structuredClone(t);
 	let n = { ...e };
-	for (let [r, i] of Object.entries(t)) n[r] = H(i) && H(e[r]) ? $e(e[r], i) : structuredClone(i);
+	for (let [r, i] of Object.entries(t)) n[r] = B(i) && B(e[r]) ? tt(e[r], i) : structuredClone(i);
 	return n;
 }
-function et(e, t) {
-	return $e(structuredClone(e), t);
+function nt(e, t) {
+	return tt(structuredClone(e), t);
 }
-function tt(e, t) {
-	if (!U(e, t)) {
-		if (H(e) && H(t)) {
+function rt(e, t) {
+	if (!V(e, t)) {
+		if (B(e) && B(t)) {
 			let n = {};
 			for (let r of Object.keys(t)) {
-				let i = tt(e[r], t[r]);
+				let i = rt(e[r], t[r]);
 				i !== void 0 && (n[r] = i);
 			}
 			return Object.keys(n).length ? n : void 0;
@@ -1766,8 +1802,8 @@ function tt(e, t) {
 		return structuredClone(t);
 	}
 }
-function nt(e, t) {
-	return tt({
+function it(e, t) {
+	return rt({
 		...e,
 		preset: null,
 		hybrid: null
@@ -1777,25 +1813,25 @@ function nt(e, t) {
 		hybrid: null
 	}) ?? {};
 }
-function rt(e, t) {
-	return Object.keys(nt(e, t)).length > 0;
+function at(e, t) {
+	return Object.keys(it(e, t)).length > 0;
 }
-function it(e, t, n) {
-	if (U(e, n)) return structuredClone(t);
-	if (H(e) && H(t) && H(n)) {
+function ot(e, t, n) {
+	if (V(e, n)) return structuredClone(t);
+	if (B(e) && B(t) && B(n)) {
 		let r = {};
 		for (let i of /* @__PURE__ */ new Set([...Object.keys(t), ...Object.keys(n)])) {
-			let a = it(e[i], t[i], n[i]);
+			let a = ot(e[i], t[i], n[i]);
 			a !== void 0 && (r[i] = a);
 		}
 		return r;
 	}
-	return Array.isArray(e) && Array.isArray(t) && Array.isArray(n) && e.length === t.length && e.length === n.length ? n.map((n, r) => it(e[r], t[r], n)) : structuredClone(n);
+	return Array.isArray(e) && Array.isArray(t) && Array.isArray(n) && e.length === t.length && e.length === n.length ? n.map((n, r) => ot(e[r], t[r], n)) : structuredClone(n);
 }
-function at(e, t, n) {
-	return it(e, t, n);
+function st(e, t, n) {
+	return ot(e, t, n);
 }
-function ot(e, t) {
+function ct(e, t) {
 	return {
 		...e,
 		hybrid: t.hybrid ?? e.hybrid,
@@ -1803,9 +1839,9 @@ function ot(e, t) {
 	};
 }
 // src/logic/context.ts
-var st = /* @__PURE__ */ new Map();
-function ct(e, t) {
-	let n = st.get(t);
+var lt = /* @__PURE__ */ new Map();
+function ut(e, t) {
+	let n = lt.get(t);
 	return n || (n = new Intl.DateTimeFormat("en-GB", {
 		timeZone: t,
 		year: "numeric",
@@ -1814,17 +1850,17 @@ function ct(e, t) {
 		hour: "2-digit",
 		minute: "2-digit",
 		hourCycle: "h23"
-	}), st.set(t, n)), Object.fromEntries(n.formatToParts(new Date(e)).map((e) => [e.type, e.value]));
+	}), lt.set(t, n)), Object.fromEntries(n.formatToParts(new Date(e)).map((e) => [e.type, e.value]));
 }
-function W(e, t) {
-	let n = ct(e, t);
+function H(e, t) {
+	let n = ut(e, t);
 	return {
 		hhmm: `${n.hour}:${n.minute}`,
 		hour: Number(n.hour),
 		dateKey: `${n.year}-${n.month}-${n.day}`
 	};
 }
-function lt(e, t) {
+function dt(e, t) {
 	return {
 		comfort: e.comfort,
 		eco: e.eco,
@@ -1832,80 +1868,80 @@ function lt(e, t) {
 		away: e.away
 	}[t];
 }
-function ut(e, t) {
+function ft(e, t) {
 	let n = e.night_start.slice(0, 5), r = e.night_end.slice(0, 5);
 	return n <= r ? n <= t && t < r : t >= n || t < r;
 }
-function dt(e, t, n) {
-	let r = ut(e, n), i = t === "comfort" && r ? "night" : t;
-	return [i, lt(e, i)];
+function pt(e, t, n) {
+	let r = ft(e, n), i = t === "comfort" && r ? "night" : t;
+	return [i, dt(e, i)];
 }
-function ft(e, t, n) {
+function mt(e, t, n) {
 	let r = new Date(e);
 	return `${new Intl.DateTimeFormat(n === "ru" ? "ru-RU" : "en-GB", {
 		timeZone: t,
 		weekday: "short"
-	}).format(r).replace(".", "")} ${Number(ct(e, t).day)}`;
+	}).format(r).replace(".", "")} ${Number(ut(e, t).day)}`;
 }
 // src/logic/format.ts
-var pt = "−";
-function G(e, t, n) {
+var ht = "−";
+function U(e, t, n) {
 	let r = Math.round(e * 10 ** t) / 10 ** t, i = (Object.is(r, -0) ? 0 : r).toFixed(t);
-	return /^-0(\.0+)?$/.test(i) && (i = i.slice(1)), n === "ru" && (i = i.replace(".", ",")), i.startsWith("-") ? pt + i.slice(1) : i;
+	return /^-0(\.0+)?$/.test(i) && (i = i.slice(1)), n === "ru" && (i = i.replace(".", ",")), i.startsWith("-") ? ht + i.slice(1) : i;
 }
-function K(e, t) {
-	let n = Math.round(e * 10) / 10, r = G(n, +!Number.isInteger(n), t);
+function W(e, t) {
+	let n = Math.round(e * 10) / 10, r = U(n, +!Number.isInteger(n), t);
 	return (n > 0 ? "+" : "") + r + "°";
 }
-function mt(e, t) {
-	return G(e, Math.abs(e - Math.round(e)) < .01 ? 0 : 1, t) + "°";
+function gt(e, t) {
+	return U(e, Math.abs(e - Math.round(e)) < .01 ? 0 : 1, t) + "°";
+}
+function G(e, t) {
+	return U(e, 1, t) + (t === "ru" ? " кВт" : " kW");
+}
+function K(e, t) {
+	let n = U(e, 1, t);
+	return n.startsWith(ht) ? n : "+" + n;
 }
 function q(e, t) {
-	return G(e, 1, t) + (t === "ru" ? " кВт" : " kW");
-}
-function ht(e, t) {
-	let n = G(e, 1, t);
-	return n.startsWith(pt) ? n : "+" + n;
-}
-function J(e, t) {
 	return e == null || !Number.isFinite(e) ? "—" : t(e);
 }
 // src/logic/zones.ts
-var gt = [
+var _t = [
 	"ac",
 	"mix",
 	"heat",
 	"deep"
 ];
-function _t(e, t) {
+function vt(e, t) {
 	for (let n = 0; n < e.length; n++) if (t >= e[n]) return n;
 	return 3;
 }
-function vt(e, t, n) {
+function yt(e, t, n) {
 	let r = t === 0 ? 19 : e[t - 1] - 1, i = t === 2 ? -19 : e[t + 1] + 1, a = [...e];
 	return a[t] = Math.min(r, Math.max(i, Math.round(n))), a;
 }
-function yt(e, t) {
+function bt(e, t) {
 	return t === 3 ? -20 : e[t];
 }
-function Y(e, t) {
-	return R(t, `zone.${e}`);
+function J(e, t) {
+	return L(t, `zone.${e}`);
 }
-function bt(e, t, n) {
-	return e === 0 ? R(n, "range.above", { t: K(t[0], n) }) : e === 3 ? R(n, "range.below", { t: K(t[2], n) }) : R(n, "range.between", {
-		from: K(t[e], n),
-		to: K(t[e - 1], n)
+function xt(e, t, n) {
+	return e === 0 ? L(n, "range.above", { t: W(t[0], n) }) : e === 3 ? L(n, "range.below", { t: W(t[2], n) }) : L(n, "range.between", {
+		from: W(t[e], n),
+		to: W(t[e - 1], n)
 	});
 }
-function xt(e, t) {
-	let n = e.ac_rooms.includes("living"), r = e.ac_rooms.includes("bedroom");
-	return n && r ? R(t, "ac.both") : n ? R(t, "ac.living") : r ? R(t, "ac.bedroom") : R(t, "ac.none");
-}
 function St(e, t) {
-	let n = [xt(e, t), R(t, `boiler_sum.${e.boiler}`)];
-	return e.boiler !== "off" && n.push(ze(t, "rods", e.max_rods)), n.join(" · ");
+	let n = e.ac_rooms.includes("living"), r = e.ac_rooms.includes("bedroom");
+	return n && r ? L(t, "ac.both") : n ? L(t, "ac.living") : r ? L(t, "ac.bedroom") : L(t, "ac.none");
 }
-function Ct(e, t, n) {
+function Ct(e, t) {
+	let n = [St(e, t), L(t, `boiler_sum.${e.boiler}`)];
+	return e.boiler !== "off" && n.push(Be(t, "rods", e.max_rods)), n.join(" · ");
+}
+function wt(e, t, n) {
 	let r = e.policies.map((e, r) => r === t ? {
 		...e,
 		...n
@@ -1915,22 +1951,22 @@ function Ct(e, t, n) {
 		policies: r
 	};
 }
-function wt(e, t, n) {
-	let r = e.policies[t].ac_rooms;
-	return Ct(e, t, { ac_rooms: r.includes(n) ? r.filter((e) => e !== n) : [...r, n].sort() });
-}
 function Tt(e, t, n) {
-	return Ct(e, t, { boiler: n });
+	let r = e.policies[t].ac_rooms;
+	return wt(e, t, { ac_rooms: r.includes(n) ? r.filter((e) => e !== n) : [...r, n].sort() });
 }
 function Et(e, t, n) {
-	return Ct(e, t, { max_rods: n });
+	return wt(e, t, { boiler: n });
 }
-function Dt(e, t) {
+function Dt(e, t, n) {
+	return wt(e, t, { max_rods: n });
+}
+function Ot(e, t) {
 	return t > 110 ? e : t > 52 ? e.split(" ").map((e) => e[0].toUpperCase()).join("") : "";
 }
 // src/logic/curve.ts
-var Ot = (e, t, n) => Math.min(n, Math.max(t, e));
-function kt(e, t) {
+var kt = (e, t, n) => Math.min(n, Math.max(t, e));
+function At(e, t) {
 	let n = e.points;
 	if (t >= n[0][0]) return n[0][1] + e.shift;
 	for (let r = 0; r < n.length - 1; r++) {
@@ -1939,29 +1975,29 @@ function kt(e, t) {
 	}
 	return n[n.length - 1][1] + e.shift;
 }
-function At(e, t, n) {
+function jt(e, t, n) {
 	let r = n.hybrid && n.acActive ? e.ac_background_shift : 0;
-	return Ot(kt(e, t) - r + (n.correction ?? 0), e.flow_min, e.flow_max);
+	return kt(At(e, t) - r + (n.correction ?? 0), e.flow_min, e.flow_max);
 }
-function jt(e) {
-	return Ot(Math.round(e * 2) / 2, 15, 85);
+function Mt(e) {
+	return kt(Math.round(e * 2) / 2, 15, 85);
 }
-function Mt(e, t, n) {
-	let r = e.points.map((e, r) => r === t ? [e[0], jt(n)] : [...e]);
+function Nt(e, t, n) {
+	let r = e.points.map((e, r) => r === t ? [e[0], Mt(n)] : [...e]);
 	return {
 		...e,
 		points: r
 	};
 }
-function Nt(e, t, n) {
-	return Mt(e, t, e.points[t][1] + n);
+function Pt(e, t, n) {
+	return Nt(e, t, e.points[t][1] + n);
 }
-function Pt(e, t = .25) {
+function Ft(e, t = .25) {
 	if (!e.hybrid || e.curve.ac_background_shift <= 0) return [];
 	let n = [], r = null;
 	for (let i = 0; i <= 40 / t; i++) {
-		let a = 20 - i * t, o = e.zones.policies[_t(e.zones.bounds, a)];
-		o.ac_rooms.length > 0 && o.boiler === "main" && a >= e.ac.min_outdoor ? (r || n.push(r = []), r.push([a, At(e.curve, a, {
+		let a = 20 - i * t, o = e.zones.policies[vt(e.zones.bounds, a)];
+		o.ac_rooms.length > 0 && o.boiler === "main" && a >= e.ac.min_outdoor ? (r || n.push(r = []), r.push([a, jt(e.curve, a, {
 			acActive: !0,
 			hybrid: !0
 		})])) : r = null;
@@ -1969,7 +2005,7 @@ function Pt(e, t = .25) {
 	return n;
 }
 // src/logic/model.ts
-var Ft = 7, It = -15, Lt = 3 / 6.2, Rt = {
+var It = 7, Y = -15, Lt = 3 / 6.2, Rt = {
 	h_w_per_k: 150,
 	gains_w: 300,
 	tariff_per_kwh: .25,
@@ -1982,7 +2018,8 @@ var Ft = 7, It = -15, Lt = 3 / 6.2, Rt = {
 	ac_share: {
 		living: .42,
 		bedroom: .23
-	}
+	},
+	capacity_kwh_per_k: 5.2
 };
 function zt(e) {
 	return {
@@ -1994,17 +2031,17 @@ function Bt(e, t, n, r) {
 	return Math.max(0, (e * (n - r) - t) / 1e3);
 }
 function Vt(e, t) {
-	return t >= Ft ? e : t < It ? 0 : e * (Lt + (t - It) / 22 * .5161290322580645);
+	return t >= It ? e : t < Y ? 0 : e * (Lt + (t - Y) / 22 * .5161290322580645);
 }
 function Ht(e) {
-	return e >= 15 ? 4.2 : e >= Ft ? 3.6 + (e - Ft) * (4.2 - 3.6) / 8 : 1.7 + (Math.max(e, It) - It) * (3.6 - 1.7) / 22;
+	return e >= 15 ? 4.2 : e >= It ? 3.6 + (e - It) * (4.2 - 3.6) / 8 : 1.7 + (Math.max(e, Y) - Y) * (3.6 - 1.7) / 22;
 }
 function Ut(e, t, n, r = {}) {
-	let i = _t(e.zones.bounds, n), a = e.zones.policies[i], o = r.target ?? lt(e.targets, e.preset), s = Bt(t.h_w_per_k, t.gains_w, o, n), c = {
+	let i = vt(e.zones.bounds, n), a = e.zones.policies[i], o = r.target ?? dt(e.targets, e.preset), s = Bt(t.h_w_per_k, t.gains_w, o, n), c = {
 		living: 0,
 		bedroom: 0
 	};
-	for (let i of z) c[i] = e.hybrid && a.ac_rooms.includes(i) && n >= e.ac.min_outdoor && e.preset !== "away" && !(r.night && e.ac.night[i] === "off") ? Math.min(t.ac_share[i] * s, Vt(t.ac_rated_kw[i], n)) : 0;
+	for (let i of R) c[i] = e.hybrid && a.ac_rooms.includes(i) && n >= e.ac.min_outdoor && e.preset !== "away" && !(r.night && e.ac.night[i] === "off") ? Math.min(t.ac_share[i] * s, Vt(t.ac_rated_kw[i], n)) : 0;
 	let l = c.living + c.bedroom, u = a.boiler === "off" ? 0 : a.max_rods * t.rod_kw, d = Math.min(Math.max(0, s - l), u), f = Math.max(0, s - l - d), p = l > 0, m = p && e.hybrid && a.boiler === "main", h = p ? Ht(n) : null;
 	return {
 		zone: i,
@@ -2018,7 +2055,7 @@ function Ut(e, t, n, r = {}) {
 		electricKw: (h ? l / h : 0) + d,
 		acActive: p,
 		background: m,
-		flow: At(e.curve, n, {
+		flow: jt(e.curve, n, {
 			acActive: m,
 			hybrid: e.hybrid
 		})
@@ -2033,22 +2070,69 @@ function Wt(e, t) {
 		saving: i > 0 ? 1 - r / i : 0
 	};
 }
-function Gt(e, t, n, r) {
-	let i = 0, a = 0;
-	for (let o of n) {
-		let n = W(o.ts, r).hhmm, [, s] = dt(e.targets, e.preset, n), c = Ut(e, t, o.t_out, {
-			target: s,
-			night: e.preset === "night" || ut(e.targets, n)
-		});
-		i += c.electricKw, a += c.demandKw;
-	}
+function Gt(e, t, n) {
+	let r = e.season;
+	if (r.mode !== "auto") return t.map(() => r.mode === "on");
+	let i = r.window_hours, a = n.seasonActive;
+	return t.map((e, o) => {
+		let s = t.slice(Math.max(0, o - i + 1), o + 1).map((e) => e.t_out), c = i - s.length, l = s.reduce((e, t) => e + t, 0), u = c > 0 ? n.windowMean === null ? null : (l + n.windowMean * c) / i : l / i;
+		return u !== null && (a = a ? u < r.threshold + r.hysteresis : u < r.threshold), a;
+	});
+}
+function Kt(e, t, n, r, i) {
+	let a = Gt(e, n, i), o = t.capacity_kwh_per_k, s = (e, n) => (t.h_w_per_k * (e - n) - t.gains_w) / 1e3, c = i.indoor;
+	return n.map((n, i) => {
+		let l = H(n.ts, r).hhmm, [, u] = pt(e.targets, e.preset, l), d = Ut(e, t, n.t_out, {
+			target: u,
+			night: e.preset === "night" || ft(e.targets, l)
+		}), f = c ?? u, p = 0, m = f - s(f, n.t_out) / o;
+		if (!a[i]) f = m;
+		else if (m >= u) f = m;
+		else {
+			let e = d.boilerCapKw + R.reduce((e, r) => e + (d.acKw[r] > 0 ? Vt(t.ac_rated_kw[r], n.t_out) : 0), 0), r = f > u ? o * (u - m) : Math.max(0, s(u, n.t_out)) + o * (u - f);
+			p = Math.min(r, Math.max(e, d.demandKw)), f = p < r ? f + (p - s(f, n.t_out)) / o : u;
+		}
+		c = f;
+		let h = p === 0 ? 0 : d.demandKw > 0 ? d.electricKw * p / d.demandKw : p;
+		return {
+			heats: a[i],
+			target: u,
+			indoor: f,
+			heatKwh: p,
+			electricKwh: h,
+			p: d
+		};
+	});
+}
+function qt(e, t, n, r, i) {
+	let a = Kt(e, t, n, r, i), o = a.reduce((e, t) => e + t.electricKwh, 0), s = a.reduce((e, t) => e + t.heatKwh, 0);
 	return {
-		kwh: i,
-		cost: i * t.tariff_per_kwh,
-		boilerOnlyCost: a * t.tariff_per_kwh
+		kwh: o,
+		cost: o * t.tariff_per_kwh,
+		boilerOnlyCost: s * t.tariff_per_kwh,
+		heatedHours: a.filter((e) => e.heats).length
 	};
 }
-function Kt(e) {
+function Jt(e, t, n, r, i) {
+	let a = `${mt(t.ts, r, i)}, ${H(t.ts, r).hhmm}, ${W(t.t_out, i)}`;
+	if (!n.heats) return L(i, "forecast.hour_off", { when: a });
+	let o = J(n.p.zone, i);
+	if (n.heatKwh === 0) return L(i, "forecast.hour_coast", {
+		when: a,
+		zone: o,
+		t: U(n.indoor, 1, i)
+	});
+	let s = e.zones.policies[n.p.zone], c = [St({
+		...s,
+		ac_rooms: R.filter((e) => n.p.acKw[e] > 0)
+	}, i), L(i, `boiler_sum.${s.boiler}`)];
+	return s.boiler !== "off" && c.push(Be(i, "rods", s.max_rods), L(i, "forecast.hour_flow", { flow: gt(n.p.flow, i) })), c.push(L(i, "forecast.hour_kw", { kw: U(n.electricKwh, 1, i) })), L(i, "forecast.hour", {
+		when: a,
+		zone: o,
+		what: c.join(" · ")
+	});
+}
+function Yt(e) {
 	let t = Math.floor(Math.min(...e)) - 3, n = Math.ceil(Math.max(...e)) + 3, r = [];
 	for (let e = Math.ceil((t + 1) / 5) * 5; e < n; e += 5) r.push(e);
 	return {
@@ -2057,28 +2141,28 @@ function Kt(e) {
 		ticks: r
 	};
 }
-function qt(e, t, n, r) {
+function Xt(e, t, n, r) {
 	if (t.length === 0) return "";
-	let i = (t) => _t(e.zones.bounds, t.t_out), a = i(t[0]), o = t.find((e) => i(e) !== a), s = t.reduce((e, t) => t.t_out < e.t_out ? t : e), c = "";
+	let i = (t) => vt(e.zones.bounds, t.t_out), a = i(t[0]), o = t.find((e) => i(e) !== a), s = t.reduce((e, t) => t.t_out < e.t_out ? t : e), c = "";
 	if (o) {
 		let t = i(o);
-		c += R(r, "forecast.change", {
-			day: ft(o.ts, n, r),
-			hhmm: W(o.ts, n).hhmm,
-			t: K(o.t_out, r),
-			zone: Y(t, r),
-			summary: St(e.zones.policies[t], r)
+		c += L(r, "forecast.change", {
+			day: mt(o.ts, n, r),
+			hhmm: H(o.ts, n).hhmm,
+			t: W(o.t_out, r),
+			zone: J(t, r),
+			summary: Ct(e.zones.policies[t], r)
 		});
 	}
-	return c += R(r, "forecast.coldest", {
-		day: ft(s.ts, n, r),
-		hhmm: W(s.ts, n).hhmm,
-		t: K(s.t_out, r),
-		zone: Y(i(s), r)
+	return c += L(r, "forecast.coldest", {
+		day: mt(s.ts, n, r),
+		hhmm: H(s.ts, n).hhmm,
+		t: W(s.t_out, r),
+		zone: J(i(s), r)
 	}), c;
 }
 // src/logic/tabs.ts
-var Jt = [
+var Zt = [
 	{
 		key: "now",
 		rows: [{
@@ -2110,52 +2194,52 @@ var Jt = [
 			cols: [["season", "suggestions"], ["log"]]
 		}]
 	}
-], Yt = (e) => e.rows.flatMap((e) => e.cols.flat());
-function Xt(e) {
-	return Jt.filter((t) => Yt(t).some((t) => !e.includes(t))).map((e) => e.key);
+], Qt = (e) => e.rows.flatMap((e) => e.cols.flat());
+function $t(e) {
+	return Zt.filter((t) => Qt(t).some((t) => !e.includes(t))).map((e) => e.key);
 }
-function Zt(e, t) {
+function en(e, t) {
 	return e === "curve" || e === "zones" ? "curve" : e === "boiler" ? t === "mode" ? "curve" : t === "classic_coldest_tolerance" ? "rooms" : "system" : e === "targets" || e === "ac" || e === "load" || e === "room_offsets" ? "rooms" : "system";
 }
-function Qt(e) {
+function tn(e) {
 	let t = /* @__PURE__ */ new Set();
 	for (let [n, r] of Object.entries(e)) {
 		let e = r && typeof r == "object" && !Array.isArray(r) ? Object.keys(r) : [""];
-		for (let r of e) t.add(Zt(n, r));
+		for (let r of e) t.add(en(n, r));
 	}
 	return t;
 }
-var $t = 21e4;
-function en(e, t, n, r = {}) {
-	if (e && r.nowMs !== void 0 && r.nowMs - Date.parse(e.now) > $t) return {
-		text: R(n, "status.stale", { hhmm: W(e.now, r.tz ?? "UTC").hhmm }),
+var nn = 21e4;
+function rn(e, t, n, r = {}) {
+	if (e && r.nowMs !== void 0 && r.nowMs - Date.parse(e.now) > nn) return {
+		text: L(n, "status.stale", { hhmm: H(e.now, r.tz ?? "UTC").hhmm }),
 		tone: "warn"
 	};
 	if (e && !e.enabled) return {
-		text: R(n, "banner.disabled"),
+		text: L(n, "banner.disabled"),
 		tone: "warn"
 	};
-	let i = (e) => Ke.filter((n) => t.layers[n] === e).map((e) => R(n, `layer.${e}`)), a = i("active"), o = i("observe");
+	let i = (e) => qe.filter((n) => t.layers[n] === e).map((e) => L(n, `layer.${e}`)), a = i("active"), o = i("observe");
 	if (e && !e.season_active && !a.length) return {
-		text: R(n, "banner.season"),
+		text: L(n, "banner.season"),
 		tone: "idle"
 	};
 	if (a.length) {
-		let t = o.length ? R(n, "status.observing_also", { layers: o.join(", ") }) : "", r = e && !e.season_active ? R(n, "status.off_season") : "";
+		let t = o.length ? L(n, "status.observing_also", { layers: o.join(", ") }) : "", r = e && !e.season_active ? L(n, "status.off_season") : "";
 		return {
-			text: R(n, "status.in_control", { layers: a.join(", ") }) + t + r,
+			text: L(n, "status.in_control", { layers: a.join(", ") }) + t + r,
 			tone: "ok"
 		};
 	}
 	return o.length ? {
-		text: R(n, "status.observing"),
+		text: L(n, "status.observing"),
 		tone: "warn"
 	} : {
-		text: R(n, "status.all_off"),
+		text: L(n, "status.all_off"),
 		tone: "idle"
 	};
 }
-function tn(e) {
+function an(e) {
 	let t = /^(.+?[.!?])\s+(?=\S)/u.exec(e);
 	return t ? {
 		first: t[1],
@@ -2166,38 +2250,38 @@ function tn(e) {
 	};
 }
 // src/logic/why.ts
-var nn = /* @__PURE__ */ new Set([
+var on = /* @__PURE__ */ new Set([
 	"outdoor_unavailable",
 	"rooms_unavailable",
 	"ac_not_coping",
 	"rods_budget_exhausted"
-]), rn = [
+]), sn = [
 	"cool",
 	"dry",
 	"fan_only",
 	"auto",
 	"heat_cool"
-], an = (e, t) => e.acs[t].available && e.acs[t].hvac === "heat", on = (e, t) => e.room_offsets[t] ?? 0;
-function sn(e, t, n, r = "UTC") {
+], cn = (e, t) => e.acs[t].available && e.acs[t].hvac === "heat", ln = (e, t) => e.room_offsets[t] ?? 0;
+function un(e, t, n, r = "UTC") {
 	let i = t.acs[e];
-	return i.available ? i.hvac && i.hvac !== "off" && i.hvac !== "heat" ? "manual" : n.layers.ac === "off" ? "layer_off" : n.hybrid ? t.effective_preset === "away" ? "away" : t.t_out !== null && t.t_out < n.ac.min_outdoor ? "cold" : n.zones.policies[t.zone]?.ac_rooms.includes(e) ? (t.effective_preset === "night" || n.preset === "night" || ut(n.targets, W(t.now, r).hhmm)) && n.ac.night[e] === "off" ? "night" : n.layers.ac === "active" ? t.reasons.some((t) => (t.code === "ac_manual_hold" || t.code === "ac_manual_off") && t.data?.room === e) ? "hand_off" : "idle" : "observe" : "zone" : "hybrid" : "unavailable";
+	return i.available ? i.hvac && i.hvac !== "off" && i.hvac !== "heat" ? "manual" : n.layers.ac === "off" ? "layer_off" : n.hybrid ? t.effective_preset === "away" ? "away" : t.t_out !== null && t.t_out < n.ac.min_outdoor ? "cold" : n.zones.policies[t.zone]?.ac_rooms.includes(e) ? (t.effective_preset === "night" || n.preset === "night" || ft(n.targets, H(t.now, r).hhmm)) && n.ac.night[e] === "off" ? "night" : n.layers.ac === "active" ? t.reasons.some((t) => (t.code === "ac_manual_hold" || t.code === "ac_manual_off") && t.data?.room === e) ? "hand_off" : "idle" : "observe" : "zone" : "hybrid" : "unavailable";
 }
-function cn(e, t) {
-	return We.flatMap((n) => {
+function dn(e, t) {
+	return Ge.flatMap((n) => {
 		let r = e.rooms[n];
 		return r === null ? [] : [{
 			room: n,
 			temp: r,
-			offset: on(t, n)
+			offset: ln(t, n)
 		}];
 	});
 }
-function ln(e, t) {
-	let n = cn(e, t);
+function fn(e, t) {
+	let n = dn(e, t);
 	return n.length ? n.reduce((e, t) => t.temp - t.offset < e.temp - e.offset ? t : e) : null;
 }
-function un(e, t) {
-	let n = cn(e, t);
+function pn(e, t) {
+	let n = dn(e, t);
 	if (!n.length) return null;
 	let r = (e) => n.reduce((t, n) => t + e(n), 0) / n.length;
 	return {
@@ -2205,198 +2289,198 @@ function un(e, t) {
 		target: e.target + r((e) => e.offset)
 	};
 }
-var dn = (e) => J(e, (e) => `${Math.round(e)}°`);
-function fn(e, t) {
-	let n = z.filter((t) => an(e, t)), r = n.filter((n) => t.layers.ac === "active" && e.acs[n].owned);
+var mn = (e) => q(e, (e) => `${Math.round(e)}°`);
+function hn(e, t) {
+	let n = R.filter((t) => cn(e, t)), r = n.filter((n) => t.layers.ac === "active" && e.acs[n].owned);
 	return {
 		heating: n,
 		byModule: r,
 		byHand: n.filter((e) => !r.includes(e))
 	};
 }
-function pn(e, t, n, r) {
-	let { heating: i, byModule: a, byHand: o } = fn(e, t), s = { t: K(t.ac.min_outdoor, n) }, c = (i, a) => {
-		let o = sn(i, e, t, r), c = e.acs[i].hvac ?? "", l = rn.includes(c) ? R(n, `hvac.${c}`) : c;
-		return R(n, `why.${a ? "acs_off" : "ac_off"}.${o}`, {
+function gn(e, t, n, r) {
+	let { heating: i, byModule: a, byHand: o } = hn(e, t), s = { t: W(t.ac.min_outdoor, n) }, c = (i, a) => {
+		let o = un(i, e, t, r), c = e.acs[i].hvac ?? "", l = sn.includes(c) ? L(n, `hvac.${c}`) : c;
+		return L(n, `why.${a ? "acs_off" : "ac_off"}.${o}`, {
 			...s,
 			mode: l
 		});
 	};
 	if (!i.length) {
-		let i = z.map((n) => sn(n, e, t, r));
+		let i = R.map((n) => un(n, e, t, r));
 		return i.every((e) => e === i[0]) ? [{
 			pip: "idle",
-			lead: R(n, "why.acs_off"),
-			text: c(z[0], !0)
-		}] : z.map((e) => ({
+			lead: L(n, "why.acs_off"),
+			text: c(R[0], !0)
+		}] : R.map((e) => ({
 			pip: "idle",
-			lead: `${R(n, `room.${e}`)}:`,
+			lead: `${L(n, `room.${e}`)}:`,
 			text: c(e, !1)
 		}));
 	}
 	let l = [];
 	if (a.length) {
-		let r = a.map((n) => e.target + on(t, n)), i = r.every((e) => e === r[0]), o = (t) => J(e.rooms[t], (e) => G(e, 1, n)), s = a.map((e, t) => i ? `${R(n, `room_acc.${e}`)} (${o(e)}°)` : `${R(n, `room_acc.${e}`)} (${o(e)}° → ${G(r[t], 1, n)}°)`).join(R(n, "why.and")), c = a.filter((t) => e.acs[t].quiet).map((e) => R(n, `ac.${e}`));
+		let r = a.map((n) => e.target + ln(t, n)), i = r.every((e) => e === r[0]), o = (t) => q(e.rooms[t], (e) => U(e, 1, n)), s = a.map((e, t) => i ? `${L(n, `room_acc.${e}`)} (${o(e)}°)` : `${L(n, `room_acc.${e}`)} (${o(e)}° → ${U(r[t], 1, n)}°)`).join(L(n, "why.and")), c = a.filter((t) => e.acs[t].quiet).map((e) => L(n, `ac.${e}`));
 		l.push({
 			pip: "ac",
-			lead: R(n, a.length > 1 ? "why.acs_on" : "why.ac_on"),
-			text: (i ? R(n, "why.ac_on_text", {
+			lead: L(n, a.length > 1 ? "why.acs_on" : "why.ac_on"),
+			text: (i ? L(n, "why.ac_on_text", {
 				who: s,
-				target: G(r[0], 1, n)
-			}) : `${s}.`) + (c.length ? R(n, "why.quiet", { list: c.join(", ") }) : "")
+				target: U(r[0], 1, n)
+			}) : `${s}.`) + (c.length ? L(n, "why.quiet", { list: c.join(", ") }) : "")
 		});
 	}
 	if (o.length) {
 		let t = o.map((t) => {
 			let r = e.acs[t].setpoint, i = {
-				room: R(n, `room_low.${t}`),
-				t: J(e.rooms[t], (e) => G(e, 1, n))
+				room: L(n, `room_low.${t}`),
+				t: q(e.rooms[t], (e) => U(e, 1, n))
 			};
-			return r === null ? R(n, "why.ac_hand_who_nosp", i) : R(n, "why.ac_hand_who", {
+			return r === null ? L(n, "why.ac_hand_who_nosp", i) : L(n, "why.ac_hand_who", {
 				...i,
-				sp: G(r, 0, n)
+				sp: U(r, 0, n)
 			});
-		}).join(R(n, "why.and"));
+		}).join(L(n, "why.and"));
 		l.push({
 			pip: "ac",
-			lead: R(n, o.length > 1 ? "why.acs_hand" : "why.ac_hand"),
+			lead: L(n, o.length > 1 ? "why.acs_hand" : "why.ac_hand"),
 			text: `${t}.`
 		});
 	}
-	for (let e of z.filter((e) => !i.includes(e))) l.push({
+	for (let e of R.filter((e) => !i.includes(e))) l.push({
 		pip: "idle",
-		lead: `${R(n, `room.${e}`)}:`,
+		lead: `${L(n, `room.${e}`)}:`,
 		text: c(e, !1)
 	});
 	return l;
 }
-function mn(e, t, n) {
+function _n(e, t, n) {
 	let r = e.driver;
 	if (r.mode === "average") {
-		let i = un(e, t)?.temp ?? r.temp;
-		return i === null ? R(n, "why.follows.average_unknown") : R(n, "why.follows.average", { t: G(i, 1, n) });
+		let i = pn(e, t)?.temp ?? r.temp;
+		return i === null ? L(n, "why.follows.average_unknown") : L(n, "why.follows.average", { t: U(i, 1, n) });
 	}
-	if (r.room === null) return R(n, "why.follows.coldest_unknown");
+	if (r.room === null) return L(n, "why.follows.coldest_unknown");
 	let i = e.rooms[r.room] ?? r.temp;
-	return i === null ? R(n, "why.follows.coldest_unknown") : R(n, "why.follows.coldest", {
-		room: R(n, `room_low.${r.room}`),
-		t: G(i, 1, n)
+	return i === null ? L(n, "why.follows.coldest_unknown") : L(n, "why.follows.coldest", {
+		room: L(n, `room_low.${r.room}`),
+		t: U(i, 1, n)
 	});
 }
-function hn(e, t, n) {
+function vn(e, t, n) {
 	if (!e.decided) return {
 		pip: "idle",
-		lead: R(n, "why.starting"),
-		text: R(n, "why.starting_text")
+		lead: L(n, "why.starting"),
+		text: L(n, "why.starting_text")
 	};
-	let r = t.layers.boiler !== "active", i = (e) => r ? `why.obs.${e}` : `why.${e}`, a = J(e.flow_target, (e) => String(Math.round(e)));
+	let r = t.layers.boiler !== "active", i = (e) => r ? `why.obs.${e}` : `why.${e}`, a = q(e.flow_target, (e) => String(Math.round(e)));
 	if (!e.boiler.available) return {
 		pip: "cold",
-		lead: R(n, "why.boiler_unavailable"),
-		text: R(n, "why.boiler_unavailable_text")
+		lead: L(n, "why.boiler_unavailable"),
+		text: L(n, "why.boiler_unavailable_text")
 	};
 	if (t.zones.policies[e.zone]?.boiler === "off") return {
 		pip: "idle",
-		lead: R(n, i("boiler_off")),
-		text: R(n, "why.boiler_off_text")
+		lead: L(n, i("boiler_off")),
+		text: L(n, "why.boiler_off_text")
 	};
 	if (!e.season_active) return {
 		pip: "idle",
-		lead: R(n, "why.season_idle"),
-		text: R(n, i("season_idle_text"))
+		lead: L(n, "why.season_idle"),
+		text: L(n, i("season_idle_text"))
 	};
-	let o = e.boiler.wanted ?? e.boiler.call_on === !0;
-	if (!o && t.layers.load === "active" && e.reasons.some((e) => e.code === "pause_boiler")) return {
+	let o = e.boiler.wanted ?? e.boiler.call_on === !0, s = e.load.pausing || e.reasons.some((e) => e.code === "pause_boiler");
+	if (!o && t.layers.load === "active" && s) return {
 		pip: "cold",
-		lead: R(n, "why.load_pause"),
-		text: R(n, "why.load_pause_text", { s: t.load.pause_s })
+		lead: L(n, "why.load_pause"),
+		text: L(n, "why.load_pause_text", { s: t.load.pause_s })
 	};
 	if (t.boiler.mode === "smooth") {
 		if (!o) return {
 			pip: "idle",
-			lead: R(n, i("smooth_paused")),
-			text: R(n, i("smooth_paused_text"), {
-				m: G(t.boiler.overheat_margin, 1, n),
-				r: G(t.boiler.resume_margin, 1, n),
-				follows: mn(e, t, n)
+			lead: L(n, i("smooth_paused")),
+			text: L(n, i("smooth_paused_text"), {
+				m: U(t.boiler.overheat_margin, 1, n),
+				r: U(t.boiler.resume_margin, 1, n),
+				follows: _n(e, t, n)
 			})
 		};
 		let r = [];
-		return e.curve_flow !== null && r.push(R(n, "why.part.curve", { t: Math.round(e.curve_flow) })), e.background_shift > 0 && r.push(R(n, "why.part.bg", { t: G(e.background_shift, 0, n) })), e.correction !== 0 && r.push(R(n, "why.part.corr", { t: ht(e.correction, n) })), {
+		return e.curve_flow !== null && r.push(L(n, "why.part.curve", { t: Math.round(e.curve_flow) })), e.background_shift > 0 && r.push(L(n, "why.part.bg", { t: U(e.background_shift, 0, n) })), e.correction !== 0 && r.push(L(n, "why.part.corr", { t: K(e.correction, n) })), {
 			pip: "heat",
-			lead: R(n, i("smooth_on")),
-			text: R(n, i("smooth_on_text"), {
+			lead: L(n, i("smooth_on")),
+			text: L(n, i("smooth_on_text"), {
 				flow: a,
 				parts: r.length ? ` (${r.join(", ")})` : "",
-				follows: mn(e, t, n)
+				follows: _n(e, t, n)
 			})
 		};
 	}
-	let s = ln(e, t), c = e.target + (s?.offset ?? 0) - t.boiler.classic_coldest_tolerance, l = G(c, 1, n);
+	let c = fn(e, t), l = e.target + (c?.offset ?? 0) - t.boiler.classic_coldest_tolerance, u = U(l, 1, n);
 	if (o) {
-		let r = String(e.boiler.rods_limit ?? t.zones.policies[e.zone]?.max_rods ?? "—"), o = un(e, t), u = s && s.temp < c ? R(n, "why.classic_coldest", {
-			room: R(n, `room_low.${s.room}`),
-			t: G(s.temp, 1, n),
-			thr: l
-		}) : R(n, "why.classic_average", {
-			t: J(o?.temp, (e) => G(e, 1, n)),
-			thr: J(o?.target, (e) => G(e, 1, n))
+		let r = String(e.boiler.rods_limit ?? t.zones.policies[e.zone]?.max_rods ?? "—"), o = pn(e, t), s = c && c.temp < l ? L(n, "why.classic_coldest", {
+			room: L(n, `room_low.${c.room}`),
+			t: U(c.temp, 1, n),
+			thr: u
+		}) : L(n, "why.classic_average", {
+			t: q(o?.temp, (e) => U(e, 1, n)),
+			thr: q(o?.target, (e) => U(e, 1, n))
 		});
 		return {
 			pip: "heat",
-			lead: R(n, i("classic_on")),
-			text: R(n, "why.classic_on_text", {
+			lead: L(n, i("classic_on")),
+			text: L(n, "why.classic_on_text", {
 				flow: a,
 				rods: r
-			}) + u
+			}) + s
 		};
 	}
 	return {
 		pip: "idle",
-		lead: R(n, i("classic_wait")),
-		text: R(n, "why.classic_wait_text", {
-			room: s ? R(n, `room_low.${s.room}`) : "—",
-			t: J(s?.temp, (e) => G(e, 1, n)),
-			thr: l
+		lead: L(n, i("classic_wait")),
+		text: L(n, "why.classic_wait_text", {
+			room: c ? L(n, `room_low.${c.room}`) : "—",
+			t: q(c?.temp, (e) => U(e, 1, n)),
+			thr: u
 		})
 	};
 }
-function gn(e, t, n) {
-	let { kw: r } = e.load, i = q(t.load.limit_kw, n);
+function yn(e, t, n) {
+	let { kw: r } = e.load, i = G(t.load.limit_kw, n);
 	if (r === null) return {
 		pip: "idle",
-		lead: R(n, "why.load_unknown"),
-		text: R(n, "why.load_unknown_text")
+		lead: L(n, "why.load_unknown"),
+		text: L(n, "why.load_unknown_text")
 	};
 	let a = {
-		kw: G(r, 1, n),
+		kw: U(r, 1, n),
 		limit: i
 	}, o = t.layers.load === "active", s = r > t.load.limit_kw;
 	if (e.load.shedding) {
 		let r = [];
-		e.load.water_heater_shed && r.push(R(n, "why.water_heater")), e.load.rods_shed > 0 && r.push(ze(n, "rods", e.load.rods_shed)), r.length || r.push(R(n, "why.boiler_paused_word"));
+		e.load.water_heater_shed && r.push(L(n, "why.water_heater")), e.load.rods_shed > 0 && r.push(Be(n, "rods", e.load.rods_shed)), r.length || r.push(L(n, "why.boiler_paused_word"));
 		let i = r.join(", ");
 		return s ? {
 			pip: "cold",
-			lead: R(n, "why.load_over"),
-			text: R(n, o ? "why.load_over_text" : "why.obs.load_over_text", {
+			lead: L(n, "why.load_over"),
+			text: L(n, o ? "why.load_over_text" : "why.obs.load_over_text", {
 				...a,
 				what: i
 			})
 		} : {
 			pip: "ok",
-			lead: R(n, "why.load_recover"),
-			text: R(n, o ? "why.load_recover_text" : "why.obs.load_recover_text", {
+			lead: L(n, "why.load_recover"),
+			text: L(n, o ? "why.load_recover_text" : "why.obs.load_recover_text", {
 				min: Math.round(t.load.restore_after_s / 60),
-				restore: q(t.load.restore_kw, n),
+				restore: G(t.load.restore_kw, n),
 				what: i
 			})
 		};
 	}
 	if (s) return {
 		pip: "cold",
-		lead: R(n, "why.load_over"),
-		text: R(n, "why.load_hold_text", {
+		lead: L(n, "why.load_over"),
+		text: L(n, "why.load_hold_text", {
 			...a,
 			s: t.load.shed_after_s
 		})
@@ -2404,20 +2488,20 @@ function gn(e, t, n) {
 	let c = t.load.limit_kw - r;
 	return c < 1 ? {
 		pip: "cold",
-		lead: R(n, "why.load_near"),
-		text: R(n, "why.load_near_text", a)
+		lead: L(n, "why.load_near"),
+		text: L(n, "why.load_near_text", a)
 	} : {
 		pip: "ok",
-		lead: R(n, "why.load_ok"),
-		text: R(n, "why.load_ok_text", { spare: q(c, n) })
+		lead: L(n, "why.load_ok"),
+		text: L(n, "why.load_ok_text", { spare: G(c, n) })
 	};
 }
-function _n(e, t, n) {
+function bn(e, t, n) {
 	let r = t.layers.boiler !== "active", i = (e) => r ? `sum.obs.${e}` : `sum.${e}`, a;
-	a = e.decided ? e.boiler.available ? t.zones.policies[e.zone]?.boiler === "off" ? R(n, i("zone_off")) : e.season_active ? e.boiler.wanted ?? e.boiler.call_on === !0 ? R(n, i("on"), { flow: dn(e.flow_target).replace("°", "") }) : R(n, i("paused")) : R(n, "sum.season") : R(n, "sum.unavailable") : R(n, "sum.starting");
-	let { byModule: o, byHand: s } = fn(e, t), c = o.length ? R(n, o.length > 1 ? "sum.acs_on" : "sum.ac_on") : s.length ? R(n, s.length > 1 ? "sum.acs_hand" : "sum.ac_hand") : R(n, "sum.acs_off"), l = e.load.kw, u = l === null ? R(n, "sum.load_unknown") : l > t.load.limit_kw ? R(n, "sum.load_over") : R(n, "sum.load", {
-		kw: G(l, 1, n),
-		limit: q(t.load.limit_kw, n)
+	a = e.enabled ? e.decided ? e.boiler.available ? t.zones.policies[e.zone]?.boiler === "off" ? L(n, i("zone_off")) : e.season_active ? e.boiler.wanted ?? e.boiler.call_on === !0 ? L(n, i("on"), { flow: mn(e.flow_target).replace("°", "") }) : L(n, i("paused")) : L(n, "sum.season") : L(n, "sum.unavailable") : L(n, "sum.starting") : L(n, "sum.disabled");
+	let { byModule: o, byHand: s } = hn(e, t), c = o.length ? L(n, o.length > 1 ? "sum.acs_on" : "sum.ac_on") : s.length ? L(n, s.length > 1 ? "sum.acs_hand" : "sum.ac_hand") : L(n, "sum.acs_off"), l = e.load.kw, u = l === null ? L(n, "sum.load_unknown") : l > t.load.limit_kw ? L(n, "sum.load_over") : L(n, "sum.load", {
+		kw: U(l, 1, n),
+		limit: G(t.load.limit_kw, n)
 	});
 	return [
 		a,
@@ -2425,44 +2509,48 @@ function _n(e, t, n) {
 		u
 	].join(" · ");
 }
-function vn(e, t, n, r = "UTC") {
-	let i = R(n, "why.sub", {
-		t: J(e.t_out, (e) => K(e, n)),
-		zone: Y(e.zone, n),
-		target: G(e.target, 1, n),
-		preset: R(n, `preset.${e.effective_preset}`).toLowerCase()
+function xn(e, t, n, r = "UTC") {
+	let i = L(n, "why.sub", {
+		t: q(e.t_out, (e) => W(e, n)),
+		zone: J(e.zone, n),
+		target: U(e.target, 1, n),
+		preset: L(n, `preset.${e.effective_preset}`).toLowerCase()
 	}), a = [
 		{
-			label: R(n, t.layers.boiler === "active" ? "chip.flow" : "chip.flow_obs"),
-			value: dn(e.flow_target)
+			label: L(n, t.layers.boiler === "active" ? "chip.flow" : "chip.flow_obs"),
+			value: mn(e.flow_target)
 		},
 		{
-			label: R(n, "chip.rods"),
+			label: L(n, "chip.rods"),
 			value: String(e.boiler.rods_limit ?? t.zones.policies[e.zone]?.max_rods ?? "—")
 		},
 		{
-			label: R(n, "chip.load"),
-			value: `${J(e.load.kw, (e) => G(e, 1, n))} / ${q(t.load.limit_kw, n)}`
+			label: L(n, "chip.load"),
+			value: `${q(e.load.kw, (e) => U(e, 1, n))} / ${G(t.load.limit_kw, n)}`
 		}
-	], o = e.reasons.filter((e) => nn.has(e.code) && e.text).map((e) => ({
+	], o = e.reasons.filter((e) => on.has(e.code) && e.text).map((e) => ({
 		pip: "cold",
 		lead: "",
 		text: e.text
-	})), s = [
-		...pn(e, t, n, r),
-		hn(e, t, n),
+	})), s = e.enabled ? [
+		...gn(e, t, n, r),
+		vn(e, t, n),
 		...o,
-		gn(e, t, n)
-	];
+		yn(e, t, n)
+	] : [{
+		pip: "idle",
+		lead: L(n, "why.disabled"),
+		text: L(n, "why.disabled_text")
+	}];
 	return {
-		summary: _n(e, t, n),
+		summary: bn(e, t, n),
 		sub: i,
 		chips: a,
 		items: s
 	};
 }
 // src/plan/builtin.ts
-var yn = {
+var Sn = {
 	version: 1,
 	viewBox: [
 		-350,
@@ -2733,7 +2821,7 @@ var yn = {
 		h: 2500
 	}]
 };
-L("hh-tabs", class extends F {
+I("hh-tabs", class extends N {
 	static properties = {
 		tabs: { attribute: !1 },
 		value: {},
@@ -2744,7 +2832,7 @@ L("hh-tabs", class extends F {
 	constructor() {
 		super(), this.tabs = [], this.value = "", this.label = "", this.dirtyLabel = "";
 	}
-	static styles = [V, o`
+	static styles = [z, o`
       :host {
         display: block;
         container-type: inline-size;
@@ -2788,6 +2876,11 @@ L("hh-tabs", class extends F {
           font-size: 13px;
         }
       }
+      @container (max-width: 380px) {
+        button {
+          padding: 9px 6px;
+        }
+      }
       .dot {
         width: 7px;
         height: 7px;
@@ -2796,7 +2889,7 @@ L("hh-tabs", class extends F {
       }
     `];
 	select(e, t = !1) {
-		t && (this.focusAfterUpdate = e), e !== this.value && I(this, "hh-tab", { key: e });
+		t && (this.focusAfterUpdate = e), e !== this.value && F(this, "hh-tab", { key: e });
 	}
 	onKey(e) {
 		let t = this.tabs.findIndex((e) => e.key === this.value), n = this.tabs.length - 1, r = {
@@ -2811,8 +2904,8 @@ L("hh-tabs", class extends F {
 		this.focusAfterUpdate === this.value && (this.renderRoot.querySelector(`#tab-${this.value}`)?.focus(), this.focusAfterUpdate = null);
 	}
 	render() {
-		return O`<div role="tablist" aria-label=${this.label} @keydown=${this.onKey}>
-      ${this.tabs.map((e) => O`<button
+		return D`<div role="tablist" aria-label=${this.label} @keydown=${this.onKey}>
+      ${this.tabs.map((e) => D`<button
           type="button"
           role="tab"
           id="tab-${e.key}"
@@ -2821,11 +2914,11 @@ L("hh-tabs", class extends F {
           ?data-dirty=${e.dirty}
           @click=${() => this.select(e.key)}
         >
-          ${e.label}${e.dirty ? O`<span class="dot" role="img" aria-label=${this.dirtyLabel}></span>` : j}
+          ${e.label}${e.dirty ? D`<span class="dot" role="img" aria-label=${this.dirtyLabel}></span>` : A}
         </button>`)}
     </div>`;
 	}
-}), L("hh-hint", class extends F {
+}), I("hh-hint", class extends N {
 	static properties = {
 		text: {},
 		lang: {},
@@ -2834,7 +2927,7 @@ L("hh-tabs", class extends F {
 	constructor() {
 		super(), this.text = "", this.lang = "en", this.open = !1;
 	}
-	static styles = [V, o`
+	static styles = [z, o`
       :host {
         display: block;
       }
@@ -2851,21 +2944,21 @@ L("hh-tabs", class extends F {
       }
     `];
 	render() {
-		let { first: e, rest: t } = tn(this.text);
-		return O`<p class="note">
+		let { first: e, rest: t } = an(this.text);
+		return D`<p class="note">
       ${this.open || !t ? this.text : e}
-      ${t ? O`<button
+      ${t ? D`<button
             class="more"
             type="button"
             aria-expanded=${String(this.open)}
-            aria-label=${R(this.lang, this.open ? "hint.less" : "hint.more")}
+            aria-label=${L(this.lang, this.open ? "hint.less" : "hint.more")}
             @click=${() => this.open = !this.open}
           >
             ${this.open ? "−" : "ⓘ"}
-          </button>` : j}
+          </button>` : A}
     </p>`;
 	}
-}), L("hh-seg", class extends F {
+}), I("hh-seg", class extends N {
 	static properties = {
 		options: { attribute: !1 },
 		value: {},
@@ -2876,7 +2969,7 @@ L("hh-tabs", class extends F {
 	constructor() {
 		super(), this.options = [], this.value = "", this.label = "", this.small = !1, this.disabled = !1;
 	}
-	static styles = [V, o`
+	static styles = [z, o`
       :host {
         display: inline-flex;
       }
@@ -2914,12 +3007,12 @@ L("hh-tabs", class extends F {
       }
     `];
 	render() {
-		return O`<div class="seg ${this.small ? "small" : ""}" role="group" aria-label=${this.label || this.ariaLabel || ""}>
-      ${this.options.map((e) => O`<button
+		return D`<div class="seg ${this.small ? "small" : ""}" role="group" aria-label=${this.label || this.ariaLabel || ""}>
+      ${this.options.map((e) => D`<button
           type="button"
           aria-pressed=${String(e.value === this.value)}
           ?disabled=${this.disabled}
-          @click=${() => e.value !== this.value && I(this, "hh-select", { value: e.value })}
+          @click=${() => e.value !== this.value && F(this, "hh-select", { value: e.value })}
         >
           ${e.label}
         </button>`)}
@@ -2927,7 +3020,7 @@ L("hh-tabs", class extends F {
 	}
 });
 // src/logic/steppers.ts
-var bn = {
+var Cn = {
 	"curve.flow_min": {
 		min: 20,
 		max: 45,
@@ -2992,26 +3085,46 @@ var bn = {
 		min: .5,
 		max: 3,
 		step: .5
+	},
+	"room_offsets.living": {
+		min: -3,
+		max: 3,
+		step: .1
+	},
+	"room_offsets.bedroom": {
+		min: -3,
+		max: 3,
+		step: .1
+	},
+	"room_offsets.child": {
+		min: -3,
+		max: 3,
+		step: .1
+	},
+	"room_offsets.bath": {
+		min: -3,
+		max: 3,
+		step: .1
 	}
-}, xn = (e) => Math.round(e * 100) / 100, Sn = (e, t, n) => Math.min(n, Math.max(t, e));
-function Cn(e, t) {
-	let [n, r] = t.split(".");
-	return e[n][r];
-}
-function wn(e, t, n) {
-	let [r, i] = t.split(".");
-	return et(e, { [r]: { [i]: n } });
-}
-function Tn(e, t, n) {
-	let r = bn[t], i = Sn(xn(Cn(e, t) + n * r.step), r.min, r.max);
-	t === "load.restore_kw" && (i = Math.min(i, xn(e.load.limit_kw - .5))), t === "curve.flow_min" && (i = Math.min(i, e.curve.flow_max - 5)), t === "curve.flow_max" && (i = Math.max(i, e.curve.flow_min + 5));
-	let a = wn(e, t, i);
-	return t === "load.limit_kw" && (a = wn(a, "load.restore_kw", Math.min(e.load.restore_kw, xn(i - .5)))), a;
-}
+}, wn = (e) => Math.round(e * 100) / 100, Tn = (e, t, n) => Math.min(n, Math.max(t, e));
 function En(e, t) {
-	return et(e, { curve: { shift: Sn(Math.round(t), -10, 10) } });
+	let [n, r] = t.split(".");
+	return e[n][r] ?? 0;
 }
-L("hh-stepper", class extends F {
+function Dn(e, t, n) {
+	let [r, i] = t.split(".");
+	return nt(e, { [r]: { [i]: n } });
+}
+function On(e, t, n) {
+	let r = Cn[t], i = Tn(wn(En(e, t) + n * r.step), r.min, r.max);
+	t === "load.restore_kw" && (i = Math.min(i, wn(e.load.limit_kw - .5))), t === "curve.flow_min" && (i = Math.min(i, e.curve.flow_max - 5)), t === "curve.flow_max" && (i = Math.max(i, e.curve.flow_min + 5));
+	let a = Dn(e, t, i);
+	return t === "load.limit_kw" && (a = Dn(a, "load.restore_kw", Math.min(e.load.restore_kw, wn(i - .5)))), a;
+}
+function kn(e, t) {
+	return nt(e, { curve: { shift: Tn(Math.round(t), -10, 10) } });
+}
+I("hh-stepper", class extends N {
 	static properties = {
 		text: {},
 		label: {},
@@ -3020,7 +3133,7 @@ L("hh-stepper", class extends F {
 	constructor() {
 		super(), this.text = "", this.label = "", this.disabled = !1;
 	}
-	static styles = [V, o`
+	static styles = [z, o`
       :host {
         display: inline-flex;
       }
@@ -3058,10 +3171,10 @@ L("hh-stepper", class extends F {
       }
     `];
 	step(e) {
-		I(this, "hh-step", { dir: e });
+		F(this, "hh-step", { dir: e });
 	}
 	render() {
-		return O`<div class="stepper" role="group" aria-label=${this.label}>
+		return D`<div class="stepper" role="group" aria-label=${this.label}>
       <button type="button" aria-label="${this.label} −" ?disabled=${this.disabled} @click=${() => this.step(-1)}>−</button>
       <span class="val" aria-live="polite">${this.text}</span>
       <button type="button" aria-label="${this.label} +" ?disabled=${this.disabled} @click=${() => this.step(1)}>+</button>
@@ -3070,18 +3183,18 @@ L("hh-stepper", class extends F {
 });
 // src/components/fields.ts
 function X(e, t, n, r, i, a) {
-	return O`<div class="field">
+	return D`<div class="field">
     <span class="lbl">${r}</span>
     <hh-stepper
       .label=${r}
       .text=${i}
       .disabled=${a}
-      @hh-step=${(r) => I(e, "hh-edit", { next: Tn(t, n, r.detail.dir) })}
+      @hh-step=${(r) => F(e, "hh-edit", { next: On(t, n, r.detail.dir) })}
     ></hh-stepper>
   </div>`;
 }
 // src/components/width.ts
-var Dn = class {
+var An = class {
 	host;
 	width = 0;
 	observer;
@@ -3101,7 +3214,7 @@ var Dn = class {
 	}
 };
 // src/logic/chart-geometry.ts
-function On(e) {
+function jn(e) {
 	let t = Math.max(300, e || 640), n = t < 560 ? 340 : 390, r = t - 16, i = n - 92;
 	return {
 		W: t,
@@ -3118,36 +3231,36 @@ function On(e) {
 		fy: (e) => 25 + (i - e) / (i - 30) * 50
 	};
 }
-var kn = (e, t) => e.map(([e, n], r) => `${r ? "L" : "M"}${t.x(e).toFixed(1)} ${t.y(n).toFixed(1)}`).join(" ");
-function An(e, t) {
+var Mn = (e, t) => e.map(([e, n], r) => `${r ? "L" : "M"}${t.x(e).toFixed(1)} ${t.y(n).toFixed(1)}`).join(" ");
+function Nn(e, t) {
 	let n = [];
 	for (let t = 0; t <= 160; t++) {
 		let r = 20 - t * .25;
-		n.push([r, At(e.curve, r, {
+		n.push([r, jt(e.curve, r, {
 			acActive: !1,
 			hybrid: !1
 		})]);
 	}
-	return kn(n, t);
+	return Mn(n, t);
 }
-function jn(e, t) {
-	return Pt(e).map((e) => kn(e, t)).join(" ");
+function Pn(e, t) {
+	return Ft(e).map((e) => Mn(e, t)).join(" ");
 }
 function Z(e) {
 	return Math.min(20, Math.max(-20, Math.round(e * 2) / 2));
 }
-function Mn(e, t) {
+function Fn(e, t) {
 	return Math.round(t.tx(e));
 }
-function Nn(e) {
+function In(e) {
 	return Math.min(16, (e.R - e.L) / 16 - 1);
 }
-function Pn(e, t, n) {
+function Ln(e, t, n) {
 	return (t.R - t.L) / 8 >= 44 || e % 2 == 0 || e === n;
 }
 // src/sections/hh-curve-chart.ts
 var Q = (e, t, n) => Math.min(n, Math.max(t, e));
-L("hh-curve-chart", class extends F {
+I("hh-curve-chart", class extends N {
 	static properties = {
 		settings: { attribute: !1 },
 		tOut: { attribute: !1 },
@@ -3158,11 +3271,11 @@ L("hh-curve-chart", class extends F {
 		drag: { state: !0 },
 		focused: { state: !0 }
 	};
-	size = new Dn(this);
+	size = new An(this);
 	constructor() {
 		super(), this.settings = null, this.tOut = null, this.ui = null, this.lang = "en", this.readOnly = !1, this.hover = null, this.drag = null, this.focused = null;
 	}
-	static styles = [V, o`
+	static styles = [z, o`
       :host {
         display: block;
         width: 100%;
@@ -3358,19 +3471,19 @@ L("hh-curve-chart", class extends F {
 		this.toggleAttribute("read-only", this.readOnly);
 	}
 	get g() {
-		return On(this.size.width);
+		return jn(this.size.width);
 	}
 	flow(e) {
-		return At(this.settings.curve, e, {
+		return jt(this.settings.curve, e, {
 			acActive: !1,
 			hybrid: !1
 		});
 	}
 	edit(e) {
-		I(this, "hh-edit", { next: e });
+		F(this, "hh-edit", { next: e });
 	}
 	setUi(e) {
-		I(this, "hh-ui", e);
+		F(this, "hh-ui", e);
 	}
 	at(e) {
 		let t = e.currentTarget.getBoundingClientRect(), n = this.g;
@@ -3408,13 +3521,13 @@ L("hh-curve-chart", class extends F {
 			let e = Z(i.tx(n));
 			e !== this.ui?.probe && this.setUi({ probe: e });
 		} else if (a.k === "p") {
-			let e = a.i, n = jt(i.fy(r) - t.curve.shift);
+			let e = a.i, n = Mt(i.fy(r) - t.curve.shift);
 			n !== t.curve.points[e][1] && this.edit({
 				...t,
-				curve: Mt(t.curve, e, n)
+				curve: Nt(t.curve, e, n)
 			});
 		} else {
-			let e = vt(t.zones.bounds, a.i, Mn(n, i));
+			let e = yt(t.zones.bounds, a.i, Fn(n, i));
 			e[a.i] !== t.zones.bounds[a.i] && this.edit({
 				...t,
 				zones: {
@@ -3436,7 +3549,7 @@ L("hh-curve-chart", class extends F {
 			if (!t) return;
 			this.edit({
 				...n,
-				curve: Nt(n.curve, r, t * (e.shiftKey ? 2 : .5))
+				curve: Pt(n.curve, r, t * (e.shiftKey ? 2 : .5))
 			});
 		} else {
 			let t = e.key === "ArrowLeft" ? 1 : e.key === "ArrowRight" ? -1 : 0;
@@ -3445,7 +3558,7 @@ L("hh-curve-chart", class extends F {
 				...n,
 				zones: {
 					...n.zones,
-					bounds: vt(n.zones.bounds, r, n.zones.bounds[r] + t)
+					bounds: yt(n.zones.bounds, r, n.zones.bounds[r] + t)
 				}
 			});
 		}
@@ -3457,25 +3570,25 @@ L("hh-curve-chart", class extends F {
 	}
 	grid(e) {
 		let { L: t, R: n, T: r, B: i, x: a, y: o, W: s } = e, c = [];
-		for (let e = 25; e <= 75; e += 5) c.push(k`<line class="grid-l" x1=${t} x2=${n} y1=${o(e)} y2=${o(e)}></line>`);
-		for (let e = 20; e >= -20; e -= 5) c.push(k`<line class=${e === 0 ? "grid-z" : "grid-l"} x1=${a(e)} x2=${a(e)} y1=${r} y2=${i}></line>`);
-		for (let e = 30; e <= 70; e += 10) c.push(k`<text class="tick" x=${t - 8} y=${o(e) + 4} text-anchor="end">${e}</text>`);
+		for (let e = 25; e <= 75; e += 5) c.push(O`<line class="grid-l" x1=${t} x2=${n} y1=${o(e)} y2=${o(e)}></line>`);
+		for (let e = 20; e >= -20; e -= 5) c.push(O`<line class=${e === 0 ? "grid-z" : "grid-l"} x1=${a(e)} x2=${a(e)} y1=${r} y2=${i}></line>`);
+		for (let e = 30; e <= 70; e += 10) c.push(O`<text class="tick" x=${t - 8} y=${o(e) + 4} text-anchor="end">${e}</text>`);
 		let l = s < 480 ? 10 : 5;
-		for (let e = 20; e >= -20; e -= l) c.push(k`<text class="tick" x=${a(e)} y=${i + 16} text-anchor="middle">${e > 0 ? `+${e}` : G(e, 0, this.lang)}</text>`);
+		for (let e = 20; e >= -20; e -= l) c.push(O`<text class="tick" x=${a(e)} y=${i + 16} text-anchor="middle">${e > 0 ? `+${e}` : U(e, 0, this.lang)}</text>`);
 		return c;
 	}
 	render() {
 		let e = this.settings;
-		if (!e) return j;
+		if (!e) return A;
 		let t = this.g, { W: n, H: r, L: i, R: a, T: o, B: s, x: c, y: l, sy: u, sh: d } = t, f = this.lang, p = e.curve, m = e.zones.bounds, h = [
 			20,
 			...m,
 			-20
-		], ee = jn(e, t), te = Nn(t), ne = this.ui?.sel ?? null, g = this.ui?.probe ?? null, _ = this.tOut === null ? null : Q(this.tOut, -20, 20), v = this.drag?.k === "p" ? this.drag.i : this.focused, y = _ === null ? null : c(_);
-		return O`<svg
+		], ee = Pn(e, t), te = In(t), ne = this.ui?.sel ?? null, g = this.ui?.probe ?? null, _ = this.tOut === null ? null : Q(this.tOut, -20, 20), re = this.drag?.k === "p" ? this.drag.i : this.focused, v = _ === null ? null : c(_);
+		return D`<svg
       viewBox="0 0 ${n} ${r}"
       role="img"
-      aria-label=${R(f, "chart.aria")}
+      aria-label=${L(f, "chart.aria")}
       @pointerdown=${this.onDown}
       @pointermove=${this.onMove}
       @pointerleave=${() => !this.drag && (this.hover = null)}
@@ -3492,46 +3605,46 @@ L("hh-curve-chart", class extends F {
 			3
 		].map((e) => {
 			let t = c(h[e]);
-			return k`<rect class="band-${gt[e]}" x=${t} y=${o} width=${c(h[e + 1]) - t} height=${s - o}></rect>`;
+			return O`<rect class="band-${_t[e]}" x=${t} y=${o} width=${c(h[e + 1]) - t} height=${s - o}></rect>`;
 		})}
       ${this.grid(t)}
-      <text class="axis-t" x=${i} y=${o - 14}>${R(f, "chart.flow_axis")}</text>
+      <text class="axis-t" x=${i} y=${o - 14}>${L(f, "chart.flow_axis")}</text>
       <text class="axis-t" x=${a} y=${o - 14} text-anchor="end">
-        ${R(f, n < 480 ? "chart.out_axis_short" : "chart.out_axis")}
+        ${L(f, n < 480 ? "chart.out_axis_short" : "chart.out_axis")}
       </text>
       <line class="clamp" x1=${i} x2=${a} y1=${l(p.flow_min)} y2=${l(p.flow_min)}></line>
-      <text class="clamp-t" x=${i + 4} y=${l(p.flow_min) + 13}>${R(f, "chart.min", { t: G(p.flow_min, 0, f) })}</text>
+      <text class="clamp-t" x=${i + 4} y=${l(p.flow_min) + 13}>${L(f, "chart.min", { t: U(p.flow_min, 0, f) })}</text>
       <line class="clamp" x1=${i} x2=${a} y1=${l(p.flow_max)} y2=${l(p.flow_max)}></line>
       <text class="clamp-t" x=${a - 4} y=${l(p.flow_max) - 5} text-anchor="end">
-        ${R(f, "chart.max", { t: G(p.flow_max, 0, f) })}
+        ${L(f, "chart.max", { t: U(p.flow_max, 0, f) })}
       </text>
-      ${m.map((e) => k`<line class="bnd-l" x1=${c(e)} x2=${c(e)} y1=${o} y2=${s}></line>`)}
-      <path class="curve" d=${An(e, t)}></path>
-      ${ee ? k`<path class="curve-bg" d=${ee}></path>` : j}
-      ${this.hover !== null && !this.drag ? k`<line class="hover-l" x1=${c(this.hover)} x2=${c(this.hover)} y1=${o} y2=${s}></line>
+      ${m.map((e) => O`<line class="bnd-l" x1=${c(e)} x2=${c(e)} y1=${o} y2=${s}></line>`)}
+      <path class="curve" d=${Nn(e, t)}></path>
+      ${ee ? O`<path class="curve-bg" d=${ee}></path>` : A}
+      ${this.hover !== null && !this.drag ? O`<line class="hover-l" x1=${c(this.hover)} x2=${c(this.hover)} y1=${o} y2=${s}></line>
             <text class="hover-t" x=${Q(c(this.hover) + 6, i, a - 70)} y=${s - 8}>
-              ${K(this.hover, f)} → ${Math.round(this.flow(this.hover))}°
-            </text>` : j}
-      ${y !== null && _ !== null ? k`<line class="now-l" x1=${y} x2=${y} y1=${o} y2=${s}></line>
-            <text class="now-t" x=${Q(y, i + 40, a - 40)} y=${o - 2} text-anchor="middle">
-              ${R(f, "chart.now", { t: K(this.tOut, f) })}
-            </text>` : j}
-      ${g === null ? j : k`<line class="probe-l" x1=${c(g)} x2=${c(g)} y1=${o} y2=${s}></line>
+              ${W(this.hover, f)} → ${Math.round(this.flow(this.hover))}°
+            </text>` : A}
+      ${v !== null && _ !== null ? O`<line class="now-l" x1=${v} x2=${v} y1=${o} y2=${s}></line>
+            <text class="now-t" x=${Q(v, i + 40, a - 40)} y=${o - 2} text-anchor="middle">
+              ${L(f, "chart.now", { t: W(this.tOut, f) })}
+            </text>` : A}
+      ${g === null ? A : O`<line class="probe-l" x1=${c(g)} x2=${c(g)} y1=${o} y2=${s}></line>
             <circle class="probe-d" cx=${c(g)} cy=${l(this.flow(g))} r="4"></circle>
             <text class="probe-t" x=${Q(c(g), i + 54, a - 54)}
-              y=${y !== null && Math.abs(c(g) - y) < 90 ? o + 14 : o - 2} text-anchor="middle"
-            >${K(g, f)} → ${Math.round(this.flow(g))}°</text>`}
+              y=${v !== null && Math.abs(c(g) - v) < 90 ? o + 14 : o - 2} text-anchor="middle"
+            >${W(g, f)} → ${Math.round(this.flow(g))}°</text>`}
       ${p.points.map(([e], n) => {
 			let r = this.flow(e), s = c(e), u = l(r), d = n;
-			return k`<circle class="pt-hit" data-k="p${n}" data-drag="p" data-i=${n}
+			return O`<circle class="pt-hit" data-k="p${n}" data-drag="p" data-i=${n}
             tabindex=${this.readOnly ? -1 : 0} role="slider"
-            aria-label=${R(f, "chart.point", { t: K(e, f) })}
-            aria-valuemin="15" aria-valuemax="85" aria-valuenow=${r} aria-valuetext=${mt(r, f)}
+            aria-label=${L(f, "chart.point", { t: W(e, f) })}
+            aria-valuemin="15" aria-valuemax="85" aria-valuenow=${r} aria-valuetext=${gt(r, f)}
             aria-readonly=${this.readOnly ? "true" : "false"}
             cx=${s} cy=${u} r=${te}></circle>
-          <circle class="pt ${v === d ? "active" : ""}" cx=${s} cy=${u} r="6.5" pointer-events="none"></circle>
-          ${Pn(d, t, v) ? k`<text class="pt-label" x=${Q(s, i + 14, a - 14)} y=${u - 12 < o + 4 ? u + 22 : u - 12}
-                text-anchor="middle">${mt(r, f)}</text>` : j}`;
+          <circle class="pt ${re === d ? "active" : ""}" cx=${s} cy=${u} r="6.5" pointer-events="none"></circle>
+          ${Ln(d, t, re) ? O`<text class="pt-label" x=${Q(s, i + 14, a - 14)} y=${u - 12 < o + 4 ? u + 22 : u - 12}
+                text-anchor="middle">${gt(r, f)}</text>` : A}`;
 		})}
       ${[
 			0,
@@ -3539,32 +3652,32 @@ L("hh-curve-chart", class extends F {
 			2,
 			3
 		].map((e) => {
-			let t = c(h[e]), n = c(h[e + 1]) - t, r = Dt(Y(e, f), n), i = () => this.setUi({ sel: e });
-			return k`<rect class="strip strip-${gt[e]}" data-zone=${e} x=${t + 1} y=${u}
+			let t = c(h[e]), n = c(h[e + 1]) - t, r = Ot(J(e, f), n), i = () => this.setUi({ sel: e });
+			return O`<rect class="strip strip-${_t[e]}" data-zone=${e} x=${t + 1} y=${u}
             width=${Math.max(0, n - 2)} height=${d} rx="7" stroke-width=${ne === e ? 2 : 0}
             tabindex="0" role="button" aria-pressed=${String(ne === e)}
-            aria-label=${`${Y(e, f)} · ${bt(e, m, f)}`}
+            aria-label=${`${J(e, f)} · ${xt(e, m, f)}`}
             @keydown=${(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), i())}></rect>
-          ${r ? k`<text class="strip-t" x=${t + n / 2} y=${u + d / 2 + 4} text-anchor="middle">${r}</text>` : j}`;
+          ${r ? O`<text class="strip-t" x=${t + n / 2} y=${u + d / 2 + 4} text-anchor="middle">${r}</text>` : A}`;
 		})}
       ${m.map((e, t) => {
 			let n = c(e), r = {
-				a: Y(t, f),
-				b: Y(t + 1, f)
+				a: J(t, f),
+				b: J(t + 1, f)
 			};
-			return k`<rect class="grip-hit" data-k="b${t}" data-drag="b" data-i=${t}
-            tabindex=${this.readOnly ? -1 : 0} role="slider" aria-label=${R(f, "chart.bound", r)}
-            aria-valuemin="-19" aria-valuemax="19" aria-valuenow=${e} aria-valuetext=${K(e, f)}
+			return O`<rect class="grip-hit" data-k="b${t}" data-drag="b" data-i=${t}
+            tabindex=${this.readOnly ? -1 : 0} role="slider" aria-label=${L(f, "chart.bound", r)}
+            aria-valuemin="-19" aria-valuemax="19" aria-valuenow=${e} aria-valuetext=${W(e, f)}
             aria-readonly=${this.readOnly ? "true" : "false"}
             x=${n - 16} y=${u - 6} width="32" height=${d + 12}></rect>
           <rect class="grip" x=${n - 6} y=${u - 4} width="12" height=${d + 8} rx="4" pointer-events="none"></rect>
           <line class="grip-line" x1=${n - 2} x2=${n - 2} y1=${u + 10} y2=${u + d - 10}></line>
           <line class="grip-line" x1=${n + 2} x2=${n + 2} y1=${u + 10} y2=${u + d - 10}></line>
-          <text class="bnd-t" x=${Q(n, i + 12, a - 12)} y=${u + d + 20} text-anchor="middle">${K(e, f)}</text>`;
+          <text class="bnd-t" x=${Q(n, i + 12, a - 12)} y=${u + d + 20} text-anchor="middle">${W(e, f)}</text>`;
 		})}
     </svg>`;
 	}
-}), L("hh-curve-card", class extends F {
+}), I("hh-curve-card", class extends N {
 	static properties = {
 		lang: {},
 		settings: { attribute: !1 },
@@ -3575,7 +3688,7 @@ L("hh-curve-chart", class extends F {
 	constructor() {
 		super(), this.lang = "en", this.settings = null, this.tOut = null, this.ui = null, this.readOnly = !1;
 	}
-	static styles = [V, o`
+	static styles = [z, o`
       .hint {
         display: flex;
         flex-wrap: wrap;
@@ -3624,25 +3737,25 @@ L("hh-curve-chart", class extends F {
       }
     `];
 	edit(e) {
-		I(this, "hh-edit", { next: e });
+		F(this, "hh-edit", { next: e });
 	}
 	stepper(e, t, n) {
 		return X(this, this.settings, e, t, n, this.readOnly);
 	}
 	render() {
 		let e = this.settings;
-		if (!e) return j;
+		if (!e) return A;
 		let t = this.lang, n = e.curve;
-		return this.ui?.sel, O`<section class="card" aria-labelledby="h-curve">
+		return this.ui?.sel, D`<section class="card" aria-labelledby="h-curve">
       <div class="card-head">
-        <h2 id="h-curve">${R(t, "section.curve")}</h2>
-        <hh-hint .lang=${t} .text=${R(t, "curve.note", { limit: G(e.boiler.corr_limit, 0, t) })}></hh-hint>
+        <h2 id="h-curve">${L(t, "section.curve")}</h2>
+        <hh-hint .lang=${t} .text=${L(t, "curve.note", { limit: U(e.boiler.corr_limit, 0, t) })}></hh-hint>
       </div>
       <div class="hint">
-        <i><span class="sw"></span>${R(t, "curve.legend.curve")}</i>
-        ${e.hybrid ? O`<i><span class="sw bg"></span>${R(t, "curve.legend.bg")}</i>` : j}
-        <i><span class="sw now"></span>${R(t, "curve.legend.now")}</i>
-        <i><span class="sw probe"></span>${R(t, "curve.legend.probe")}</i>
+        <i><span class="sw"></span>${L(t, "curve.legend.curve")}</i>
+        ${e.hybrid ? D`<i><span class="sw bg"></span>${L(t, "curve.legend.bg")}</i>` : A}
+        <i><span class="sw now"></span>${L(t, "curve.legend.now")}</i>
+        <i><span class="sw probe"></span>${L(t, "curve.legend.probe")}</i>
       </div>
       <hh-curve-chart
         .lang=${t}
@@ -3651,10 +3764,10 @@ L("hh-curve-chart", class extends F {
         .ui=${this.ui}
         .readOnly=${this.readOnly}
       ></hh-curve-chart>
-      <p class="note">${R(t, "zones.note")}</p>
+      <p class="note">${L(t, "zones.note")}</p>
       <div class="controls">
         <div class="field">
-          <label for="shift">${R(t, "curve.shift")}</label>
+          <label for="shift">${L(t, "curve.shift")}</label>
           <div class="range-row">
             <input
               type="range"
@@ -3664,20 +3777,20 @@ L("hh-curve-chart", class extends F {
               step="1"
               .value=${String(n.shift)}
               ?disabled=${this.readOnly}
-              @input=${(t) => this.edit(En(e, Number(t.target.value)))}
+              @input=${(t) => this.edit(kn(e, Number(t.target.value)))}
             />
-            <span class="num">${n.shift > 0 ? "+" : ""}${G(n.shift, 0, t)}°</span>
+            <span class="num">${n.shift > 0 ? "+" : ""}${U(n.shift, 0, t)}°</span>
           </div>
         </div>
-        ${this.stepper("curve.flow_min", R(t, "curve.flow_min"), `${G(Cn(e, "curve.flow_min"), 0, t)}°`)}
-        ${this.stepper("curve.flow_max", R(t, "curve.flow_max"), `${G(Cn(e, "curve.flow_max"), 0, t)}°`)}
+        ${this.stepper("curve.flow_min", L(t, "curve.flow_min"), `${U(En(e, "curve.flow_min"), 0, t)}°`)}
+        ${this.stepper("curve.flow_max", L(t, "curve.flow_max"), `${U(En(e, "curve.flow_max"), 0, t)}°`)}
         <div class="field">
-          <span class="lbl">${R(t, "curve.mode")}</span>
+          <span class="lbl">${L(t, "curve.mode")}</span>
           <hh-seg
-            .label=${R(t, "curve.mode")}
+            .label=${L(t, "curve.mode")}
             .options=${["smooth", "classic"].map((e) => ({
 			value: e,
-			label: R(t, `mode.${e}`)
+			label: L(t, `mode.${e}`)
 		}))}
             .value=${e.boiler.mode}
             .disabled=${this.readOnly}
@@ -3691,29 +3804,29 @@ L("hh-curve-chart", class extends F {
           ></hh-seg>
         </div>
         <div id="bg-field" ?hidden=${!e.hybrid}>
-          ${this.stepper("curve.ac_background_shift", R(t, "curve.bg"), `−${G(n.ac_background_shift, 0, t)}°`)}
+          ${this.stepper("curve.ac_background_shift", L(t, "curve.bg"), `−${U(n.ac_background_shift, 0, t)}°`)}
         </div>
       </div>
     </section>`;
 	}
 });
 // src/logic/plan-render.ts
-var Fn = (e, t, n) => Math.min(n, Math.max(t, e)), In = (e) => Math.round(e * 10) / 10;
+var Rn = (e, t, n) => Math.min(n, Math.max(t, e)), zn = (e) => Math.round(e * 10) / 10;
 function $(e) {
 	return e.map(([e, t]) => `${e},${t}`).join(" ");
 }
-function Ln(e) {
+function Bn(e) {
 	if (e === null || !Number.isFinite(e)) return {
 		tone: null,
 		opacity: 0
 	};
-	let t = e >= 0 ? Fn(.1 + e * .18, .1, .45) : Fn(.12 - e * .3, .12, .55);
+	let t = e >= 0 ? Rn(.1 + e * .18, .1, .45) : Rn(.12 - e * .3, .12, .55);
 	return {
 		tone: e >= 0 ? "heat" : "cold",
 		opacity: Math.round(t * 100) / 100
 	};
 }
-function Rn(e) {
+function Vn(e) {
 	let t = e.from, n = e.to - e.from;
 	return [
 		-300,
@@ -3721,10 +3834,10 @@ function Rn(e) {
 		300
 	].map((r) => {
 		let i = e.cx + r;
-		return `M${i} ${In(t + Math.sign(n) * 60)} C${i - 220} ${In(t + n * .4)} ${i + 220} ${In(t + n * .75)} ${i} ${e.to}`;
+		return `M${i} ${zn(t + Math.sign(n) * 60)} C${i - 220} ${zn(t + n * .4)} ${i + 220} ${zn(t + n * .75)} ${i} ${e.to}`;
 	});
 }
-function zn(e, t = 160) {
+function Hn(e, t = 160) {
 	return {
 		x: e.x - t,
 		y: e.y - t,
@@ -3732,13 +3845,21 @@ function zn(e, t = 160) {
 		h: e.h + 2 * t
 	};
 }
-function Bn(e) {
+function Un(e) {
 	return {
-		acOn: Object.fromEntries(z.map((t) => [t, !!e && e.acs[t].available && e.acs[t].hvac === "heat"])),
+		acOn: Object.fromEntries(R.map((t) => [t, !!e && e.acs[t].available && e.acs[t].hvac === "heat"])),
 		heatOn: !!e && e.boiler.call_on === !0
 	};
 }
-L("hh-floor-plan", class extends F {
+// src/sections/hh-floor-plan.ts
+var Wn = /* @__PURE__ */ new Set([
+	"cool",
+	"dry",
+	"fan_only",
+	"auto",
+	"heat_cool"
+]);
+I("hh-floor-plan", class extends N {
 	static properties = {
 		lang: {},
 		plan: { attribute: !1 },
@@ -3753,7 +3874,7 @@ L("hh-floor-plan", class extends F {
 	constructor() {
 		super(), this.lang = "en", this.plan = null, this.schematic = !1, this.status = null, this.offsets = {}, this.settings = null, this.learning = !1, this.picked = null, this.focused = null;
 	}
-	static styles = [V, o`
+	static styles = [z, o`
       svg {
         display: block;
         width: 100%;
@@ -3933,17 +4054,17 @@ L("hh-floor-plan", class extends F {
       }
     `];
 	rect(e, t, n = 0) {
-		return k`<rect class=${t} x=${e.x} y=${e.y} width=${e.w} height=${e.h} rx=${n}></rect>`;
+		return O`<rect class=${t} x=${e.x} y=${e.y} width=${e.w} height=${e.h} rx=${n}></rect>`;
 	}
 	ac(e, t) {
 		let n = t ? " on" : "";
-		return k`${Rn(e).map((e) => k`<path class=${`ac-flow${n}`} d=${e}></path>`)}
+		return O`${Vn(e).map((e) => O`<path class=${`ac-flow${n}`} d=${e}></path>`)}
       ${this.rect(e, `ac-unit${n}`, 60)}`;
 	}
 	ring(e, t) {
 		return e.rooms[t].polygons.map((e, n) => {
 			let r = `ring-${t}-${n}`;
-			return k`<clipPath id=${r}><polygon points=${$(e)}></polygon></clipPath>
+			return O`<clipPath id=${r}><polygon points=${$(e)}></polygon></clipPath>
         <polygon class="ring" data-room=${t} points=${$(e)} clip-path=${`url(#${r})`}></polygon>`;
 		});
 	}
@@ -3952,57 +4073,57 @@ L("hh-floor-plan", class extends F {
 	}
 	roomCard(e) {
 		let t = this.picked, n = this.status;
-		if (!t || !n) return j;
-		let r = this.lang, i = n.rooms[t], a = n.target + this.offset(t), o = t === "living" || t === "bedroom" ? this.acLine(t) : null, s = R(r, t === "bath" ? e ? "room.floor_on" : "room.floor_off" : e ? "room.rads_on" : "room.rads_off"), c = (e) => I(this, "hh-action", {
+		if (!t || !n) return A;
+		let r = this.lang, i = n.rooms[t], a = n.target + this.offset(t), o = t === "living" || t === "bedroom" ? this.acLine(t) : null, s = L(r, t === "bath" ? e ? "room.floor_on" : "room.floor_off" : e ? "room.rads_on" : "room.rads_off"), c = (e) => F(this, "hh-action", {
 			kind: "feedback",
 			room: t,
 			value: e
 		});
-		return O`<div class="room-card" role="region" aria-label=${R(r, `room.${t}`)}>
+		return D`<div class="room-card" role="region" aria-label=${L(r, `room.${t}`)}>
       <div class="rc-head">
-        <b>${R(r, `room.${t}`)}</b>
-        <span class="num">${i === null ? "—" : `${G(i, 1, r)}°`}</span>
+        <b>${L(r, `room.${t}`)}</b>
+        <span class="num">${i === null ? "—" : `${U(i, 1, r)}°`}</span>
         <span class="muted small">
-          ${R(r, "room.target", { t: G(a, 1, r) })}${i === null ? "" : ` (${ht(i - a, r)})`}
+          ${L(r, "room.target", { t: U(a, 1, r) })}${i === null ? "" : ` (${K(i - a, r)})`}
         </span>
-        <button class="close" type="button" aria-label=${R(r, "close")} @click=${() => this.picked = null}>×</button>
+        <button class="close" type="button" aria-label=${L(r, "close")} @click=${() => this.picked = null}>×</button>
       </div>
       <p class="small">${s}</p>
-      ${o ? O`<p class="small">${o}</p>` : j}
-      ${this.learning ? O`<div class="fb">
-            <button class="btn sm" type="button" @click=${() => c("cold")}>${R(r, "feedback.cold")}</button>
-            <button class="btn sm" type="button" @click=${() => c("hot")}>${R(r, "feedback.hot")}</button>
-          </div>` : j}
+      ${o ? D`<p class="small">${o}</p>` : A}
+      ${this.learning ? D`<div class="fb">
+            <button class="btn sm" type="button" @click=${() => c("cold")}>${L(r, "feedback.cold")}</button>
+            <button class="btn sm" type="button" @click=${() => c("hot")}>${L(r, "feedback.hot")}</button>
+          </div>` : A}
     </div>`;
 	}
 	acLine(e) {
 		let t = this.lang, n = this.status.acs[e];
-		if (!n.available) return R(t, "room.ac_unavailable");
-		if (!n.hvac || n.hvac === "off") return R(t, "room.ac_off");
-		let r = n.setpoint === null ? "—" : G(n.setpoint, 0, t);
-		return n.hvac === "heat" && this.settings?.layers.ac === "active" && n.owned ? R(t, "room.ac_module", { sp: r }) : n.hvac === "heat" ? R(t, "room.ac_hand", { sp: r }) : R(t, "room.ac_mode", { mode: n.hvac });
+		if (!n.available) return L(t, "room.ac_unavailable");
+		if (!n.hvac || n.hvac === "off") return L(t, "room.ac_off");
+		let r = n.setpoint === null ? "—" : U(n.setpoint, 0, t);
+		return n.hvac === "heat" && this.settings?.layers.ac === "active" && n.owned ? L(t, "room.ac_module", { sp: r }) : n.hvac === "heat" ? L(t, "room.ac_hand", { sp: r }) : L(t, "room.ac_mode", { mode: Wn.has(n.hvac) ? L(t, `hvac.${n.hvac}`) : n.hvac });
 	}
 	render() {
 		let e = this.plan, t = this.status, n = this.lang;
 		if (!e) return null;
-		let { acOn: r, heatOn: i } = Bn(t), a = i ? " on" : "";
-		return O`<section class="card" aria-labelledby="h-plan">
+		let { acOn: r, heatOn: i } = Un(t), a = i ? " on" : "";
+		return D`<section class="card" aria-labelledby="h-plan">
       <div class="card-head">
-        <h2 id="h-plan">${R(n, "section.plan")}</h2>
-        <hh-hint .lang=${n} .text=${R(n, "plan.note") + (this.schematic ? ` ${R(n, "plan.schematic")}` : "")}></hh-hint>
+        <h2 id="h-plan">${L(n, "section.plan")}</h2>
+        <hh-hint .lang=${n} .text=${L(n, "plan.note") + (this.schematic ? ` ${L(n, "plan.schematic")}` : "")}></hh-hint>
       </div>
-      <svg viewBox=${e.viewBox.join(" ")} role="group" aria-label=${R(n, "plan.aria")}>
+      <svg viewBox=${e.viewBox.join(" ")} role="group" aria-label=${L(n, "plan.aria")}>
         <defs>
           <pattern id="fh" width="260" height="260" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
             <line class="fh-line" x1="0" y1="0" x2="0" y2="260"></line>
           </pattern>
         </defs>
-        ${e.neutral.map((e) => k`<polygon class="neutral" points=${$(e)}></polygon>`)}
-        ${Ue.map((r) => {
-			let i = t?.rooms[r] ?? null, a = Ln(i === null || !t ? null : i - (t.target + this.offset(r))), o = a.tone ? `var(--${a.tone})` : "transparent", s = () => this.picked = this.picked === r ? null : r;
-			return e.rooms[r].polygons.map((e) => k`<polygon class="room" data-room=${r}
+        ${e.neutral.map((e) => O`<polygon class="neutral" points=${$(e)}></polygon>`)}
+        ${We.map((r) => {
+			let i = t?.rooms[r] ?? null, a = Bn(i === null || !t ? null : i - (t.target + this.offset(r))), o = a.tone ? `var(--${a.tone})` : "transparent", s = () => this.picked = this.picked === r ? null : r;
+			return e.rooms[r].polygons.map((e) => O`<polygon class="room" data-room=${r}
               points=${$(e)} fill=${o} fill-opacity=${a.opacity}
-              tabindex="0" role="button" aria-label=${R(n, `room.${r}`)} aria-pressed=${String(this.picked === r)}
+              tabindex="0" role="button" aria-label=${L(n, `room.${r}`)} aria-pressed=${String(this.picked === r)}
               @click=${s}
               @focus=${() => this.focused = r}
               @blur=${() => this.focused = null}
@@ -4010,42 +4131,51 @@ L("hh-floor-plan", class extends F {
             ></polygon>`);
 		})}
         ${e.floor_heating.map((e) => this.rect(e, `fh${a}`))}
-        ${e.radiators.map((e) => k`${this.rect(zn(e), `rad-glow${a}`, 120)}${this.rect(e, `rad${a}`, 30)}`)}
+        ${e.radiators.map((e) => O`${this.rect(Hn(e), `rad-glow${a}`, 120)}${this.rect(e, `rad${a}`, 30)}`)}
         ${e.glass.map((e) => this.rect(e, "glass"))}
-        ${e.bays.map((e) => k`<polyline class="bay" points=${$(e)}></polyline>`)}
-        ${e.walls.map((e) => k`<polygon class="wall" points=${$(e)}></polygon>`)}
+        ${e.bays.map((e) => O`<polyline class="bay" points=${$(e)}></polyline>`)}
+        ${e.walls.map((e) => O`<polygon class="wall" points=${$(e)}></polygon>`)}
         ${Object.entries(e.acs).map(([e, t]) => this.ac(t, r[e]))}
-        ${[.../* @__PURE__ */ new Set([this.picked, this.focused])].map((t) => t ? this.ring(e, t) : j)}
-        ${Ue.map((r) => {
+        ${[.../* @__PURE__ */ new Set([this.picked, this.focused])].map((t) => t ? this.ring(e, t) : A)}
+        ${We.map((r) => {
 			let [i, a] = e.rooms[r].label, o = t?.rooms[r] ?? null;
-			return k`<text class="room-n" x=${i} y=${a - 560} text-anchor="middle">${R(n, `room.${r}`)}</text>
-            <text class="room-t" x=${i} y=${a} text-anchor="middle">${o === null ? "—" : `${G(o, 1, n)}°`}</text>`;
+			return O`<text class="room-n" x=${i} y=${a - 560} text-anchor="middle">${L(n, `room.${r}`)}</text>
+            <text class="room-t" x=${i} y=${a} text-anchor="middle">${o === null ? "—" : `${U(o, 1, n)}°`}</text>`;
 		})}
-        ${e.small_labels.map((e) => k`<text class="room-n small-n" x=${e.at[0]} y=${e.at[1]} text-anchor="middle">${R(n, `place.${e.key}`)}</text>`)}
+        ${e.small_labels.map((e) => O`<text class="room-n small-n" x=${e.at[0]} y=${e.at[1]} text-anchor="middle">${L(n, `place.${e.key}`)}</text>`)}
       </svg>
       ${this.roomCard(i)}
       <div class="legend">
-        <i><b style="background:var(--cold);opacity:.5"></b>${R(n, "legend.cold")}</i>
-        <i><b style="background:var(--heat);opacity:.45"></b>${R(n, "legend.heat")}</i>
-        <i><b style="background:var(--ac)"></b>${R(n, "legend.ac")}</i>
-        <i><b style="background:var(--heat)"></b>${R(n, "legend.rad")}</i>
+        <i><b style="background:var(--cold);opacity:.5"></b>${L(n, "legend.cold")}</i>
+        <i><b style="background:var(--heat);opacity:.45"></b>${L(n, "legend.heat")}</i>
+        <i><b style="background:var(--ac)"></b>${L(n, "legend.ac")}</i>
+        <i><b style="background:var(--heat)"></b>${L(n, "legend.rad")}</i>
       </div>
     </section>`;
 	}
-}), L("hh-forecast", class extends F {
+}), I("hh-forecast", class extends N {
 	static properties = {
 		lang: {},
 		settings: { attribute: !1 },
 		model: { attribute: !1 },
 		forecast: { attribute: !1 },
 		fsel: { attribute: !1 },
+		start: { attribute: !1 },
 		tz: {}
 	};
-	size = new Dn(this);
+	size = new An(this);
 	constructor() {
-		super(), this.lang = "en", this.settings = null, this.model = null, this.forecast = void 0, this.fsel = null, this.tz = "UTC";
+		super(), this.lang = "en", this.settings = null, this.model = null, this.forecast = void 0, this.fsel = null, this.start = null, this.tz = "UTC";
 	}
-	static styles = [V, o`
+	static styles = [z, o`
+      .hour {
+        margin: 6px 0 0;
+        font-weight: 500;
+      }
+      svg:focus-visible {
+        outline: 2px solid var(--cold);
+        outline-offset: 2px;
+      }
       svg {
         display: block;
         width: 100%;
@@ -4102,61 +4232,99 @@ L("hh-floor-plan", class extends F {
         font-variant-numeric: tabular-nums;
       }
     `];
-	strip() {
-		let e = this.settings, t = this.forecast.hours, n = this.lang, r = Math.max(300, this.size.width || 640), i = r - 8, a = (i - 30) / t.length, { tmin: o, tmax: s, ticks: c } = Kt(t.map((e) => e.t_out)), l = (e) => 116 - (e - o) / (s - o) * 102, u = r < 520 ? 12 : 6, d = this.fsel !== null && this.fsel < t.length ? this.fsel : null, f = t.map((e, t) => `${t ? "L" : "M"}${(30 + t * a + a / 2).toFixed(1)} ${l(e.t_out).toFixed(1)}`).join(" ");
-		return O`<svg viewBox="0 0 ${r} ${170}" role="img" aria-label=${R(n, "forecast.aria")}>
-      ${t.map((t, n) => k`<rect class="fc-bar band-${gt[_t(e.zones.bounds, t.t_out)]}" data-h=${n}
-          x=${30 + n * a} y=${14} width=${a + .5} height=${102}
-          @click=${() => I(this, "hh-ui", {
-			fsel: n,
+	rows() {
+		let e = this.start ?? {
+			seasonActive: !0,
+			windowMean: null,
+			indoor: null
+		};
+		return Kt(this.settings, this.model, this.forecast.hours, this.tz, e);
+	}
+	selIndex() {
+		let e = this.fsel === null ? -1 : this.forecast?.hours.findIndex((e) => e.ts === this.fsel) ?? -1;
+		return e >= 0 ? e : null;
+	}
+	pick(e) {
+		let t = e === null ? void 0 : this.forecast.hours[e];
+		F(this, "hh-ui", t ? {
+			fsel: t.ts,
 			probe: t.t_out
-		})}></rect>`)}
-      ${o < 0 && s > 0 ? k`<line class="fc-zero" x1=${30} x2=${i} y1=${l(0)} y2=${l(0)}></line>` : j}
-      ${c.map((e) => k`<text class="fc-t" x=${24} y=${l(e) + 4} text-anchor="end">${e > 0 ? `+${e}` : G(e, 0, n)}</text>`)}
+		} : { fsel: null });
+	}
+	onKey(e) {
+		let t = this.forecast.hours.length, n = this.selIndex(), r = {
+			ArrowRight: n === null ? 0 : Math.min(t - 1, n + 1),
+			ArrowLeft: n === null ? 0 : Math.max(0, n - 1),
+			Home: 0,
+			End: t - 1,
+			Escape: null
+		};
+		e.key in r && (e.preventDefault(), this.pick(r[e.key]));
+	}
+	strip() {
+		let e = this.settings, t = this.forecast.hours, n = this.lang, r = Math.max(300, this.size.width || 640), i = r - 8, a = (i - 30) / t.length, { tmin: o, tmax: s, ticks: c } = Yt(t.map((e) => e.t_out)), l = (e) => 116 - (e - o) / (s - o) * 102, u = r < 520 ? 12 : 6, d = this.selIndex(), f = t.map((e, t) => `${t ? "L" : "M"}${(30 + t * a + a / 2).toFixed(1)} ${l(e.t_out).toFixed(1)}`).join(" ");
+		return D`<svg viewBox="0 0 ${r} ${170}" role="group" tabindex="0" aria-label=${L(n, "forecast.aria")}
+      @mousedown=${(e) => e.preventDefault()}
+      @keydown=${(e) => this.onKey(e)}>
+      ${t.map((t, n) => O`<rect class="fc-bar band-${_t[vt(e.zones.bounds, t.t_out)]}" data-h=${n}
+          x=${30 + n * a} y=${14} width=${a + .5} height=${102}
+          @click=${() => this.pick(d === n ? null : n)}></rect>`)}
+      ${o < 0 && s > 0 ? O`<line class="fc-zero" x1=${30} x2=${i} y1=${l(0)} y2=${l(0)}></line>` : A}
+      ${c.map((e) => O`<text class="fc-t" x=${24} y=${l(e) + 4} text-anchor="end">${e > 0 ? `+${e}` : U(e, 0, n)}</text>`)}
       <path class="fc-line" d=${f}></path>
-      ${d === null ? j : k`<rect class="fc-sel" x=${30 + d * a} y=${14} width=${a} height=${102}></rect>
+      ${d === null ? A : O`<rect class="fc-sel" x=${30 + d * a} y=${14} width=${a} height=${102}></rect>
             <circle cx=${30 + d * a + a / 2} cy=${l(t[d].t_out)} r="4" fill="var(--ink)"></circle>`}
       ${t.map((e, t) => {
-			let r = W(e.ts, this.tz), i = 30 + t * a;
-			return k`${r.hour % u === 0 || t === 0 ? k`<text class="fc-t" x=${i + a / 2} y=${132} text-anchor="middle">${r.hhmm}</text>` : j}${r.hour === 0 || t === 0 ? k`<text class="fc-day" x=${i + 2} y=${152}>${ft(e.ts, this.tz, n)}</text>` : j}`;
+			let r = H(e.ts, this.tz), i = 30 + t * a;
+			return O`${r.hour % u === 0 || t === 0 ? O`<text class="fc-t" x=${i + a / 2} y=${132} text-anchor="middle">${r.hhmm}</text>` : A}${r.hour === 0 || t === 0 ? O`<text class="fc-day" x=${i + 2} y=${152}>${mt(e.ts, this.tz, n)}</text>` : A}`;
 		})}
     </svg>`;
 	}
 	body() {
 		let e = this.lang, t = this.forecast;
-		return t === void 0 ? O`<p class="note">…</p>` : t === null ? O`<p class="note">${R(e, "stage5.forecast")}</p>` : t.hours.length ? O`${this.strip()}
-      <p class="small">${qt(this.settings, t.hours, this.tz, e)}</p>` : O`<p class="note">${R(e, "forecast.empty")}</p>`;
+		if (t === void 0) return D`<p class="note">…</p>`;
+		if (t === null) return D`<p class="note">${L(e, "stage5.forecast")}</p>`;
+		if (t.unavailable) return D`<p class="note">${L(e, "forecast.unavailable")}</p>`;
+		if (!t.hours.length) return D`<p class="note">${L(e, "forecast.empty")}</p>`;
+		let n = this.selIndex(), r = n === null || !this.model ? null : this.rows()[n];
+		return D`${this.strip()}
+      ${r ? D`<p class="hour" aria-live="polite">${Jt(this.settings, t.hours[n], r, this.tz, e)}</p>` : A}
+      <p class="small">${Xt(this.settings, t.hours, this.tz, e)}</p>`;
 	}
 	totals() {
 		let e = this.forecast, t = this.model;
-		if (!e?.hours.length || !t) return j;
-		let n = this.lang, r = Gt(this.settings, t, e.hours, this.tz);
-		return O`<div class="fc-sum">
-      <span><span class="big">${G(r.kwh, 0, n)}</span> <span class="muted">${R(n, "unit.kwh")}</span></span>
+		if (!e?.hours.length || !t) return A;
+		let n = this.lang, r = this.start ?? {
+			seasonActive: !0,
+			windowMean: null,
+			indoor: null
+		}, i = qt(this.settings, t, e.hours, this.tz, r);
+		return i.heatedHours === 0 ? D`<p class="muted small">${L(n, "forecast.no_season")}</p>` : D`<div class="fc-sum">
+      <span><span class="big">${U(i.kwh, 0, n)}</span> <span class="muted">${L(n, "unit.kwh")}</span></span>
       <span>
-        <span class="big">${G(r.cost, 0, n)}</span>
-        <span class="muted">${R(n, "forecast.per48", { currency: t.currency })}</span>
+        <span class="big">${U(i.cost, 0, n)}</span>
+        <span class="muted">${L(n, "forecast.per48", { currency: t.currency })}</span>
       </span>
       <span class="muted small">
-        ${R(n, "forecast.boiler_only", { cost: `${G(r.boilerOnlyCost, 0, n)} ${t.currency}` })}
+        ${L(n, "forecast.boiler_only", { cost: `${U(i.boilerOnlyCost, 0, n)} ${t.currency}` })}
       </span>
     </div>`;
 	}
 	render() {
-		if (!this.settings) return j;
+		if (!this.settings) return A;
 		let e = this.lang;
-		return O`<section class="card" aria-labelledby="h-fc">
+		return D`<section class="card" aria-labelledby="h-fc">
       <div class="head-row">
         <div class="card-head">
-          <h2 id="h-fc">${R(e, "section.forecast")}</h2>
-          <hh-hint .lang=${e} .text=${R(e, "forecast.note")}></hh-hint>
+          <h2 id="h-fc">${L(e, "section.forecast")}</h2>
+          <hh-hint .lang=${e} .text=${L(e, "forecast.note")}></hh-hint>
         </div>
         ${this.totals()}
       </div>
       ${this.body()}
     </section>`;
 	}
-}), L("hh-footer", class extends F {
+}), I("hh-footer", class extends N {
 	static properties = {
 		lang: {},
 		dirty: { type: Boolean },
@@ -4166,7 +4334,7 @@ L("hh-floor-plan", class extends F {
 	constructor() {
 		super(), this.lang = "en", this.dirty = !1, this.saving = !1, this.admin = !1;
 	}
-	static styles = [V, o`
+	static styles = [z, o`
       :host {
         position: sticky;
         bottom: 12px;
@@ -4203,23 +4371,23 @@ L("hh-floor-plan", class extends F {
       }
     `];
 	act(e) {
-		I(this, "hh-action", e);
+		F(this, "hh-action", e);
 	}
 	render() {
 		let e = this.lang;
-		return !this.admin || !this.dirty ? null : O`<footer class="foot">
-      <p class="small" role="status">${R(e, "dirty")}</p>
+		return !this.admin || !this.dirty ? null : D`<footer class="foot">
+      <p class="small" role="status">${L(e, "dirty")}</p>
       <div class="btns">
         <button class="btn" type="button" ?disabled=${this.saving} @click=${() => this.act({ kind: "discard" })}>
-          ${R(e, "discard")}
+          ${L(e, "discard")}
         </button>
         <button class="btn primary" type="button" ?disabled=${this.saving} @click=${() => this.act({ kind: "save" })}>
-          ${R(e, "save")}
+          ${L(e, "save")}
         </button>
       </div>
     </footer>`;
 	}
-}), L("hh-switch", class extends F {
+}), I("hh-switch", class extends N {
 	static properties = {
 		checked: { type: Boolean },
 		label: {},
@@ -4228,7 +4396,7 @@ L("hh-floor-plan", class extends F {
 	constructor() {
 		super(), this.checked = !1, this.label = "", this.disabled = !1;
 	}
-	static styles = [V, o`
+	static styles = [z, o`
       :host {
         display: inline-flex;
       }
@@ -4277,18 +4445,18 @@ L("hh-floor-plan", class extends F {
       }
     `];
 	render() {
-		return O`<button
+		return D`<button
       class="switch"
       type="button"
       role="switch"
       aria-checked=${String(this.checked)}
       ?disabled=${this.disabled}
-      @click=${() => I(this, "hh-toggle", { checked: !this.checked })}
+      @click=${() => F(this, "hh-toggle", { checked: !this.checked })}
     >
       <span class="knob"></span>${this.label}
     </button>`;
 	}
-}), L("hh-header", class extends F {
+}), I("hh-header", class extends N {
 	static properties = {
 		lang: {},
 		heading: {},
@@ -4300,7 +4468,7 @@ L("hh-floor-plan", class extends F {
 	constructor() {
 		super(), this.lang = "en", this.heading = "", this.version = "", this.settings = null, this.status = null, this.note = "";
 	}
-	static styles = [V, o`
+	static styles = [z, o`
       :host {
         display: block;
         container-type: inline-size;
@@ -4399,19 +4567,19 @@ L("hh-floor-plan", class extends F {
       }
     `];
 	act(e) {
-		I(this, "hh-action", e);
+		F(this, "hh-action", e);
 	}
 	render() {
 		let e = this.settings, t = this.lang;
-		return O`<header class="top">
+		return D`<header class="top">
       <div class="title">
-        <h1>${this.heading || R(t, "title")}</h1>
-        ${this.status ? O`<p class="status ${this.status.tone}" role="status">${this.status.text}</p>` : null}
-        ${this.note ? O`<p class="small muted">${this.note}</p>` : null}
+        <h1>${this.heading || L(t, "title")}</h1>
+        ${this.status ? D`<p class="status ${this.status.tone}" role="status">${this.status.text}</p>` : null}
+        ${this.note ? D`<p class="small muted">${this.note}</p>` : null}
       </div>
-      ${e ? O`<div class="top-ctl">
-            <div class="presets" role="group" aria-label=${R(t, "preset.group")}>
-              ${Ge.map((n) => O`<button
+      ${e ? D`<div class="top-ctl">
+            <div class="presets" role="group" aria-label=${L(t, "preset.group")}>
+              ${Ke.map((n) => D`<button
                   type="button"
                   class="preset"
                   aria-pressed=${String(e.preset === n)}
@@ -4420,13 +4588,13 @@ L("hh-floor-plan", class extends F {
 			preset: n
 		})}
                 >
-                  <span class="pt-n">${R(t, `preset.${n}`)}</span>
-                  <span class="pt-v">${G(e.targets[n], 1, t)}°</span>
+                  <span class="pt-n">${L(t, `preset.${n}`)}</span>
+                  <span class="pt-v">${U(e.targets[n], 1, t)}°</span>
                 </button>`)}
             </div>
             <hh-switch
               .checked=${e.hybrid}
-              .label=${R(t, "hybrid")}
+              .label=${L(t, "hybrid")}
               @hh-toggle=${(e) => this.act({
 			kind: "hybrid",
 			on: e.detail.checked
@@ -4437,7 +4605,7 @@ L("hh-floor-plan", class extends F {
 	}
 });
 // src/logic/panels.ts
-function Vn(e, t, n = 10) {
+function Gn(e, t, n = 10) {
 	let r = (e) => Math.round(Math.min(100, Math.max(0, e / n * 100)) * 10) / 10;
 	return {
 		fill: e === null ? 0 : r(e),
@@ -4445,20 +4613,20 @@ function Vn(e, t, n = 10) {
 		mark: r(t)
 	};
 }
-function Hn(e, t, n) {
+function Kn(e, t, n) {
 	let r = e.t_out_window_mean;
-	return R(n, e.season_active ? "season.on" : "season.off", {
+	return L(n, e.season_active ? "season.on" : "season.off", {
 		hours: t.season.window_hours,
-		t: r === null ? "—" : `${ht(r, n)}°`
+		t: r === null ? "—" : `${K(r, n)}°`
 	});
 }
-function Un(e, t, n) {
+function qn(e, t, n) {
 	let r = e.load;
 	if (!r.shedding) return null;
 	let i = [];
-	return r.water_heater_shed && i.push(R(n, "why.water_heater")), r.rods_shed > 0 && i.push(R(n, "load.shed_rods", { n: r.rods_shed })), i.length || i.push(R(n, "why.boiler_paused_word")), R(n, t.layers.load === "active" ? "load.shedding_now" : "load.shedding_obs", { what: i.join(", ") });
+	return r.water_heater_shed && i.push(L(n, "why.water_heater")), r.rods_shed > 0 && i.push(L(n, "load.shed_rods", { n: r.rods_shed })), i.length || i.push(L(n, "why.boiler_paused_word")), L(n, t.layers.load === "active" ? "load.shedding_now" : "load.shedding_obs", { what: i.join(", ") });
 }
-function Wn(e, t) {
+function Jn(e, t) {
 	let n = e?.attributes?.temperature;
 	return !e || e.state === "off" || typeof n != "number" ? null : Math.abs(n - t) >= .5 ? {
 		thermostat: n,
@@ -4466,18 +4634,19 @@ function Wn(e, t) {
 	} : null;
 }
 // src/sections/hh-load.ts
-var Gn = 10;
-L("hh-load", class extends F {
+var Yn = 10;
+I("hh-load", class extends N {
 	static properties = {
 		lang: {},
 		settings: { attribute: !1 },
+		running: { attribute: !1 },
 		status: { attribute: !1 },
 		readOnly: { type: Boolean }
 	};
 	constructor() {
-		super(), this.lang = "en", this.settings = null, this.status = null, this.readOnly = !1;
+		super(), this.lang = "en", this.settings = null, this.running = null, this.status = null, this.readOnly = !1;
 	}
-	static styles = [V, o`
+	static styles = [z, o`
       ol.shed {
         margin: 0;
         padding-left: 20px;
@@ -4517,44 +4686,44 @@ L("hh-load", class extends F {
     `];
 	render() {
 		let e = this.settings;
-		if (!e) return j;
-		let t = this.lang, n = this.status?.load.kw ?? null, r = e.load.limit_kw, i = Vn(n, r, Gn), a = this.status ? Un(this.status, e, t) : null;
-		return O`<section class="card" aria-labelledby="h-load">
+		if (!e) return A;
+		let t = this.lang, n = this.status?.load.kw ?? null, r = e.load.limit_kw, i = Gn(n, r, Yn), a = this.status ? qn(this.status, this.running ?? e, t) : null;
+		return D`<section class="card" aria-labelledby="h-load">
       <div class="card-head">
-        <h2 id="h-load">${R(t, "section.load")}</h2>
-        <hh-hint .lang=${t} .text=${R(t, "load.note")}></hh-hint>
+        <h2 id="h-load">${L(t, "section.load")}</h2>
+        <hh-hint .lang=${t} .text=${L(t, "load.note")}></hh-hint>
       </div>
       <div class="pair">
-        ${X(this, e, "load.limit_kw", R(t, "load.limit"), q(r, t), this.readOnly)}
-        ${X(this, e, "load.restore_kw", R(t, "load.restore"), q(e.load.restore_kw, t), this.readOnly)}
+        ${X(this, e, "load.limit_kw", L(t, "load.limit"), G(r, t), this.readOnly)}
+        ${X(this, e, "load.restore_kw", L(t, "load.restore"), G(e.load.restore_kw, t), this.readOnly)}
       </div>
       <div class="field">
-        <span class="lbl">${R(t, "load.queue")}</span>
+        <span class="lbl">${L(t, "load.queue")}</span>
         <ol class="shed">
-          <li>${R(t, "load.q1", {
+          <li>${L(t, "load.q1", {
 			s: e.load.shed_after_s,
 			p: e.load.pause_s
 		})}</li>
-          <li>${R(t, "load.q2", { step: e.load.step_interval_s })}</li>
+          <li>${L(t, "load.q2", { step: e.load.step_interval_s })}</li>
           <li>
-            ${R(t, "load.q3", {
-			restore: q(e.load.restore_kw, t),
+            ${L(t, "load.q3", {
+			restore: G(e.load.restore_kw, t),
 			min: Math.round(e.load.restore_after_s / 60)
 		})}
           </li>
         </ol>
       </div>
-      ${a ? O`<p class="warn">${a}</p>` : j}
+      ${a ? D`<p class="warn">${a}</p>` : A}
       <div class="meter">
         <div class="bar">
           <span class="fill ${i.hi ? "hi" : ""}" style="width:${i.fill}%"></span>
           <span class="mark" style="left:${i.mark}%"></span>
         </div>
         <span class="small muted">
-          ${n === null ? R(t, "load.now_unknown") : R(t, "load.now", {
-			kw: q(n, t),
-			limit: q(r, t),
-			scale: Gn
+          ${n === null ? L(t, "load.now_unknown") : L(t, "load.now", {
+			kw: G(n, t),
+			limit: G(r, t),
+			scale: Yn
 		})}
         </span>
       </div>
@@ -4562,7 +4731,7 @@ L("hh-load", class extends F {
 	}
 });
 // src/logic/log.ts
-var Kn = {};
+var Xn = {};
 for (let [e, t] of [
 	["heat", [
 		"smooth_on",
@@ -4604,36 +4773,36 @@ for (let [e, t] of [
 		"settings_changed",
 		"suggestion_applied"
 	]]
-]) for (let n of t) Kn[n] = e;
-var qn = {
+]) for (let n of t) Xn[n] = e;
+var Zn = {
 	ac: "ac",
 	boiler: "heat",
 	load: "ok"
 };
-function Jn(e) {
+function Qn(e) {
 	if (e.actions.some((e) => e.status === "failed")) return "cold";
 	let t = e.reasons[0];
-	return t ? Kn[t.code] ?? qn[t.layer] ?? "idle" : "idle";
+	return t ? Xn[t.code] ?? Zn[t.layer] ?? "idle" : "idle";
 }
-function Yn(e, t, n, r) {
-	let i = W(e, n), a = r === "en" ? "en-GB" : r, o = new Intl.DateTimeFormat(a, {
+function $n(e, t, n, r) {
+	let i = H(e, n), a = r === "en" ? "en-GB" : r, o = new Intl.DateTimeFormat(a, {
 		day: "2-digit",
 		month: "2-digit",
 		timeZone: n
 	}).format(new Date(e));
 	return {
-		short: i.dateKey === W(t, n).dateKey ? i.hhmm : o,
+		short: i.dateKey === H(t, n).dateKey ? i.hhmm : o,
 		full: `${o}, ${i.hhmm}`
 	};
 }
-function Xn(e, t = "en") {
+function er(e, t = "en") {
 	let [n, ...r] = e.reasons, i = r.map((e) => e.text), a = e.actions.filter((e) => e.status === "failed").length, o = e.actions.filter((e) => e.status === "skipped").length;
-	return a && i.push(R(t, "log.failed", { n: a })), o && i.push(R(t, "log.skipped", { n: o })), {
+	return a && i.push(L(t, "log.failed", { n: a })), o && i.push(L(t, "log.skipped", { n: o })), {
 		title: n?.text ?? "",
 		detail: i.join(" · ")
 	};
 }
-L("hh-log", class extends F {
+I("hh-log", class extends N {
 	static properties = {
 		lang: {},
 		entries: { attribute: !1 },
@@ -4643,7 +4812,7 @@ L("hh-log", class extends F {
 	constructor() {
 		super(), this.lang = "en", this.entries = [], this.now = (/* @__PURE__ */ new Date()).toISOString(), this.tz = "UTC";
 	}
-	static styles = [V, o`
+	static styles = [z, o`
       .log {
         list-style: none;
         margin: 0;
@@ -4700,23 +4869,23 @@ L("hh-log", class extends F {
     `];
 	render() {
 		let e = this.lang;
-		return O`<section class="card" aria-labelledby="h-log">
+		return D`<section class="card" aria-labelledby="h-log">
       <div class="card-head">
-        <h2 id="h-log">${R(e, "section.log")}</h2>
-        <hh-hint .lang=${e} .text=${R(e, "log.note")}></hh-hint>
+        <h2 id="h-log">${L(e, "section.log")}</h2>
+        <hh-hint .lang=${e} .text=${L(e, "log.note")}></hh-hint>
       </div>
-      ${this.entries.length ? O`<ul class="log">
+      ${this.entries.length ? D`<ul class="log">
             ${this.entries.map((t) => {
-			let n = Yn(t.ts, this.now, this.tz, e), { title: r, detail: i } = Xn(t, e);
-			return O`<li>
-                <span class="tm" title=${n.full}>${n.short}</span><span class="pip pip-${Jn(t)}"></span>
-                <span class="tx"><b>${r}</b>${i ? O`<span>${i}</span>` : null}</span>
+			let n = $n(t.ts, this.now, this.tz, e), { title: r, detail: i } = er(t, e);
+			return D`<li>
+                <span class="tm" title=${n.full}>${n.short}</span><span class="pip pip-${Qn(t)}"></span>
+                <span class="tx"><b>${r}</b>${i ? D`<span>${i}</span>` : null}</span>
               </li>`;
 		})}
-          </ul>` : O`<p class="note">${R(e, "log.empty")}</p>`}
+          </ul>` : D`<p class="note">${L(e, "log.empty")}</p>`}
     </section>`;
 	}
-}), L("hh-probe", class extends F {
+}), I("hh-probe", class extends N {
 	static properties = {
 		lang: {},
 		settings: { attribute: !1 },
@@ -4727,7 +4896,7 @@ L("hh-log", class extends F {
 	constructor() {
 		super(), this.lang = "en", this.settings = null, this.model = null, this.probe = 0, this.tOut = null;
 	}
-	static styles = [V, o`
+	static styles = [z, o`
       input[type='range'] {
         accent-color: var(--heat);
         width: 100%;
@@ -4818,27 +4987,27 @@ L("hh-log", class extends F {
     `];
 	render() {
 		let e = this.settings, t = this.model;
-		if (!e || !t) return j;
+		if (!e || !t) return A;
 		let n = this.lang, r = this.probe, i = Ut(e, t, r, { night: e.preset === "night" }), a = Wt(i, t), o = e.zones.policies[i.zone], s = Math.max(i.demandKw, .001), c = (e) => `${e / s * 100}%`, l = [
-			[R(n, "probe.flow"), `${Math.round(i.flow)}°${i.background && e.curve.ac_background_shift ? R(n, "probe.flow_bg") : ""}`],
-			[R(n, "probe.demand"), q(i.demandKw, n)],
-			...z.map((e) => [R(n, `probe.ac_${e}`), i.acKw[e] > 0 ? q(i.acKw[e], n) : R(n, "probe.off")]),
-			[R(n, "probe.cop"), i.cop ? `×${G(i.cop, 1, n)}` : "—"],
-			[R(n, "probe.boiler"), o.boiler === "off" ? R(n, "probe.boiler_off") : R(n, "probe.boiler_of", {
-				kw: G(i.boilerKw, 1, n),
-				cap: q(i.boilerCapKw, n)
+			[L(n, "probe.flow"), `${Math.round(i.flow)}°${i.background && e.curve.ac_background_shift ? L(n, "probe.flow_bg") : ""}`],
+			[L(n, "probe.demand"), G(i.demandKw, n)],
+			...R.map((e) => [L(n, `probe.ac_${e}`), i.acKw[e] > 0 ? G(i.acKw[e], n) : L(n, "probe.off")]),
+			[L(n, "probe.cop"), i.cop ? `×${U(i.cop, 1, n)}` : "—"],
+			[L(n, "probe.boiler"), o.boiler === "off" ? L(n, "probe.boiler_off") : L(n, "probe.boiler_of", {
+				kw: U(i.boilerKw, 1, n),
+				cap: G(i.boilerCapKw, n)
 			})],
-			[R(n, "probe.kwh"), `${G(a.kwh, 0, n)} ${R(n, "unit.kwh")}`],
-			[R(n, "probe.cost"), `${G(a.cost, 0, n)} ${t.currency}`],
-			[R(n, "probe.saving"), a.saving > .005 ? `−${G(a.saving * 100, 0, n)}%` : R(n, "probe.same")]
+			[L(n, "probe.kwh"), `${U(a.kwh, 0, n)} ${L(n, "unit.kwh")}`],
+			[L(n, "probe.cost"), `${U(a.cost, 0, n)} ${t.currency}`],
+			[L(n, "probe.saving"), a.saving > .005 ? `−${U(a.saving * 100, 0, n)}%` : L(n, "probe.same")]
 		];
-		return O`<section class="card" aria-labelledby="h-probe">
+		return D`<section class="card" aria-labelledby="h-probe">
       <div class="card-head">
-        <h2 id="h-probe">${R(n, "section.probe")}</h2>
-        <hh-hint .lang=${n} .text=${R(n, "probe.note", { h: G(t.h_w_per_k, 0, n) })}></hh-hint>
+        <h2 id="h-probe">${L(n, "section.probe")}</h2>
+        <hh-hint .lang=${n} .text=${L(n, "probe.note", { h: U(t.h_w_per_k, 0, n) })}></hh-hint>
       </div>
       <div class="field">
-        <label for="probe">${R(n, "probe.out")}</label>
+        <label for="probe">${L(n, "probe.out")}</label>
         <input
           type="range"
           id="probe"
@@ -4846,23 +5015,23 @@ L("hh-log", class extends F {
           max="20"
           step="0.5"
           .value=${String(r)}
-          @input=${(e) => I(this, "hh-ui", { probe: Z(Number(e.target.value)) })}
+          @input=${(e) => F(this, "hh-ui", { probe: Z(Number(e.target.value)) })}
         />
       </div>
       <div class="probe-big">
-        <span class="num">${K(r, n)}</span>
-        <span class="muted">${R(n, "probe.zone", { name: Y(i.zone, n) })}</span>
+        <span class="num">${W(r, n)}</span>
+        <span class="muted">${L(n, "probe.zone", { name: J(i.zone, n) })}</span>
         <button
           class="linkbtn"
           id="probe-now"
           type="button"
           ?disabled=${this.tOut === null}
-          @click=${() => this.tOut !== null && I(this, "hh-ui", {
+          @click=${() => this.tOut !== null && F(this, "hh-ui", {
 			probe: this.tOut,
 			fsel: null
 		})}
         >
-          ${R(n, "probe.now")}
+          ${L(n, "probe.now")}
         </button>
       </div>
       <div class="stack" aria-hidden="true">
@@ -4870,22 +5039,22 @@ L("hh-log", class extends F {
         ><i class="s-short" style="width:${c(i.shortKw)}"></i>
       </div>
       <div class="legend">
-        <i><b style="background:var(--ac)"></b>${R(n, "probe.legend.ac")}</i>
-        <i><b style="background:var(--heat)"></b>${R(n, "probe.legend.boiler")}</i>
-        <i><b style="background:var(--deep)"></b>${R(n, "probe.legend.short")}</i>
+        <i><b style="background:var(--ac)"></b>${L(n, "probe.legend.ac")}</i>
+        <i><b style="background:var(--heat)"></b>${L(n, "probe.legend.boiler")}</i>
+        <i><b style="background:var(--deep)"></b>${L(n, "probe.legend.short")}</i>
       </div>
-      <div class="readout">${l.map(([e, t]) => O`<div class="r"><span>${e}</span><span>${t}</span></div>`)}</div>
-      ${i.shortKw > .05 ? O`<p class="warn">${R(n, "probe.short", { kw: q(i.shortKw, n) })}</p>` : j}
+      <div class="readout">${l.map(([e, t]) => D`<div class="r"><span>${e}</span><span>${t}</span></div>`)}</div>
+      ${i.shortKw > .05 ? D`<p class="warn">${L(n, "probe.short", { kw: G(i.shortKw, n) })}</p>` : A}
     </section>`;
 	}
 });
 // src/sections/hh-rooms.ts
-var Zn = [
+var tr = [
 	"quiet",
 	"off",
 	"day"
-], Qn = (e) => e === "living" || e === "bedroom", $n = (e) => e.slice(0, 5);
-L("hh-rooms", class extends F {
+], nr = (e) => e === "living" || e === "bedroom", rr = (e) => e.slice(0, 5);
+I("hh-rooms", class extends N {
 	static properties = {
 		lang: {},
 		settings: { attribute: !1 },
@@ -4896,7 +5065,7 @@ L("hh-rooms", class extends F {
 	constructor() {
 		super(), this.lang = "en", this.settings = null, this.status = null, this.learning = !1, this.readOnly = !1;
 	}
-	static styles = [V, o`
+	static styles = [z, o`
       .rooms {
         display: flex;
         flex-direction: column;
@@ -4943,6 +5112,12 @@ L("hh-rooms", class extends F {
         border-color: var(--heat);
         color: var(--heat);
       }
+      .offset {
+        grid-column: 1/-1;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
       .nightsel {
         grid-column: 1/-1;
         display: flex;
@@ -4952,36 +5127,49 @@ L("hh-rooms", class extends F {
       }
     `];
 	target(e, t, n) {
-		return X(this, this.settings, e, t, `${G(n, 1, this.lang)}°`, this.readOnly);
+		return X(this, this.settings, e, t, `${U(n, 1, this.lang)}°`, this.readOnly);
+	}
+	offset(e) {
+		let t = this.settings, n = this.lang, r = `room_offsets.${e}`, i = L(n, "rooms.offset", { room: L(n, `room.${e}`) });
+		return D`<div class="offset">
+      <span class="by">${L(n, "rooms.offset_short")}</span>
+      <hh-stepper
+        .label=${i}
+        .text=${`${K(t.room_offsets[e] ?? 0, n)}°`}
+        .disabled=${this.readOnly}
+        @hh-step=${(e) => F(this, "hh-edit", { next: On(t, r, e.detail.dir) })}
+      ></hh-stepper>
+    </div>`;
 	}
 	row(e) {
-		let t = this.settings, n = this.lang, r = this.status?.rooms[e] ?? null, i = this.status?.target ?? null, a = (t) => I(this, "hh-action", {
+		let t = this.settings, n = this.lang, r = this.status?.rooms[e] ?? null, i = this.status?.target ?? null, a = (t) => F(this, "hh-action", {
 			kind: "feedback",
 			room: e,
 			value: t
 		});
-		return O`<div class="roomrow">
-      <span><b>${R(n, `room.${e}`)}</b> <span class="by">· ${R(n, `room_by.${e}`)}</span></span>
+		return D`<div class="roomrow">
+      <span><b>${L(n, `room.${e}`)}</b> <span class="by">· ${L(n, `room_by.${e}`)}</span></span>
       <span class="t"
-        >${r === null ? "—" : `${G(r, 1, n)}°`}
-        ${r !== null && i !== null ? O`<span class="muted small">${ht(r - (i + (t.room_offsets[e] ?? 0)), n)}</span>` : j}</span
+        >${r === null ? "—" : `${U(r, 1, n)}°`}
+        ${r !== null && i !== null ? D`<span class="muted small">${K(r - (i + (t.room_offsets[e] ?? 0)), n)}</span>` : A}</span
       >
-      ${this.learning ? O`<div class="fb">
-            <button type="button" class="cold" @click=${() => a("cold")}>${R(n, "feedback.cold")}</button>
-            <button type="button" class="hot" @click=${() => a("hot")}>${R(n, "feedback.hot")}</button>
-          </div>` : j}
-      ${Qn(e) ? O`<div class="nightsel">
-            <span class="by">${R(n, "rooms.ac_night")}</span>
+      ${this.offset(e)}
+      ${this.learning ? D`<div class="fb">
+            <button type="button" class="cold" @click=${() => a("cold")}>${L(n, "feedback.cold")}</button>
+            <button type="button" class="hot" @click=${() => a("hot")}>${L(n, "feedback.hot")}</button>
+          </div>` : A}
+      ${nr(e) ? D`<div class="nightsel">
+            <span class="by">${L(n, "rooms.ac_night")}</span>
             <hh-seg
               small
-              .label=${R(n, "rooms.ac_night")}
-              .options=${Zn.map((e) => ({
+              .label=${L(n, "rooms.ac_night")}
+              .options=${tr.map((e) => ({
 			value: e,
-			label: R(n, `night.${e}`)
+			label: L(n, `night.${e}`)
 		}))}
               .value=${t.ac.night[e]}
               .disabled=${this.readOnly}
-              @hh-select=${(n) => I(this, "hh-edit", { next: {
+              @hh-select=${(n) => F(this, "hh-edit", { next: {
 			...t,
 			ac: {
 				...t.ac,
@@ -4992,43 +5180,43 @@ L("hh-rooms", class extends F {
 			}
 		} })}
             ></hh-seg>
-          </div>` : j}
+          </div>` : A}
     </div>`;
 	}
 	render() {
 		let e = this.settings;
-		if (!e) return j;
+		if (!e) return A;
 		let t = this.lang, n = e.targets;
-		return O`<section class="card" aria-labelledby="h-rooms">
+		return D`<section class="card" aria-labelledby="h-rooms">
       <div class="card-head">
-        <h2 id="h-rooms">${R(t, "section.rooms")}</h2>
-        <hh-hint .lang=${t} .text=${R(t, this.learning ? "rooms.note" : "rooms.note_plain")}></hh-hint>
+        <h2 id="h-rooms">${L(t, "section.rooms")}</h2>
+        <hh-hint .lang=${t} .text=${L(t, this.learning ? "rooms.note" : "rooms.note_plain")}></hh-hint>
       </div>
       <div class="pair">
-        ${this.target("targets.comfort", R(t, "preset.comfort"), n.comfort)}
-        ${this.target("targets.night", R(t, "rooms.night", {
-			start: $n(n.night_start),
-			end: $n(n.night_end)
+        ${this.target("targets.comfort", L(t, "preset.comfort"), n.comfort)}
+        ${this.target("targets.night", L(t, "rooms.night", {
+			start: rr(n.night_start),
+			end: rr(n.night_end)
 		}), n.night)}
-        ${this.target("targets.eco", R(t, "preset.eco"), n.eco)}
-        ${this.target("targets.away", R(t, "preset.away"), n.away)}
+        ${this.target("targets.eco", L(t, "preset.eco"), n.eco)}
+        ${this.target("targets.away", L(t, "preset.away"), n.away)}
       </div>
-      ${e.boiler.mode === "classic" ? this.target("boiler.classic_coldest_tolerance", R(t, "rooms.tolerance"), e.boiler.classic_coldest_tolerance) : j}
-      <div class="rooms">${Ue.map((e) => this.row(e))}</div>
+      ${e.boiler.mode === "classic" ? this.target("boiler.classic_coldest_tolerance", L(t, "rooms.tolerance"), e.boiler.classic_coldest_tolerance) : A}
+      <div class="rooms">${We.map((e) => this.row(e))}</div>
     </section>`;
 	}
 });
 // src/sections/hh-season.ts
-var er = [
+var ir = [
 	"auto",
 	"on",
 	"off"
-], tr = [
+], ar = [
 	"off",
 	"observe",
 	"active"
 ];
-L("hh-season", class extends F {
+I("hh-season", class extends N {
 	static properties = {
 		lang: {},
 		settings: { attribute: !1 },
@@ -5041,7 +5229,7 @@ L("hh-season", class extends F {
 	constructor() {
 		super(), this.lang = "en", this.settings = null, this.status = null, this.readOnly = !1, this.version = "", this.thermostat = void 0, this.savedBoiler = "observe";
 	}
-	static styles = [V, o`
+	static styles = [z, o`
       .layers {
         display: flex;
         flex-direction: column;
@@ -5056,35 +5244,35 @@ L("hh-season", class extends F {
       }
     `];
 	edit(e) {
-		I(this, "hh-edit", { next: e });
+		F(this, "hh-edit", { next: e });
 	}
 	controlWarning() {
 		let e = this.status?.target;
-		if (this.savedBoiler === "active" || e === void 0) return j;
-		let t = Wn(this.thermostat, e);
-		if (!t) return j;
+		if (this.savedBoiler === "active" || e === void 0) return A;
+		let t = Jn(this.thermostat, e);
+		if (!t) return A;
 		let n = this.lang, r = {
-			th: G(t.thermostat, 1, n),
-			target: G(t.target, 1, n)
+			th: U(t.thermostat, 1, n),
+			target: U(t.target, 1, n)
 		};
-		return O`<p class="warn">${R(n, "thermo.gap", r)}${R(n, "thermo.control", r)}</p>`;
+		return D`<p class="warn">${L(n, "thermo.gap", r)}${L(n, "thermo.control", r)}</p>`;
 	}
 	render() {
 		let e = this.settings;
-		if (!e) return j;
+		if (!e) return A;
 		let t = this.lang, n = e.season, r = this.readOnly || n.mode !== "auto";
-		return O`<section class="card" aria-labelledby="h-season">
+		return D`<section class="card" aria-labelledby="h-season">
       <div class="card-head">
-        <h2 id="h-season">${R(t, "section.season")}</h2>
-        <hh-hint .lang=${t} .text=${R(t, "season.note")}></hh-hint>
+        <h2 id="h-season">${L(t, "section.season")}</h2>
+        <hh-hint .lang=${t} .text=${L(t, "season.note")}></hh-hint>
       </div>
       <div class="field">
-        <span class="lbl">${R(t, "season.mode")}</span>
+        <span class="lbl">${L(t, "season.mode")}</span>
         <hh-seg
-          .label=${R(t, "season.mode")}
-          .options=${er.map((e) => ({
+          .label=${L(t, "season.mode")}
+          .options=${ir.map((e) => ({
 			value: e,
-			label: R(t, `season.mode.${e}`)
+			label: L(t, `season.mode.${e}`)
 		}))}
           .value=${n.mode}
           .disabled=${this.readOnly}
@@ -5097,25 +5285,25 @@ L("hh-season", class extends F {
 		})}
         ></hh-seg>
       </div>
-      ${X(this, e, "season.threshold", R(t, "season.threshold"), `${G(n.threshold, 1, t)}°`, r)}
+      ${X(this, e, "season.threshold", L(t, "season.threshold"), `${U(n.threshold, 1, t)}°`, r)}
       <div class="pair">
-        ${X(this, e, "season.window_hours", R(t, "season.window"), ze(t, "hours", n.window_hours), r)}
-        ${X(this, e, "season.hysteresis", R(t, "season.hysteresis"), `${G(n.hysteresis, 1, t)}°`, r)}
+        ${X(this, e, "season.window_hours", L(t, "season.window"), Be(t, "hours", n.window_hours), r)}
+        ${X(this, e, "season.hysteresis", L(t, "season.hysteresis"), `${U(n.hysteresis, 1, t)}°`, r)}
       </div>
-      ${this.status ? O`<p class="small">${Hn(this.status, e, t)}</p>` : j}
+      ${this.status ? D`<p class="small">${Kn(this.status, e, t)}</p>` : A}
       <div class="card-head">
-        <h3>${R(t, "layers.title")}</h3>
-        <hh-hint .lang=${t} .text=${R(t, "layers.note")}></hh-hint>
+        <h3>${L(t, "layers.title")}</h3>
+        <hh-hint .lang=${t} .text=${L(t, "layers.note")}></hh-hint>
       </div>
       <div class="layers">
-        ${Ke.map((n) => O`<div class="layer">
-            <span>${R(t, `layers.${n}`)}</span>
+        ${qe.map((n) => D`<div class="layer">
+            <span>${L(t, `layers.${n}`)}</span>
             <hh-seg
               small
-              .label=${R(t, `layers.${n}`)}
-              .options=${tr.map((e) => ({
+              .label=${L(t, `layers.${n}`)}
+              .options=${ar.map((e) => ({
 			value: e,
-			label: R(t, `layer_mode.${e}`)
+			label: L(t, `layer_mode.${e}`)
 		}))}
               .value=${e.layers[n]}
               .disabled=${this.readOnly}
@@ -5130,17 +5318,17 @@ L("hh-season", class extends F {
           </div>`)}
       </div>
       ${this.controlWarning()}
-      ${this.version ? O`<p class="small muted">Hybrid Heating ${this.version}</p>` : j}
+      ${this.version ? D`<p class="small muted">Hybrid Heating ${this.version}</p>` : A}
     </section>`;
 	}
 });
 // src/sections/hh-suggestions.ts
-var nr = /* @__PURE__ */ new Set([
+var or = /* @__PURE__ */ new Set([
 	"curve",
 	"heat_loss",
 	"feedback"
 ]);
-L("hh-suggestions", class extends F {
+I("hh-suggestions", class extends N {
 	static properties = {
 		lang: {},
 		suggestions: { attribute: !1 },
@@ -5149,7 +5337,7 @@ L("hh-suggestions", class extends F {
 	constructor() {
 		super(), this.lang = "en", this.suggestions = void 0, this.canAct = !1;
 	}
-	static styles = [V, o`
+	static styles = [z, o`
       .sugg {
         display: flex;
         flex-direction: column;
@@ -5185,40 +5373,40 @@ L("hh-suggestions", class extends F {
       }
     `];
 	act(e) {
-		I(this, "hh-action", e);
+		F(this, "hh-action", e);
 	}
 	item(e) {
-		let t = this.lang, n = nr.has(e.kind) ? R(t, `suggestion.kind.${e.kind}`) : e.kind;
-		return O`<div class="sg ${e.state === "applied" || e.state === "dismissed" ? "done" : ""}">
+		let t = this.lang, n = or.has(e.kind) ? L(t, `suggestion.kind.${e.kind}`) : e.kind;
+		return D`<div class="sg ${e.state === "applied" || e.state === "dismissed" ? "done" : ""}">
       <div class="sg-h"><span class="tag">${n}</span><b>${e.title}</b></div>
       <p class="note">${e.detail}</p>
-      ${e.state === "new" && this.canAct ? O`<div class="act">
+      ${e.state === "new" && this.canAct ? D`<div class="act">
             <button class="btn sm primary" type="button" @click=${() => this.act({
 			kind: "apply",
 			id: e.id
 		})}>
-              ${R(t, "suggestion.apply")}
+              ${L(t, "suggestion.apply")}
             </button>
             <button class="btn sm" type="button" @click=${() => this.act({
 			kind: "dismiss",
 			id: e.id
 		})}>
-              ${R(t, "suggestion.dismiss")}
+              ${L(t, "suggestion.dismiss")}
             </button>
-          </div>` : e.state === "applied" ? O`<p class="small muted">${R(t, "suggestion.applied")}</p>` : e.state === "dismissed" ? O`<p class="small muted">${R(t, "suggestion.dismissed")}</p>` : j}
+          </div>` : e.state === "applied" ? D`<p class="small muted">${L(t, "suggestion.applied")}</p>` : e.state === "dismissed" ? D`<p class="small muted">${L(t, "suggestion.dismissed")}</p>` : A}
     </div>`;
 	}
 	render() {
 		let e = this.lang, t = this.suggestions;
-		return O`<section class="card" aria-labelledby="h-sugg">
+		return D`<section class="card" aria-labelledby="h-sugg">
       <div class="card-head">
-        <h2 id="h-sugg">${R(e, "section.suggestions")}</h2>
-        <hh-hint .lang=${e} .text=${R(e, "suggestions.note")}></hh-hint>
+        <h2 id="h-sugg">${L(e, "section.suggestions")}</h2>
+        <hh-hint .lang=${e} .text=${L(e, "suggestions.note")}></hh-hint>
       </div>
-      ${t === void 0 ? O`<p class="note">…</p>` : t === null ? O`<p class="note">${R(e, "stage5.suggestions")}</p>` : t.length ? O`<div class="sugg">${t.map((e) => this.item(e))}</div>` : O`<p class="note">${R(e, "suggestions.empty")}</p>`}
+      ${t === void 0 ? D`<p class="note">…</p>` : t === null ? D`<p class="note">${L(e, "stage5.suggestions")}</p>` : t.length ? D`<div class="sugg">${t.map((e) => this.item(e))}</div>` : D`<p class="note">${L(e, "suggestions.empty")}</p>`}
     </section>`;
 	}
-}), L("hh-why", class extends F {
+}), I("hh-why", class extends N {
 	static properties = {
 		lang: {},
 		view: { attribute: !1 }
@@ -5226,7 +5414,7 @@ L("hh-suggestions", class extends F {
 	constructor() {
 		super(), this.lang = "en", this.view = null;
 	}
-	static styles = [V, o`
+	static styles = [z, o`
       .summary {
         font-size: 15px;
         font-weight: 600;
@@ -5287,30 +5475,30 @@ L("hh-suggestions", class extends F {
     `];
 	render() {
 		let e = this.view;
-		return e ? O`<section class="card" aria-labelledby="h-why">
+		return e ? D`<section class="card" aria-labelledby="h-why">
       <div class="card-head">
-        <h2 id="h-why">${R(this.lang, "section.why")}</h2>
+        <h2 id="h-why">${L(this.lang, "section.why")}</h2>
         <p class="summary">${e.summary}</p>
         <p class="note">${e.sub}</p>
       </div>
       <div class="chips">
-        ${e.chips.map((e) => O`<span class="chip">${e.label} <span class="num">${e.value}</span></span>`)}
+        ${e.chips.map((e) => D`<span class="chip">${e.label} <span class="num">${e.value}</span></span>`)}
       </div>
       <ul class="why">
-        ${e.items.map((e) => O`<li>
-            <span class="pip pip-${e.pip}"></span><span>${e.lead ? O`<b>${e.lead}</b> ` : null}${e.text}</span>
+        ${e.items.map((e) => D`<li>
+            <span class="pip pip-${e.pip}"></span><span>${e.lead ? D`<b>${e.lead}</b> ` : null}${e.text}</span>
           </li>`)}
       </ul>
     </section>` : null;
 	}
 });
 // src/sections/hh-zone-editor.ts
-var rr = [
+var sr = [
 	"off",
 	"backup",
 	"main"
 ];
-L("hh-zone-editor", class extends F {
+I("hh-zone-editor", class extends N {
 	static properties = {
 		lang: {},
 		settings: { attribute: !1 },
@@ -5321,60 +5509,60 @@ L("hh-zone-editor", class extends F {
 	constructor() {
 		super(), this.lang = "en", this.settings = null, this.model = null, this.sel = 0, this.readOnly = !1;
 	}
-	static styles = [V, o`
+	static styles = [z, o`
       .warn {
         display: block;
       }
     `];
 	edit(e) {
-		I(this, "hh-edit", { next: e });
+		F(this, "hh-edit", { next: e });
 	}
 	render() {
 		let e = this.settings;
-		if (!e) return j;
-		let t = this.lang, n = this.sel, r = e.zones, i = r.policies[n], a = this.model?.rod_kw ?? 2, o = i.ac_rooms.length > 0 && yt(r.bounds, n) < e.ac.min_outdoor;
-		return O`<section class="card" aria-labelledby="h-zone">
+		if (!e) return A;
+		let t = this.lang, n = this.sel, r = e.zones, i = r.policies[n], a = this.model?.rod_kw ?? 2, o = i.ac_rooms.length > 0 && bt(r.bounds, n) < e.ac.min_outdoor;
+		return D`<section class="card" aria-labelledby="h-zone">
       <div class="card-head">
-        <h2 id="h-zone">${R(t, "zone.title", { name: Y(n, t) })}</h2>
-        <p class="note">${R(t, "zone_editor.range", { range: bt(n, r.bounds, t) })}</p>
-        <p class="small">${St(i, t)}${!e.hybrid && i.ac_rooms.length ? R(t, "zones.hybrid_off") : ""}</p>
+        <h2 id="h-zone">${L(t, "zone.title", { name: J(n, t) })}</h2>
+        <p class="note">${L(t, "zone_editor.range", { range: xt(n, r.bounds, t) })}</p>
+        <p class="small">${Ct(i, t)}${!e.hybrid && i.ac_rooms.length ? L(t, "zones.hybrid_off") : ""}</p>
       </div>
       <div class="field">
-        <span class="lbl">${R(t, "zone_editor.acs")}</span>
+        <span class="lbl">${L(t, "zone_editor.acs")}</span>
         <div class="pair">
-          ${z.map((a) => O`<hh-switch
+          ${R.map((a) => D`<hh-switch
               .checked=${i.ac_rooms.includes(a)}
-              .label=${R(t, `room.${a}`)}
+              .label=${L(t, `room.${a}`)}
               .disabled=${this.readOnly}
               @hh-toggle=${() => this.edit({
 			...e,
-			zones: wt(r, n, a)
+			zones: Tt(r, n, a)
 		})}
             ></hh-switch>`)}
         </div>
-        ${o ? O`<p class="warn">${R(t, "zone_editor.ac_cold", { t: K(e.ac.min_outdoor, t) })}</p>` : O`<p class="note">${R(t, "zone_editor.ac_note")}</p>`}
+        ${o ? D`<p class="warn">${L(t, "zone_editor.ac_cold", { t: W(e.ac.min_outdoor, t) })}</p>` : D`<p class="note">${L(t, "zone_editor.ac_note")}</p>`}
       </div>
       <div class="field">
-        <span class="lbl">${R(t, "zone_editor.boiler")}</span>
+        <span class="lbl">${L(t, "zone_editor.boiler")}</span>
         <hh-seg
-          .label=${R(t, "zone_editor.boiler")}
-          .options=${rr.map((e) => ({
+          .label=${L(t, "zone_editor.boiler")}
+          .options=${sr.map((e) => ({
 			value: e,
-			label: R(t, `boiler.${e}`)
+			label: L(t, `boiler.${e}`)
 		}))}
           .value=${i.boiler}
           .disabled=${this.readOnly}
           @hh-select=${(t) => this.edit({
 			...e,
-			zones: Tt(r, n, t.detail.value)
+			zones: Et(r, n, t.detail.value)
 		})}
         ></hh-seg>
-        <hh-hint .lang=${t} .text=${R(t, `boiler_note.${i.boiler}`)}></hh-hint>
+        <hh-hint .lang=${t} .text=${L(t, `boiler_note.${i.boiler}`)}></hh-hint>
       </div>
       <div class="field">
-        <span class="lbl">${R(t, "zone_editor.rods")}</span>
+        <span class="lbl">${L(t, "zone_editor.rods")}</span>
         <hh-seg
-          .label=${R(t, "zone_editor.rods")}
+          .label=${L(t, "zone_editor.rods")}
           .options=${[
 			1,
 			2,
@@ -5387,16 +5575,16 @@ L("hh-zone-editor", class extends F {
           .disabled=${this.readOnly}
           @hh-select=${(t) => this.edit({
 			...e,
-			zones: Et(r, n, Number(t.detail.value))
+			zones: Dt(r, n, Number(t.detail.value))
 		})}
         ></hh-seg>
-        <hh-hint .lang=${t} .text=${R(t, "zone_editor.rods_note", { kw: q(i.max_rods * a, t) })}></hh-hint>
+        <hh-hint .lang=${t} .text=${L(t, "zone_editor.rods_note", { kw: G(i.max_rods * a, t) })}></hh-hint>
       </div>
     </section>`;
 	}
 });
 // src/store.ts
-var ir = 20, ar = 18e5, or = {
+var cr = 20, lr = 18e5, ur = {
 	phase: "loading",
 	error: null,
 	config: null,
@@ -5409,10 +5597,10 @@ var ir = 20, ar = 18e5, or = {
 	forecast: void 0,
 	suggestions: void 0,
 	plan: void 0
-}, sr = class {
+}, dr = class {
 	api;
 	o;
-	view = or;
+	view = ur;
 	timer;
 	polling = !1;
 	forecastAt = 0;
@@ -5426,8 +5614,18 @@ var ir = 20, ar = 18e5, or = {
 		}, this.o.onChange();
 	}
 	problem(e) {
-		let t = e instanceof Me ? e : new Me("unknown_error", String(e));
-		return t.code === "unknown_command" ? R(this.o.lang(), "error.not_set_up") : t.code === "not_loaded" ? R(this.o.lang(), "error.not_loaded") : t.code === "invalid_config" ? t.message : R(this.o.lang(), "error.generic", { message: t.message });
+		let t = e instanceof P ? e : new P("unknown_error", String(e));
+		if (t.code === "unknown_command") return L(this.o.lang(), "error.not_set_up");
+		if (t.code === "not_loaded") return L(this.o.lang(), "error.not_loaded");
+		let n = this.o.lang();
+		if (t.code === "invalid_config") return L(n, "error.invalid_config", { message: t.message });
+		for (let e of [
+			"not_ready",
+			"stale",
+			"not_found",
+			"unauthorized"
+		]) if (t.code === e) return L(n, `error.${e}`);
+		return L(n, "error.generic", { message: t.message });
 	}
 	async start() {
 		this.view.phase === "ready" ? this.poll() : await this.load(), this.timer === void 0 && (this.timer = setInterval(() => {
@@ -5451,15 +5649,25 @@ var ir = 20, ar = 18e5, or = {
 		}
 	}
 	async forecast() {
-		return this.forecastAt = Date.now(), this.optional(() => this.api.getForecast());
+		this.forecastAt = Date.now();
+		try {
+			return await this.api.getForecast();
+		} catch (e) {
+			return e instanceof P && e.code === "forecast_unavailable" ? {
+				source: "",
+				updated: "",
+				hours: [],
+				unavailable: !0
+			} : void 0;
+		}
 	}
 	async load() {
 		let e = this.o.lang();
-		this.view.phase !== "error" && this.set({ ...or });
+		this.view.phase !== "error" && this.set({ ...ur });
 		try {
 			let t = await this.api.getConfig(), [n, r, i, a, o] = await Promise.all([
 				this.api.getStatus(e),
-				this.api.getLog(e, ir),
+				this.api.getLog(e, cr),
 				this.forecast(),
 				this.optional(() => this.api.getSuggestions(e)),
 				this.optional(() => this.api.getPlan())
@@ -5492,11 +5700,11 @@ var ir = 20, ar = 18e5, or = {
 			let r = await this.api.getStatus(t);
 			r.revision !== this.view.config?.revision && this.adopt(await this.api.getConfig());
 			let i = { status: r };
-			(e || r.seq.log !== n?.seq.log) && (i.log = await this.api.getLog(t, ir));
+			(e || r.seq.log !== n?.seq.log) && (i.log = await this.api.getLog(t, cr));
 			let a = this.view.suggestions;
 			(a === void 0 || a !== null && (e || r.seq.suggestions !== n?.seq.suggestions)) && (i.suggestions = await this.optional(() => this.api.getSuggestions(t)));
 			let o = this.view.forecast;
-			(o === void 0 || o !== null && Date.now() - this.forecastAt >= ar) && (i.forecast = await this.forecast()), this.set(i);
+			(o === void 0 || o !== null && Date.now() - this.forecastAt >= lr) && (i.forecast = await this.forecast()), this.set(i);
 		} catch {
 			this.o.onChange();
 		} finally {
@@ -5504,18 +5712,18 @@ var ir = 20, ar = 18e5, or = {
 		}
 	}
 	adopt(e, t = !0) {
-		let { saved: n, draft: r } = this.view, i = t && n && r ? at(n, e.settings, r) : e.settings;
+		let { saved: n, draft: r } = this.view, i = t && n && r ? st(n, e.settings, r) : e.settings;
 		this.set({
 			config: e,
 			saved: e.settings,
 			draft: i,
-			dirty: rt(e.settings, i)
+			dirty: at(e.settings, i)
 		});
 	}
 	edit(e) {
 		this.view.saved && this.set({
 			draft: e,
-			dirty: rt(this.view.saved, e)
+			dirty: at(this.view.saved, e)
 		});
 	}
 	discard() {
@@ -5529,7 +5737,7 @@ var ir = 20, ar = 18e5, or = {
 		if (e && t && !this.view.saving) {
 			this.set({ saving: !0 });
 			try {
-				this.adopt(await this.api.setConfig(nt(e, t)), !1), this.o.notify(R(this.o.lang(), "saved"));
+				this.adopt(await this.api.setConfig(it(e, t)), !1), this.o.notify(L(this.o.lang(), "saved"));
 			} catch (e) {
 				this.o.notify(this.problem(e));
 			} finally {
@@ -5562,10 +5770,15 @@ var ir = 20, ar = 18e5, or = {
 	feedback(e, t) {
 		return this.act(async () => {
 			let n = this.o.lang(), r = await this.api.feedback(e, t, n);
-			r && (this.o.notify(R(n, "feedback.toast", {
-				room: R(n, `room_low.${e}`),
-				kind: R(n, `feedback.kind.${t}`)
-			})), r.suggestion && await this.refreshSuggestions());
+			if (!r) return;
+			let i = {
+				room: L(n, `room_low.${e}`),
+				kind: L(n, `feedback.kind.${t}`)
+			};
+			this.o.notify(r.suggestion ? L(n, "feedback.toast_suggestion", {
+				...i,
+				title: r.suggestion.title
+			}) : L(n, "feedback.toast", i)), r.suggestion && await this.refreshSuggestions();
 		});
 	}
 	reloadPlan() {
@@ -5574,7 +5787,7 @@ var ir = 20, ar = 18e5, or = {
 	applySuggestion(e) {
 		return this.act(async () => {
 			let t = this.o.lang(), n = this.view.suggestions?.find((t) => t.id === e)?.title;
-			this.adopt(await this.api.applySuggestion(e, t)), n && this.o.notify(R(t, "suggestion.applied_toast", { title: n })), await this.refreshSuggestions(), this.set({ log: await this.api.getLog(t, ir) });
+			this.adopt(await this.api.applySuggestion(e, t)), n && this.o.notify(L(t, "suggestion.applied_toast", { title: n })), await this.refreshSuggestions(), this.set({ log: await this.api.getLog(t, cr) });
 		});
 	}
 	dismissSuggestion(e) {
@@ -5582,16 +5795,16 @@ var ir = 20, ar = 18e5, or = {
 			await this.api.dismissSuggestion(e), await this.refreshSuggestions();
 		});
 	}
-}, cr = "hybrid-heating-card.tab";
-function lr() {
+}, fr = "hybrid-heating-card.tab";
+function pr() {
 	try {
-		let e = localStorage.getItem(cr);
-		return Jt.some((t) => t.key === e) ? e : "now";
+		let e = localStorage.getItem(fr);
+		return Zt.some((t) => t.key === e) ? e : "now";
 	} catch {
 		return "now";
 	}
 }
-L("hybrid-heating-card", class extends F {
+I("hybrid-heating-card", class extends N {
 	static properties = {
 		hass: { attribute: !1 },
 		_config: { state: !0 },
@@ -5601,12 +5814,12 @@ L("hybrid-heating-card", class extends F {
 	};
 	store;
 	constructor() {
-		super(), this._tab = lr();
+		super(), this._tab = pr();
 	}
 	lastLang;
 	static styles = [
-		Xe,
-		V,
+		Qe,
+		z,
 		o`
       :host {
         display: block;
@@ -5656,7 +5869,7 @@ L("hybrid-heating-card", class extends F {
     `
 	];
 	setConfig(e) {
-		this._config = He(e);
+		this._config = Ue(e);
 	}
 	getCardSize() {
 		return 30;
@@ -5671,29 +5884,29 @@ L("hybrid-heating-card", class extends F {
 		return document.createElement("hybrid-heating-card-editor");
 	}
 	get lang() {
-		return Le(this.hass ? B(this.hass) : void 0);
+		return Re(this.hass ? Xe(this.hass) : void 0);
 	}
 	get admin() {
 		return this.hass?.user?.is_admin ?? !1;
 	}
 	onPlanChanged = () => void this.store?.reloadPlan();
 	connectedCallback() {
-		super.connectedCallback(), window.addEventListener(Ze, this.onPlanChanged), this.store && this.store.start();
+		super.connectedCallback(), window.addEventListener($e, this.onPlanChanged), this.store && this.store.start();
 	}
 	disconnectedCallback() {
-		super.disconnectedCallback(), window.removeEventListener(Ze, this.onPlanChanged), this.store?.stop();
+		super.disconnectedCallback(), window.removeEventListener($e, this.onPlanChanged), this.store?.stop();
 	}
 	shouldUpdate(e) {
 		if (e.size === 1 && e.has("hass")) {
 			let t = this.thermostatId ? [this.thermostatId] : [];
-			return Ye(e.get("hass"), this.hass, this._view?.config?.controls ?? null, t);
+			return Ze(e.get("hass"), this.hass, this._view?.config?.controls ?? null, t);
 		}
 		return !0;
 	}
 	willUpdate(e) {
-		e.has("hass") && this.hass && (this.toggleAttribute("dark", this.hass.themes?.darkMode ?? !1), this.store ? this.lastLang !== void 0 && this.lastLang !== this.lang && this.store.poll(!0) : (this.store = new sr(new Fe(() => this.hass), {
+		e.has("hass") && this.hass && (this.toggleAttribute("dark", this.hass.themes?.darkMode ?? !1), this.store ? this.lastLang !== void 0 && this.lastLang !== this.lang && this.store.poll(!0) : (this.store = new dr(new Ie(() => this.hass), {
 			lang: () => this.lang,
-			notify: (e) => I(this, "hass-notification", { message: e }),
+			notify: (e) => F(this, "hass-notification", { message: e }),
 			onChange: () => this.adoptView()
 		}), this.isConnected && this.store.start()), this.lastLang = this.lang);
 	}
@@ -5717,6 +5930,29 @@ L("hybrid-heating-card", class extends F {
 			...e?.currency ? { currency: e.currency } : {}
 		});
 	}
+	get canMark() {
+		let e = this._view;
+		return !!e && e.suggestions !== null && e.status?.enabled === !0 && e.status.decided;
+	}
+	onUi(e) {
+		this._ui = {
+			...this._ui,
+			...e.detail
+		}, e.detail.sel !== void 0 && this.clientWidth < 940 && this.updateComplete.then(() => this.renderRoot.querySelector("hh-zone-editor")?.scrollIntoView({
+			block: "nearest",
+			behavior: "smooth"
+		}));
+	}
+	get forecastStart() {
+		let e = this._view?.status;
+		if (!e) return null;
+		let t = Object.values(e.rooms).filter((e) => e !== null), n = t.length ? t.reduce((e, t) => e + t, 0) / t.length : null;
+		return {
+			seasonActive: e.season_active,
+			windowMean: e.t_out_window_mean,
+			indoor: n
+		};
+	}
 	get thermostatId() {
 		let e = this._view?.config?.entities.thermostat;
 		return typeof e == "string" ? e : void 0;
@@ -5726,7 +5962,7 @@ L("hybrid-heating-card", class extends F {
 	}
 	withLive(e) {
 		let t = this._view?.config;
-		return !e || !t || !this.hass ? e : ot(e, Je(this.hass, t.controls));
+		return !e || !t || !this.hass ? e : ct(e, Ye(this.hass, t.controls));
 	}
 	get settings() {
 		return this.withLive(this._view?.draft ?? null);
@@ -5766,54 +6002,61 @@ L("hybrid-heating-card", class extends F {
 	section(e) {
 		let t = this._view, n = this.lang, r = this.settings;
 		switch (e) {
-			case "plan": return O`<hh-floor-plan
+			case "plan": return D`<hh-floor-plan
           .lang=${n}
-          .plan=${t.plan ?? yn}
+          .plan=${t.plan ?? Sn}
           .schematic=${!t.plan}
           .status=${t.status}
           .offsets=${this.running?.room_offsets ?? {}}
           .settings=${this.running}
-          .learning=${t.suggestions !== null}
+          .learning=${this.canMark}
         ></hh-floor-plan>`;
-			case "why": return t.status && this.running ? O`<hh-why .lang=${n} .view=${vn(t.status, this.running, n, this.tz)}></hh-why>` : j;
-			case "curve": return O`<hh-curve-card
+			case "why": return t.status && this.running ? D`<hh-why .lang=${n} .view=${xn(t.status, this.running, n, this.tz)}></hh-why>` : A;
+			case "curve": return D`<hh-curve-card
           .lang=${n}
           .settings=${r}
           .tOut=${t.status?.t_out ?? null}
           .ui=${this._ui ?? null}
           .readOnly=${!this.admin}
         ></hh-curve-card>`;
-			case "forecast": return O`<hh-forecast
+			case "forecast": return D`<hh-forecast
           .lang=${n}
           .settings=${r}
           .model=${this.model}
           .forecast=${t.forecast}
           .fsel=${this._ui?.fsel ?? null}
+          .start=${this.forecastStart}
           .tz=${this.tz}
         ></hh-forecast>`;
-			case "probe": return O`<hh-probe
+			case "probe": return D`<hh-probe
           .lang=${n}
           .settings=${r}
           .model=${this.model}
           .probe=${this._ui?.probe ?? 0}
           .tOut=${t.status?.t_out ?? null}
         ></hh-probe>`;
-			case "zone": return O`<hh-zone-editor
+			case "zone": return D`<hh-zone-editor
           .lang=${n}
           .settings=${r}
           .model=${this.model}
           .sel=${this._ui?.sel ?? 0}
           .readOnly=${!this.admin}
         ></hh-zone-editor>`;
-			case "rooms": return O`<hh-rooms
+			case "rooms": return D`<hh-rooms
           .lang=${n}
           .settings=${r}
           .status=${t.status}
-          .learning=${t.suggestions !== null}
+          .learning=${this.canMark}
           .readOnly=${!this.admin}
         ></hh-rooms>`;
-			case "load": return O`<hh-load .lang=${n} .settings=${r} .status=${t.status} .readOnly=${!this.admin}></hh-load>`;
-			case "season": return O`<hh-season
+			case "load": return D`<hh-load
+          .lang=${n}
+          .settings=${r}
+          .running=${this.running}
+          .status=${t.status}
+          .readOnly=${!this.admin}
+        ></hh-load>`;
+			case "season": return D`<hh-season
           .lang=${n}
           .settings=${r}
           .status=${t.status}
@@ -5822,83 +6065,80 @@ L("hybrid-heating-card", class extends F {
           .thermostat=${this.thermostatId ? this.hass?.states[this.thermostatId] : void 0}
           .savedBoiler=${t.saved?.layers.boiler ?? "observe"}
         ></hh-season>`;
-			case "suggestions": return O`<hh-suggestions
+			case "suggestions": return D`<hh-suggestions
           .lang=${n}
           .suggestions=${t.suggestions}
           .canAct=${this.admin}
         ></hh-suggestions>`;
-			case "log": return O`<hh-log
+			case "log": return D`<hh-log
           .lang=${n}
           .entries=${t.log}
           .now=${t.status?.now ?? (/* @__PURE__ */ new Date()).toISOString()}
           .tz=${this.tz}
         ></hh-log>`;
-			default: return j;
+			default: return A;
 		}
 	}
 	get tab() {
-		let e = Xt(this._config?.hide_sections ?? []);
+		let e = $t(this._config?.hide_sections ?? []);
 		return e.includes(this._tab) ? this._tab : e[0] ?? "now";
 	}
 	openTab(e) {
 		this._tab = e;
 		try {
-			localStorage.setItem(cr, e);
+			localStorage.setItem(fr, e);
 		} catch {}
 	}
 	rows(e) {
-		return Jt.find((t) => t.key === e).rows.map(({ cls: e, cols: t }) => {
-			let n = t.map((e) => e.filter((e) => !this.isHidden(e)).map((e) => this.section(e)).filter((e) => e !== j)).filter((e) => e.length).map((e) => e.length === 1 ? e[0] : O`<div class="stack">${e}</div>`);
-			return n.length ? n.length === 1 ? n[0] : O`<div class=${e}>${n}</div>` : j;
+		return Zt.find((t) => t.key === e).rows.map(({ cls: e, cols: t }) => {
+			let n = t.map((e) => e.filter((e) => !this.isHidden(e)).map((e) => this.section(e)).filter((e) => e !== A)).filter((e) => e.length).map((e) => e.length === 1 ? e[0] : D`<div class="stack">${e}</div>`);
+			return n.length ? n.length === 1 ? n[0] : D`<div class=${e}>${n}</div>` : A;
 		});
 	}
 	newSuggestions() {
 		let e = this._view?.suggestions?.filter((e) => e.state === "new") ?? [];
-		return !e.length || this.isHidden("suggestions") ? j : O`<hh-suggestions .lang=${this.lang} .suggestions=${e} .canAct=${this.admin}></hh-suggestions>`;
+		return !e.length || this.isHidden("suggestions") ? A : D`<hh-suggestions .lang=${this.lang} .suggestions=${e} .canAct=${this.admin}></hh-suggestions>`;
 	}
 	render() {
-		let e = this._view, t = this.lang, n = e?.phase === "ready" ? this.running : null, r = O`<hh-header
+		let e = this._view, t = this.lang, n = e?.phase === "ready" ? this.running : null, r = D`<hh-header
       .lang=${t}
       .heading=${this._config?.title ?? ""}
       .version=${e?.config?.version ?? ""}
       .settings=${e?.phase === "ready" ? this.settings : null}
-      .status=${n ? en(e?.status ?? null, n, t, {
+      .status=${n ? rn(e?.status ?? null, n, t, {
 			nowMs: Date.now(),
 			tz: this.tz
 		}) : null}
-      .note=${n && !this.admin ? R(t, "read_only") : ""}
+      .note=${n && !this.admin ? L(t, "read_only") : ""}
     ></hh-header>`;
-		if (!e || e.phase === "loading") return O`<div class="wrap">${r}<p class="muted" role="status">${R(t, "loading")}</p></div>`;
-		if (e.phase === "error") return O`<div class="wrap">${r}<p class="warn" role="alert">${e.error}</p></div>`;
-		let i = this.tab, a = this.admin && e.saved && e.draft ? Qt(nt(e.saved, e.draft)) : /* @__PURE__ */ new Set();
-		return O`<div
+		if (!e || e.phase === "loading") return D`<div class="wrap">${r}<p class="muted" role="status">${L(t, "loading")}</p></div>`;
+		if (e.phase === "error") return D`<div class="wrap">${r}<p class="warn" role="alert">${e.error}</p></div>`;
+		let i = this.tab, a = this.admin && e.saved && e.draft ? tn(it(e.saved, e.draft)) : /* @__PURE__ */ new Set();
+		return D`<div
       class="wrap"
       @hh-action=${this.onAction}
       @hh-edit=${(e) => this.store?.edit(e.detail.next)}
-      @hh-ui=${(e) => this._ui = {
-			...this._ui,
-			...e.detail
-		}}
+      @hh-ui=${(e) => this.onUi(e)}
     >
       ${r}
       <hh-tabs
-        .label=${R(t, "tabs.label")}
-        .dirtyLabel=${R(t, "tab.unsaved")}
-        .tabs=${Xt(this._config?.hide_sections ?? []).map((e) => ({
+        .label=${L(t, "tabs.label")}
+        .dirtyLabel=${L(t, "tab.unsaved")}
+        .tabs=${$t(this._config?.hide_sections ?? []).map((e) => ({
 			key: e,
-			label: R(t, `tab.${e}`),
+			label: L(t, `tab.${e}`),
 			dirty: a.has(e)
 		}))}
         .value=${i}
         @hh-tab=${(e) => this.openTab(e.detail.key)}
       ></hh-tabs>
-      <div class="panel" role="tabpanel" aria-label=${R(t, `tab.${i}`)}>
-        ${this.rows(i)} ${i === "now" ? this.newSuggestions() : j}
+      <div class="panel" role="tabpanel" aria-label=${L(t, `tab.${i}`)}>
+        ${this.rows(i)} ${i === "now" ? this.newSuggestions() : A}
       </div>
       <hh-footer .lang=${t} .dirty=${e.dirty} .saving=${e.saving} .admin=${this.admin}></hh-footer>
     </div>`;
 	}
-}), L("hybrid-heating-card-editor", Qe), window.customCards ??= [], window.customCards.some((e) => e.type === "hybrid-heating-card") || window.customCards.push({
+}), I("hybrid-heating-card-editor", et), window.customCards ??= [], window.customCards.some((e) => e.type === "hybrid-heating-card") || window.customCards.push({
 	type: "hybrid-heating-card",
 	name: "Hybrid Heating",
 	description: "Heat pumps first, the boiler fills in, within the load limit.",

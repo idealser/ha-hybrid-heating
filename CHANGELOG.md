@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.7.0
+
+The forecast explains itself and the estimate is closer to the flat; fixes from a whole-plugin audit.
+
+- **Forecast:** tap an hour, or use the arrow keys, to see what runs then: the ACs, the boiler and its rods, the flow and about how much it draws. The estimate now runs hour by hour from the rooms' temperatures: a warm flat cools on its stored heat before the heating has to start (Away, Night). Out of the heating season nothing is heated, and the totals say so. A weather entity without an hourly forecast is said so and asked again every 30 minutes.
+- **Room targets:** each room has its own target against the preset (−3…+3°) on Rooms & power, so the child's −1° and applied Cold/Hot suggestions can be changed.
+- **ACs:** an AC someone ran by hand and then switched off stays off until the preset changes, like one the module started; it was started again at once.
+- **Texts:**
+  - The boiler's texts say whether the room is below, above or at its target.
+  - A load pause shows as such on every tick, in Why and on the status sensor.
+  - Settings and saved times read plainly in the log.
+  - Errors are in the card's words and language.
+  - AC modes are named in words.
+  - A Cold/Hot mark that makes a suggestion names it.
+  - The setup wizard says Control, as the card does.
+- **Card:**
+  - A module that is off says so instead of "Starting", and offers no Cold/Hot.
+  - The Load section speaks of what the module runs with, not of unsaved edits.
+  - On a phone, picking a zone brings its editor into view, and the Russian tab bar fits.
+
 ## 0.6.0
 
 Suggestions and the forecast. A suggestion changes nothing by itself: an admin applies or dismisses it.
