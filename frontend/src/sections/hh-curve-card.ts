@@ -1,5 +1,6 @@
 // "Boiler flow temperature": the chart, the curve's limits and mode, and the list of weather zones.
 import { LitElement, css, html, nothing } from 'lit';
+import '../components/hh-hint';
 import '../components/hh-seg';
 import { stepperField } from '../components/fields';
 import { define, fire } from '../dom';
@@ -157,7 +158,7 @@ export class HhCurveCard extends LitElement {
     return html`<section class="card" aria-labelledby="h-curve">
       <div class="card-head">
         <h2 id="h-curve">${t(L, 'section.curve')}</h2>
-        <p class="note">${t(L, 'curve.note', { limit: fmt(s.boiler.corr_limit, 0, L) })}</p>
+        <hh-hint .lang=${L} .text=${t(L, 'curve.note', { limit: fmt(s.boiler.corr_limit, 0, L) })}></hh-hint>
       </div>
       <div class="hint">
         <i><span class="sw"></span>${t(L, 'curve.legend.curve')}</i>
@@ -208,7 +209,7 @@ export class HhCurveCard extends LitElement {
       </div>
       <div class="card-head">
         <h3>${t(L, 'zones.title')}</h3>
-        <p class="note">${t(L, 'zones.note')}</p>
+        <hh-hint .lang=${L} .text=${t(L, 'zones.note')}></hh-hint>
       </div>
       <div class="zones">
         ${([0, 1, 2, 3] as ZoneIndex[]).map(i => {

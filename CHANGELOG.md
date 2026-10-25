@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.0
+
+The card in tabs, so the overview is not buried under the settings.
+
+- **Now**: the flat, why, the 48-hour forecast and any new suggestion. **Curve & zones**: the flow curve, the selected zone and the what-if estimate. **Rooms & power**: targets, AC night modes, Cold/Hot and the load limit. **System**: each layer's mode, the heating season, the decision log and all suggestions.
+- The card opens on Now and remembers the last tab on each device. A tab whose sections are all hidden disappears.
+- A line under the title says who is in control ("Observing — nothing is changed", "In control: boiler · observing: ACs, load") on every tab.
+- Save and Discard appear in a bar only while something is unsaved; a tab with unsaved edits shows a dot.
+- Long explanations show their first sentence; the rest is behind ⓘ.
+
 ## 0.3.2
 
 - The card has its own side padding. A panel view gives a card the full width with no margin, so the content touched the edges.

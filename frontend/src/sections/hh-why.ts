@@ -83,7 +83,6 @@ export class HhWhy extends LitElement {
         <h2 id="h-why">${t(this.lang, 'section.why')}</h2>
         <p class="note">${v.sub}</p>
       </div>
-      ${v.banners.map(b => html`<p class="warn">${b}</p>`)}
       <div class="chips">
         ${v.chips.map(c => html`<span class="chip">${c.label} <span class="num">${c.value}</span></span>`)}
       </div>

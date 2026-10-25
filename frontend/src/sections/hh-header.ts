@@ -5,6 +5,7 @@ import { define, fire } from '../dom';
 import { t, type Lang } from '../i18n/index';
 import { fmt } from '../logic/format';
 import { shared } from '../styles/shared';
+import type { Tone } from '../logic/tabs';
 import { PRESETS, type HhAction, type HhSettings, type Preset } from '../types';
 
 export class HhHeader extends LitElement {
@@ -13,11 +14,16 @@ export class HhHeader extends LitElement {
     heading: {},
     version: {},
     settings: { attribute: false },
+    status: { attribute: false },
+    note: {},
   };
   declare lang: Lang;
   declare heading: string;
   declare version: string;
   declare settings: HhSettings | null;
+  /** Who is in control (statusLine), shown on every tab. */
+  declare status: { text: string; tone: Tone } | null;
+  declare note: string;
 
   constructor() {
     super();
@@ -25,6 +31,8 @@ export class HhHeader extends LitElement {
     this.heading = '';
     this.version = '';
     this.settings = null;
+    this.status = null;
+    this.note = '';
   }
 
   static override styles = [
@@ -43,6 +51,26 @@ export class HhHeader extends LitElement {
         gap: 4px;
         min-width: 0;
         max-width: 560px;
+      }
+      .status {
+        align-self: flex-start;
+        font-size: 13px;
+        font-weight: 500;
+        border-radius: 999px;
+        padding: 3px 10px;
+        color: var(--muted);
+        background: var(--bg);
+        border: 1px solid var(--line);
+      }
+      .status.warn {
+        color: var(--warn-ink);
+        background: var(--warn-bg);
+        border-color: transparent;
+      }
+      .status.ok {
+        color: var(--ok);
+        border-color: var(--ok);
+        background: transparent;
       }
       .top-ctl {
         display: flex;
@@ -101,7 +129,8 @@ export class HhHeader extends LitElement {
       <div class="title">
         <span class="eyebrow">Hybrid Heating${this.version ? ` · ${this.version}` : ''}</span>
         <h1>${this.heading || t(L, 'title')}</h1>
-        <p class="muted">${t(L, 'subtitle')}</p>
+        ${this.status ? html`<p class="status ${this.status.tone}" role="status">${this.status.text}</p>` : null}
+        ${this.note ? html`<p class="small muted">${this.note}</p>` : null}
       </div>
       ${s
         ? html`<div class="top-ctl">

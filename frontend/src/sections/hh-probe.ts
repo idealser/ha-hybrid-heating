@@ -1,5 +1,6 @@
 // "What happens in this weather": where the heat would come from at a chosen outdoor temperature.
 import { LitElement, css, html, nothing } from 'lit';
+import '../components/hh-hint';
 import { define, fire } from '../dom';
 import { t, type Lang } from '../i18n/index';
 import { snapProbe } from '../logic/chart-geometry';
@@ -160,7 +161,7 @@ export class HhProbe extends LitElement {
     return html`<section class="card" aria-labelledby="h-probe">
       <div class="card-head">
         <h2 id="h-probe">${t(L, 'section.probe')}</h2>
-        <p class="note">${t(L, 'probe.note', { h: fmt(m.h_w_per_k, 0, L) })}</p>
+        <hh-hint .lang=${L} .text=${t(L, 'probe.note', { h: fmt(m.h_w_per_k, 0, L) })}></hh-hint>
       </div>
       <div class="field">
         <label for="probe">${t(L, 'probe.out')}</label>

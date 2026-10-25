@@ -1,5 +1,6 @@
 // "Load limit": the limit and the restore level, what goes first, and the meter right now.
 import { LitElement, css, html, nothing } from 'lit';
+import '../components/hh-hint';
 import { stepperField } from '../components/fields';
 import { define } from '../dom';
 import { t, type Lang } from '../i18n/index';
@@ -83,7 +84,7 @@ export class HhLoad extends LitElement {
     return html`<section class="card" aria-labelledby="h-load">
       <div class="card-head">
         <h2 id="h-load">${t(L, 'section.load')}</h2>
-        <p class="note">${t(L, 'load.note')}</p>
+        <hh-hint .lang=${L} .text=${t(L, 'load.note')}></hh-hint>
       </div>
       <div class="pair">
         ${stepperField(this, s, 'load.limit_kw', t(L, 'load.limit'), fKw(limit, L), this.readOnly)}

@@ -1,5 +1,6 @@
 // "Heating season" and "Control": when the module heats at all, and what each layer may do.
 import { LitElement, css, html, nothing } from 'lit';
+import '../components/hh-hint';
 import { stepperField } from '../components/fields';
 import '../components/hh-seg';
 import { define, fire } from '../dom';
@@ -63,7 +64,7 @@ export class HhSeason extends LitElement {
     return html`<section class="card" aria-labelledby="h-season">
       <div class="card-head">
         <h2 id="h-season">${t(L, 'section.season')}</h2>
-        <p class="note">${t(L, 'season.note')}</p>
+        <hh-hint .lang=${L} .text=${t(L, 'season.note')}></hh-hint>
       </div>
       <div class="field">
         <span class="lbl">${t(L, 'season.mode')}</span>
@@ -84,7 +85,7 @@ export class HhSeason extends LitElement {
       ${this.status ? html`<p class="small">${seasonStatus(this.status, s, L)}</p>` : nothing}
       <div class="card-head">
         <h3>${t(L, 'layers.title')}</h3>
-        <p class="note">${t(L, 'layers.note')}</p>
+        <hh-hint .lang=${L} .text=${t(L, 'layers.note')}></hh-hint>
       </div>
       <div class="layers">
         ${LAYERS.map(

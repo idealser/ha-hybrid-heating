@@ -1,5 +1,6 @@
 // "Next 48 hours": the forecast coloured by the zone the heating will be in, with energy and cost.
 import { LitElement, css, html, nothing, svg } from 'lit';
+import '../components/hh-hint';
 import { WidthController } from '../components/width';
 import { define, fire } from '../dom';
 import { t, type Lang } from '../i18n/index';
@@ -176,7 +177,7 @@ export class HhForecastStrip extends LitElement {
       <div class="head-row">
         <div class="card-head">
           <h2 id="h-fc">${t(L, 'section.forecast')}</h2>
-          <p class="note">${t(L, 'forecast.note')}</p>
+          <hh-hint .lang=${L} .text=${t(L, 'forecast.note')}></hh-hint>
         </div>
         ${this.totals()}
       </div>

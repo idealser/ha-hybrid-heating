@@ -1,5 +1,6 @@
 // "Suggestions": what the module proposes to change. It never changes anything until an admin applies it.
 import { LitElement, css, html, nothing } from 'lit';
+import '../components/hh-hint';
 import { define, fire } from '../dom';
 import { t, type I18nKey, type Lang } from '../i18n/index';
 import { shared } from '../styles/shared';
@@ -93,7 +94,7 @@ export class HhSuggestions extends LitElement {
     return html`<section class="card" aria-labelledby="h-sugg">
       <div class="card-head">
         <h2 id="h-sugg">${t(L, 'section.suggestions')}</h2>
-        <p class="note">${t(L, 'suggestions.note')}</p>
+        <hh-hint .lang=${L} .text=${t(L, 'suggestions.note')}></hh-hint>
       </div>
       ${list === undefined
         ? html`<p class="note">…</p>`

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { H, services } from './helpers';
+import { H, openTab, services } from './helpers';
 
 test('header with presets from entities', async ({ page }) => {
   await page.goto(H());
@@ -34,13 +34,13 @@ test('hybrid switch calls switch.turn_off', async ({ page }) => {
 test('language follows HA', async ({ page }) => {
   await page.goto(H({ lang: 'ru' }));
   await expect(page.getByRole('heading', { name: 'Отопление', exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Сохранить' })).toBeDisabled();
+  await expect(page.getByRole('tab', { name: 'Кривая' })).toBeVisible();
+  await expect(page.locator('hh-header .status')).toHaveText('Наблюдение — ничего не меняется');
 });
 
-test('save is disabled until something changes', async ({ page }) => {
+test('there is no Save button until something changes', async ({ page }) => {
   await page.goto(H());
-  await expect(page.getByRole('button', { name: 'Save' })).toBeDisabled();
-  await expect(page.getByText('All changes saved.')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Save' })).toHaveCount(0);
 });
 
 test('non-admin: no Save, presets still work', async ({ page }) => {
@@ -66,21 +66,23 @@ test('dark theme marks the card', async ({ page }) => {
 
 test('hidden sections are not drawn', async ({ page }) => {
   await page.goto(H({ hide: 'log,forecast' }));
+  await expect(page.locator('hh-why')).toBeVisible();
+  await expect(page.locator('hh-forecast')).toHaveCount(0);
+  await openTab(page, 'System');
   await expect(page.locator('hh-season')).toBeVisible();
   await expect(page.locator('hh-log')).toHaveCount(0);
-  await expect(page.locator('hh-forecast')).toHaveCount(0);
 });
 
 test('the card keeps its own side padding (a panel view gives it none)', async ({ page }) => {
   for (const width of [1280, 390]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto(H());
-    await expect(page.locator('hh-footer')).toBeVisible();
+    await expect(page.locator('hh-tabs')).toBeVisible();
     const card = (await page.locator('hybrid-heating-card').boundingBox())!;
     const header = (await page.locator('hh-header').boundingBox())!;
-    const footer = (await page.locator('hh-footer').boundingBox())!;
+    const tabs = (await page.locator('hh-tabs').boundingBox())!;
     expect(header.x - card.x).toBeGreaterThanOrEqual(16);
-    expect(card.x + card.width - (footer.x + footer.width)).toBeGreaterThanOrEqual(16);
+    expect(card.x + card.width - (tabs.x + tabs.width)).toBeGreaterThanOrEqual(16);
     expect(header.y - card.y).toBeGreaterThanOrEqual(16);
   }
 });

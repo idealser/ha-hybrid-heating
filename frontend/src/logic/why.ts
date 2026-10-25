@@ -1,6 +1,6 @@
 // "Why": what the module is doing right now, in words, from the live status.
-import { plural, t, type I18nKey, type Lang } from '../i18n/index';
-import { AC_ROOMS, DRIVER_ROOMS, LAYERS, type AcRoom, type HhSettings, type HhStatus, type Pip, type Room } from '../types';
+import { plural, t, type Lang } from '../i18n/index';
+import { AC_ROOMS, DRIVER_ROOMS, type AcRoom, type HhSettings, type HhStatus, type Pip, type Room } from '../types';
 import { DASH, fDev, fKw, fmt, fT, orDash } from './format';
 import { zoneName } from './zones';
 
@@ -14,7 +14,6 @@ export interface WhyView {
   sub: string;
   chips: { label: string; value: string }[];
   items: WhyItem[];
-  banners: string[];
 }
 
 export type AcOffReason = 'hybrid' | 'away' | 'cold' | 'zone' | 'night' | 'unavailable' | 'observe' | 'idle';
@@ -185,19 +184,6 @@ function loadItem(st: HhStatus, s: HhSettings, L: Lang): WhyItem {
   return { pip: 'ok', lead: t(L, 'why.load_ok'), text: t(L, 'why.load_ok_text', { spare: fKw(spare, L) }) };
 }
 
-function banners(st: HhStatus, s: HhSettings, L: Lang): string[] {
-  const out: string[] = [];
-  if (!st.season_active) out.push(t(L, 'banner.season'));
-  if (!st.enabled) {
-    out.push(t(L, 'banner.disabled'));
-    return out;
-  }
-  const observed = LAYERS.filter(l => s.layers[l] === 'observe');
-  if (observed.length)
-    out.push(t(L, 'banner.observe', { layers: observed.map(l => t(L, `layer.${l}` as I18nKey)).join(', ') }));
-  return out;
-}
-
 export function buildWhy(st: HhStatus, s: HhSettings, L: Lang): WhyView {
   const sub = t(L, 'why.sub', {
     t: orDash(st.t_out, v => fT(v, L)),
@@ -214,5 +200,5 @@ export function buildWhy(st: HhStatus, s: HhSettings, L: Lang): WhyView {
     .filter(r => NOTABLE_CODES.has(r.code) && r.text)
     .map(r => ({ pip: 'cold' as const, lead: '', text: r.text }));
   const items = [...acItems(st, s, L), boilerItem(st, s, L), ...notable, loadItem(st, s, L)];
-  return { sub, chips, items, banners: banners(st, s, L) };
+  return { sub, chips, items };
 }

@@ -1,5 +1,6 @@
 // "Decision log": what the module did and why, newest first.
 import { LitElement, css, html } from 'lit';
+import '../components/hh-hint';
 import { define } from '../dom';
 import { t, type Lang } from '../i18n/index';
 import { logLines, logPip, logTime } from '../logic/log';
@@ -85,7 +86,7 @@ export class HhLog extends LitElement {
     return html`<section class="card" aria-labelledby="h-log">
       <div class="card-head">
         <h2 id="h-log">${t(L, 'section.log')}</h2>
-        <p class="note">${t(L, 'log.note')}</p>
+        <hh-hint .lang=${L} .text=${t(L, 'log.note')}></hh-hint>
       </div>
       ${this.entries.length
         ? html`<ul class="log">

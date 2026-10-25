@@ -1,5 +1,6 @@
 // "Rooms": the targets, each room against the target, "Cold"/"Hot" feedback and the ACs' night mode.
 import { LitElement, css, html, nothing } from 'lit';
+import '../components/hh-hint';
 import { stepperField } from '../components/fields';
 import '../components/hh-seg';
 import { define, fire } from '../dom';
@@ -147,7 +148,7 @@ export class HhRooms extends LitElement {
     return html`<section class="card" aria-labelledby="h-rooms">
       <div class="card-head">
         <h2 id="h-rooms">${t(L, 'section.rooms')}</h2>
-        <p class="note">${t(L, this.learning ? 'rooms.note' : 'rooms.note_plain')}</p>
+        <hh-hint .lang=${L} .text=${t(L, this.learning ? 'rooms.note' : 'rooms.note_plain')}></hh-hint>
       </div>
       <div class="pair">
         ${this.target('targets.comfort', t(L, 'preset.comfort'), tg.comfort)}

@@ -46,3 +46,8 @@ export async function dragBy(page: Page, target: Locator, dx: number, dy: number
   await page.mouse.move(x + dx, y + dy, { steps: 5 });
   await page.mouse.up();
 }
+
+/** Switch the card to one of its tabs by name. */
+export async function openTab(page: Page, name: string): Promise<void> {
+  await page.getByRole('tab', { name: new RegExp(`^${name}`) }).click();
+}

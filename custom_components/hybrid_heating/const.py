@@ -4,7 +4,7 @@ from typing import Final
 
 DOMAIN: Final = "hybrid_heating"
 TITLE: Final = "Hybrid Heating"
-VERSION: Final = "0.3.2"
+VERSION: Final = "0.4.0"
 STORAGE_VERSION: Final = 1
 
 # Timing (seconds)

@@ -4,12 +4,14 @@ import { HhApi } from './api';
 import { PLAN_CHANGED } from './editor';
 import { fire } from './dom';
 import { pickLang, t, type Lang } from './i18n/index';
-import { withLive } from './logic/draft';
+import { diffSettings, withLive } from './logic/draft';
 import { normalizeConfig, type NormalConfig } from './logic/config';
 import { hassLanguage, liveFromHass, relevantHassChanged } from './logic/hass';
 import { withModelDefaults } from './logic/model';
+import { dirtyTabs, statusLine, TABS, visibleTabs, type TabKey } from './logic/tabs';
 import { buildWhy } from './logic/why';
 import { SCHEMATIC } from './plan/builtin';
+import './components/hh-tabs';
 import './sections/hh-curve-card';
 import './sections/hh-floor-plan';
 import './sections/hh-forecast';
@@ -39,14 +41,16 @@ import type {
 
 type Slot = TemplateResult | typeof nothing;
 
-/** The mockup's layout, top to bottom; a row with nothing to show is left out. */
-const ROWS: { cls: string; keys: SectionKey[] }[] = [
-  { cls: 'two', keys: ['plan', 'why'] },
-  { cls: 'one', keys: ['forecast'] },
-  { cls: 'two', keys: ['curve', 'probe'] },
-  { cls: 'row3', keys: ['zone', 'rooms', 'load'] },
-  { cls: 'row3', keys: ['season', 'suggestions', 'log'] },
-];
+const TAB_KEY = 'hybrid-heating-card.tab'; // the last tab, per device
+
+function rememberedTab(): TabKey {
+  try {
+    const saved = localStorage.getItem(TAB_KEY);
+    return TABS.some(tab => tab.key === saved) ? (saved as TabKey) : 'now';
+  } catch {
+    return 'now';
+  }
+}
 
 export class HybridHeatingCard extends LitElement {
   static override properties = {
@@ -54,12 +58,19 @@ export class HybridHeatingCard extends LitElement {
     _config: { state: true },
     _view: { state: true },
     _ui: { state: true },
+    _tab: { state: true },
   };
   declare hass: HomeAssistant | undefined;
   declare _config: NormalConfig | undefined;
   declare _view: StoreView | undefined;
   declare _ui: UiState | undefined;
+  declare _tab: TabKey;
   private store: CardStore | undefined;
+
+  constructor() {
+    super();
+    this._tab = rememberedTab();
+  }
   private lastLang: Lang | undefined;
 
   static override styles = [
@@ -88,15 +99,26 @@ export class HybridHeatingCard extends LitElement {
         gap: 16px;
         align-items: start;
       }
-      .row3 {
+      .pair {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 16px;
         align-items: start;
       }
+      .stack {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        min-width: 0;
+      }
+      .panel {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
       @container (max-width: 940px) {
         .two,
-        .row3 {
+        .pair {
           grid-template-columns: minmax(0, 1fr);
         }
       }
@@ -328,34 +350,79 @@ export class HybridHeatingCard extends LitElement {
     }
   }
 
-  private rows(): Slot[] {
-    return ROWS.map(({ cls, keys }) => {
-      const parts = keys.filter(k => !this.isHidden(k)).map(k => this.section(k)).filter(p => p !== nothing);
-      if (!parts.length) return nothing;
-      return cls === 'one' ? parts[0]! : html`<div class=${cls}>${parts}</div>`;
+  /** The tab on screen: the remembered one, or the first that still has sections. */
+  private get tab(): TabKey {
+    const visible = visibleTabs(this._config?.hide_sections ?? []);
+    return visible.includes(this._tab) ? this._tab : (visible[0] ?? 'now');
+  }
+
+  private openTab(key: TabKey): void {
+    this._tab = key;
+    try {
+      localStorage.setItem(TAB_KEY, key);
+    } catch {
+      // private mode or blocked storage: the tab is just not remembered
+    }
+  }
+
+  private rows(tab: TabKey): Slot[] {
+    const rows = TABS.find(x => x.key === tab)!.rows;
+    return rows.map(({ cls, cols }) => {
+      const filled = cols
+        .map(keys => keys.filter(k => !this.isHidden(k)).map(k => this.section(k)).filter(p => p !== nothing))
+        .filter(parts => parts.length)
+        .map(parts => (parts.length === 1 ? parts[0]! : html`<div class="stack">${parts}</div>`));
+      if (!filled.length) return nothing;
+      return filled.length === 1 ? filled[0]! : html`<div class=${cls}>${filled}</div>`;
     });
+  }
+
+  /** On Now, only what asks for a decision: new suggestions. */
+  private newSuggestions(): Slot {
+    const news = this._view?.suggestions?.filter(s => s.state === 'new') ?? [];
+    if (!news.length || this.isHidden('suggestions')) return nothing;
+    return html`<hh-suggestions .lang=${this.lang} .suggestions=${news} .canAct=${this.admin}></hh-suggestions>`;
   }
 
   override render() {
     const v = this._view;
     const L = this.lang;
+    const running = v?.phase === 'ready' ? this.running : null;
     const header = html`<hh-header
       .lang=${L}
       .heading=${this._config?.title ?? ''}
       .version=${v?.config?.version ?? ''}
       .settings=${v?.phase === 'ready' ? this.settings : null}
+      .status=${running ? statusLine(v?.status ?? null, running, L) : null}
+      .note=${running && !this.admin ? t(L, 'read_only') : ''}
     ></hh-header>`;
     if (!v || v.phase === 'loading')
       return html`<div class="wrap">${header}<p class="muted" role="status">${t(L, 'loading')}</p></div>`;
     if (v.phase === 'error')
       return html`<div class="wrap">${header}<p class="warn" role="alert">${v.error}</p></div>`;
+    const tab = this.tab;
+    const dirty = this.admin && v.saved && v.draft ? dirtyTabs(diffSettings(v.saved, v.draft)) : new Set<TabKey>();
     return html`<div
       class="wrap"
       @hh-action=${this.onAction}
       @hh-edit=${(e: CustomEvent<{ next: HhSettings }>) => this.store?.edit(e.detail.next)}
       @hh-ui=${(e: CustomEvent<Partial<UiState>>) => (this._ui = { ...this._ui!, ...e.detail })}
     >
-      ${header} ${this.rows()}
+      ${header}
+      <hh-tabs
+        .label=${t(L, 'tabs.label')}
+        .dirtyLabel=${t(L, 'tab.unsaved')}
+        .tabs=${visibleTabs(this._config?.hide_sections ?? []).map(key => ({
+          key,
+          label: t(L, `tab.${key}`),
+          dirty: dirty.has(key),
+        }))}
+        .value=${tab}
+        @hh-tab=${(e: CustomEvent<{ key: TabKey }>) => this.openTab(e.detail.key)}
+      ></hh-tabs>
+      <div class="panel" role="tabpanel" aria-label=${t(L, `tab.${tab}`)}>
+        ${this.rows(tab)} ${tab === 'now' ? this.newSuggestions() : nothing}
+      </div>
       <hh-footer .lang=${L} .dirty=${v.dirty} .saving=${v.saving} .admin=${this.admin}></hh-footer>
     </div>`;
   }

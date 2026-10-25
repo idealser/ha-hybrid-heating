@@ -1,5 +1,6 @@
 // "Apartment now": rooms tinted by how far they are from the target, with the devices that are running.
 import { LitElement, css, html, svg } from 'lit';
+import '../components/hh-hint';
 import { define } from '../dom';
 import { t, type Lang } from '../i18n/index';
 import { DASH, fmt } from '../logic/format';
@@ -187,7 +188,7 @@ export class HhFloorPlan extends LitElement {
     return html`<section class="card" aria-labelledby="h-plan">
       <div class="card-head">
         <h2 id="h-plan">${t(L, 'section.plan')}</h2>
-        <p class="note">${t(L, 'plan.note')}${this.schematic ? ` ${t(L, 'plan.schematic')}` : ''}</p>
+        <hh-hint .lang=${L} .text=${t(L, 'plan.note') + (this.schematic ? ` ${t(L, 'plan.schematic')}` : '')}></hh-hint>
       </div>
       <svg viewBox=${p.viewBox.join(' ')} role="img" aria-label=${t(L, 'plan.aria')}>
         <defs>

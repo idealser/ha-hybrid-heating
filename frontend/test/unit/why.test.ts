@@ -169,23 +169,6 @@ test('nulls: no NaN, backend reason shown', () => {
   expect(w.items).toContainEqual({ pip: 'idle', lead: 'Load:', text: 'no meter reading.' });
 });
 
-test('banners: observe, disabled and off season', () => {
-  expect(buildWhy(STATUS_NOW, SETTINGS, 'ru').banners).toEqual([
-    'Только наблюдение: котёл, кондиционеры, нагрузка. Решения пишутся в журнал, но ничего не меняется.',
-  ]);
-  const live = mergeSettings(SETTINGS, { layers: { boiler: 'active', ac: 'observe', load: 'active' } });
-  expect(buildWhy(STATUS_NOW, live, 'en').banners).toEqual([
-    'Observe only: ACs. Decisions go to the log, nothing is changed.',
-  ]);
-  const activeAll = mergeSettings(SETTINGS, { layers: { boiler: 'active', ac: 'active', load: 'active' } });
-  expect(buildWhy(STATUS_NOW, activeAll, 'en').banners).toEqual([]);
-  expect(buildWhy({ ...STATUS_NOW, season_active: false }, SETTINGS, 'ru').banners).toContain(
-    'Не отопительный сезон: модуль только показывает данные.',
-  );
-  expect(buildWhy({ ...STATUS_NOW, enabled: false }, activeAll, 'en').banners).toEqual([
-    'The module is off: the heating runs without it.',
-  ]);
-});
 
 test('in observe mode why follows the module, not the old thermostat', () => {
   const st = { ...STATUS_NOW, boiler: { ...STATUS_NOW.boiler, call_on: false, wanted: true } } as HhStatus;

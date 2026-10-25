@@ -1,8 +1,9 @@
 import { expect, test } from '@playwright/test';
-import { calls, clickChartAt, dragBy, H } from './helpers';
+import { calls, clickChartAt, dragBy, H, openTab } from './helpers';
 
 test('nine draggable points', async ({ page }) => {
   await page.goto(H());
+  await openTab(page, 'Curve & zones');
   await expect(page.locator('hh-curve-chart [role="slider"][data-k^="p"]')).toHaveCount(9);
   await expect(page.locator('[data-k="p1"]')).toHaveAttribute('aria-label', 'Flow at +15°');
   await expect(page.locator('[data-k="p2"]')).toHaveAttribute('aria-valuetext', '39.5°');
@@ -10,6 +11,7 @@ test('nine draggable points', async ({ page }) => {
 
 test('dragging a point changes it and enables Save', async ({ page }) => {
   await page.goto(H());
+  await openTab(page, 'Curve & zones');
   const p = page.locator('hh-curve-chart [data-k="p2"]');
   await dragBy(page, p, 0, -30);
   await expect(p).not.toHaveAttribute('aria-valuetext', '39.5°');
@@ -19,6 +21,7 @@ test('dragging a point changes it and enables Save', async ({ page }) => {
 
 test('keyboard on a point and on a boundary', async ({ page }) => {
   await page.goto(H());
+  await openTab(page, 'Curve & zones');
   await page.locator('[data-k="p2"]').focus();
   await page.keyboard.press('ArrowUp');
   await expect(page.locator('[data-k="p2"]')).toHaveAttribute('aria-valuetext', '40°');
@@ -32,12 +35,14 @@ test('keyboard on a point and on a boundary', async ({ page }) => {
 
 test('click in the plot sets the probe', async ({ page }) => {
   await page.goto(H());
+  await openTab(page, 'Curve & zones');
   await clickChartAt(page, 5, 50);
   await expect(page.locator('hh-curve-chart .probe-t')).toHaveText('+5° → 45°');
 });
 
 test('strip click selects a zone', async ({ page }) => {
   await page.goto(H());
+  await openTab(page, 'Curve & zones');
   await expect(page.locator('hh-curve-card .zone-row').first()).toHaveAttribute('aria-pressed', 'true');
   await page.locator('hh-curve-chart [data-zone="2"]').click();
   await expect(page.locator('hh-curve-card .zone-row').nth(2)).toHaveAttribute('aria-pressed', 'true');
@@ -46,6 +51,7 @@ test('strip click selects a zone', async ({ page }) => {
 
 test('hybrid off hides the background curve and its stepper', async ({ page }) => {
   await page.goto(H());
+  await openTab(page, 'Curve & zones');
   await expect(page.locator('hh-curve-chart .curve-bg')).toHaveCount(1);
   await page.getByRole('switch', { name: 'Hybrid mode' }).click();
   await expect(page.locator('hh-curve-chart .curve-bg')).toHaveCount(0);
@@ -55,6 +61,7 @@ test('hybrid off hides the background curve and its stepper', async ({ page }) =
 
 test('save after a boundary change sends only zones.bounds', async ({ page }) => {
   await page.goto(H());
+  await openTab(page, 'Curve & zones');
   await page.locator('[data-k="b0"]').focus();
   await page.keyboard.press('ArrowLeft');
   await page.getByRole('button', { name: 'Save' }).click();
@@ -62,11 +69,12 @@ test('save after a boundary change sends only zones.bounds', async ({ page }) =>
     type: 'hybrid_heating/set_config',
     settings: { zones: { bounds: [9, -3, -15] } },
   });
-  await expect(page.getByText('All changes saved.')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Save' })).toHaveCount(0);
 });
 
 test('read-only: points cannot be focused or moved', async ({ page }) => {
   await page.goto(H({ admin: '0' }));
+  await openTab(page, 'Curve & zones');
   const p = page.locator('hh-curve-chart [data-k="p2"]');
   await expect(p).toHaveAttribute('tabindex', '-1');
   await dragBy(page, p, 0, -30);
@@ -75,6 +83,7 @@ test('read-only: points cannot be focused or moved', async ({ page }) => {
 
 test('the chart lets the page scroll on a phone; points and grips still drag', async ({ page }) => {
   await page.goto(H());
+  await openTab(page, 'Curve & zones');
   const touch = (sel: string) =>
     page.locator(sel).first().evaluate(el => getComputedStyle(el).touchAction);
   expect(await touch('hh-curve-chart')).toBe('pan-y');

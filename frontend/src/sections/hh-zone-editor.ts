@@ -1,5 +1,6 @@
 // "Zone settings": which ACs run in the selected weather zone, the boiler's role and its rods.
 import { LitElement, css, html, nothing } from 'lit';
+import '../components/hh-hint';
 import '../components/hh-seg';
 import '../components/hh-switch';
 import { define, fire } from '../dom';
@@ -87,7 +88,7 @@ export class HhZoneEditor extends LitElement {
           @hh-select=${(e: CustomEvent<{ value: BoilerZoneMode }>) =>
             this.edit({ ...s, zones: setZoneBoiler(z, i, e.detail.value) })}
         ></hh-seg>
-        <p class="note">${t(L, `boiler_note.${p.boiler}`)}</p>
+        <hh-hint .lang=${L} .text=${t(L, `boiler_note.${p.boiler}`)}></hh-hint>
       </div>
       <div class="field">
         <span class="lbl">${t(L, 'zone_editor.rods')}</span>
@@ -99,7 +100,7 @@ export class HhZoneEditor extends LitElement {
           @hh-select=${(e: CustomEvent<{ value: string }>) =>
             this.edit({ ...s, zones: setZoneRods(z, i, Number(e.detail.value) as 1 | 2 | 3) })}
         ></hh-seg>
-        <p class="note">${t(L, 'zone_editor.rods_note', { kw: fKw(p.max_rods * rodKw, L) })}</p>
+        <hh-hint .lang=${L} .text=${t(L, 'zone_editor.rods_note', { kw: fKw(p.max_rods * rodKw, L) })}></hh-hint>
       </div>
     </section>`;
   }
