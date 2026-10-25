@@ -9,7 +9,11 @@ area is which room, so an overlay JSON in the drawing's coordinates (millimetres
      "neutral": [{"polygon": [[x, y], ...], "key": "hall", "label": [x, y], "dxf_label": "Hall"}],
      "radiators": [{"room": "living", "rect": [x1, y1, x2, y2], "sections": 12}],
      "acs": {"living": {"x": .., "y": .., "w": .., "h": .., "cx": .., "from": .., "to": ..}},
-     "floor_heating": [{"room": "bath", "rect": [x1, y1, x2, y2]}]}
+     "floor_heating": [{"room": "bath", "rect": [x1, y1, x2, y2]},
+                       {"room": "bath", "area": "hall", "rect": [x1, y1, x2, y2]}]}
+
+A floor heated by a room's circuit may lie in an area without a sensor (a hall): "area" names that neutral
+area, and the floor is checked to be in it instead of in the room.
 
 The overlay is checked against the drawing (room names, windows, and where the devices are), so a
 swapped room is caught before it reaches the card. Both files describe a real home: keep them out of
@@ -191,8 +195,22 @@ def check_mapping(geo: DxfGeometry, overlay: dict[str, Any]) -> None:
         in_room(r["room"], Rect(*r["rect"]).centre, "radiator")
     for room, ac in overlay.get("acs", {}).items():
         in_room(room, (ac["cx"], ac["y"] + ac["h"] / 2), "air conditioner")
+
+    def in_area(key: str, pt: Pt, what: str) -> None:
+        polygons = [n["polygon"] for n in overlay.get("neutral", []) if n.get("key") == key]
+        if not any(_inside(pt, p) for p in polygons):
+            raise PlanMappingError(f"the {what} at ({pt[0]:.0f}, {pt[1]:.0f}) is not in {key}")
+
     for f in overlay.get("floor_heating", []):
-        in_room(f["room"], Rect(*f["rect"]).centre, "floor heating")
+        centre = Rect(*f["rect"]).centre
+        if "area" not in f:
+            in_room(f["room"], centre, "floor heating")
+        elif f["room"] not in overlay["rooms"]:
+            raise PlanMappingError(
+                f"the floor heating in {f['area']} is on the circuit of {f['room']}, not a room"
+            )
+        else:
+            in_area(f["area"], centre, "floor heating")
 
 
 def build_plan(geo: DxfGeometry, overlay: dict[str, Any], pad: float = 150) -> dict[str, Any]:

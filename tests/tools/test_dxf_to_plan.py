@@ -117,3 +117,26 @@ def test_cli_writes_the_plan(tmp_path):
     dxf = make_dxf(tmp_path)
     main(["--dxf", str(dxf), "--overlay", str(overlay), "--out", str(out)])
     assert json.loads(out.read_text(encoding="utf-8")) == build_plan(read_dxf(dxf), SMALL_OVERLAY)
+
+
+def with_hall_floor(area="hall", rect=(1020, 20, 1180, 380)):
+    """A hall beside the bathroom whose floor heating is on the bathroom's circuit."""
+    overlay = copy.deepcopy(SMALL_OVERLAY)
+    overlay["neutral"] = [
+        {"polygon": [[1000, 0], [1200, 0], [1200, 400], [1000, 400]], "key": "hall", "label": [1100, 200]}
+    ]
+    overlay["floor_heating"].append({"room": "bath", "area": area, "rect": list(rect)})
+    return overlay
+
+
+def test_a_circuit_may_heat_the_floor_of_an_area_without_a_sensor(tmp_path):
+    plan = build_plan(read_dxf(make_dxf(tmp_path)), with_hall_floor())
+    assert plan["floor_heating"][1] == {"room": "bath", "x": 1020, "y": 420, "w": 160, "h": 360}
+    validate_plan(plan)  # the card and the integration take it as a floor of the bathroom's circuit
+
+
+def test_the_area_of_a_floor_is_checked(tmp_path):
+    with pytest.raises(PlanMappingError, match=r"floor heating .* not in storage"):
+        build_plan(read_dxf(make_dxf(tmp_path)), with_hall_floor(area="storage"))
+    with pytest.raises(PlanMappingError, match=r"floor heating .* not in hall"):
+        build_plan(read_dxf(make_dxf(tmp_path)), with_hall_floor(rect=(820, 20, 980, 380)))
