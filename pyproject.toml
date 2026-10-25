@@ -1,0 +1,37 @@
+[project]
+name = "ha-hybrid-heating"
+version = "0.1.0"
+description = "Hybrid heating for Home Assistant: heat pumps first, weather-compensated electric boiler, load shedding"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "hypothesis>=6.120",
+    "ruff>=0.8",
+    "mypy>=1.13",
+    "tzdata>=2024.1",
+    "websockets>=13",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+markers = ["replay: slow season replay"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py314"
+extend-exclude = ["docs"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
+# Russian docs and copy legitimately contain Cyrillic letters and the minus sign
+allowed-confusables = ["−", "а", "е", "о", "р", "с", "у", "х", "А", "В", "Е", "К", "М", "Н", "О", "Р", "С", "Т", "Х"]
+
+[tool.mypy]
+python_version = "3.14"
+files = ["custom_components/hybrid_heating/core"]
+strict = true
