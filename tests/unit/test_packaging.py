@@ -32,6 +32,7 @@ HA_MODULES = {
     "websocket",
     "websocket_learning",
     "weather_forecast",
+    "learning_manager",
     "diagnostics",
     "alerts",
     "card_resource",

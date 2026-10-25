@@ -184,3 +184,31 @@ def test_lenient_ignores_unknown_and_fills_missing():
 def test_strict_rejects_bool_in_number_field():
     with pytest.raises(ValueError):
         from_data(CurveSettings, {"shift": True})
+
+
+def test_learning_data_round_trip_and_defaults():
+    from datetime import date, timedelta
+
+    from custom_components.hybrid_heating.core.learning import LearningData, Resolution, curve_suggestion
+    from custom_components.hybrid_heating.core.model import DayTally, HeatLossEstimate
+    from tests.core.test_learning import COLD3, NOW, NOWF, mk
+
+    sg = curve_suggestion(COLD3, Settings(), [], NOW)
+    assert sg is not None
+    data = LearningData(
+        marks=[mk(Room.CHILD, "cold", NOWF), mk(Room.LIVING, "hot", NOWF, t_out=None)],
+        mornings=list(COLD3),
+        pending=[sg],
+        resolutions=[Resolution(sg, "dismissed", NOWF + timedelta(hours=1))],
+        tallies={date(2026, 11, 1): DayTally(1440, 0, 1440)},
+        heat_loss=HeatLossEstimate("ok", 148.0, 310.0, 0.91, 9, 28, NOW),
+    )
+    raw = to_data(data)
+    assert json.loads(json.dumps(raw)) == raw
+    back = from_data(LearningData, raw)
+    assert back == data and back.pending[0].evidence["mornings"] == 3 and type(back.marks) is list
+    assert from_data(LearningData, {}) == LearningData()
+    with pytest.raises(ValueError):
+        from_data(LearningData, {"marks": {"not": "a list"}})
+    with pytest.raises(ValueError):
+        from_data(LearningData, {"pending": [{**raw["pending"][0], "kind": "other"}]})

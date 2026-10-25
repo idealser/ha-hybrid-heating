@@ -1,4 +1,5 @@
-"""What survives a restart: settings, controller and takeover state, the outdoor window, the log, the plan."""
+"""What survives a restart: settings, controller and takeover state, the outdoor window, the log, the plan
+and what the module learns."""
 
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -60,6 +61,10 @@ class HybridStore:
         )
         # The user's floor plan for the card; read only when a card asks for it.
         self._plan: Store[dict[str, Any]] = Store(hass, STORAGE_VERSION, f"{key}.plan", atomic_writes=True)
+        # Marks, mornings, suggestions, day tallies and the heat-loss estimate.
+        self._learning: Store[dict[str, Any]] = Store(
+            hass, STORAGE_VERSION, f"{key}.learning", atomic_writes=True
+        )
 
     async def _load_state(self) -> dict[str, Any]:
         raw = await self._state.async_load()
@@ -130,7 +135,17 @@ class HybridStore:
         else:
             await self._plan.async_save({"plan": plan})
 
+    async def async_load_learning(self) -> Any:
+        return await self._learning.async_load()
+
+    async def async_save_learning(self, data: dict[str, Any]) -> None:
+        await self._learning.async_save(data)
+
+    def async_delay_save_learning(self, data: Callable[[], dict[str, Any]], delay: float) -> None:
+        self._learning.async_delay_save(data, delay)
+
     async def async_remove(self) -> None:
         await self._state.async_remove()
         await self._log.async_remove()
         await self._plan.async_remove()
+        await self._learning.async_remove()

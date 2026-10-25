@@ -2,6 +2,7 @@ import re
 from dataclasses import replace
 from pathlib import Path
 
+import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as hs
 
@@ -182,3 +183,41 @@ def test_codes_emitted_by_tick_have_texts(steps):
             state,
         )
         assert {r.code for r in d.reasons} <= set(TEXTS)
+
+
+@pytest.mark.parametrize(
+    ("setting", "old", "new", "en", "ru"),
+    [
+        (
+            "curve.points.5",
+            44.5,
+            46.0,
+            "New suggestion: the +5° curve point from 44.5° to 46.0°",
+            "Новая подсказка: точка кривой +5° с 44,5° на 46,0°",
+        ),
+        (
+            "curve.points.-10",
+            58.0,
+            56.5,
+            "New suggestion: the −10° curve point from 58.0° to 56.5°",
+            "Новая подсказка: точка кривой −10° с 58,0° на 56,5°",
+        ),
+        (
+            "curve.shift",
+            0.0,
+            1.0,
+            "New suggestion: the whole curve from 0.0° to 1.0°",
+            "Новая подсказка: вся кривая с 0,0° на 1,0°",
+        ),
+        (
+            "room_offsets.child",
+            -1.0,
+            -0.7,
+            "New suggestion: the child's room target offset from -1.0° to -0.7°",
+            "Новая подсказка: поправка цели (детская) с -1,0° на -0,7°",
+        ),
+    ],
+)
+def test_suggestion_texts_name_the_setting(setting, old, new, en, ru):
+    r = Reason("system", "suggestion_created", {"setting": setting, "old": old, "new": new})
+    assert (render_reason(r, "en"), render_reason(r, "ru")) == (en, ru)
