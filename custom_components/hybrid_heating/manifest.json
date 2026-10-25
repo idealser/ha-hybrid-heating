@@ -1,0 +1,14 @@
+{
+  "domain": "hybrid_heating",
+  "name": "Hybrid Heating",
+  "codeowners": ["@idealser"],
+  "config_flow": true,
+  "dependencies": ["websocket_api"],
+  "documentation": "https://github.com/idealser/ha-hybrid-heating",
+  "integration_type": "service",
+  "iot_class": "calculated",
+  "issue_tracker": "https://github.com/idealser/ha-hybrid-heating/issues",
+  "requirements": [],
+  "single_config_entry": true,
+  "version": "0.2.0"
+}

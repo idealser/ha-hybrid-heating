@@ -22,7 +22,7 @@ jobs:
       - run: uv sync --locked
       - run: uv run ruff check .
       - run: uv run ruff format --check .
-      - run: uv run mypy custom_components/hybrid_heating/core
+      - run: uv run mypy
       - run: uv run pytest -m "not replay" -q
 
   replay:
@@ -35,3 +35,18 @@ jobs:
           python-version: "3.14"
       - run: uv sync --locked
       - run: uv run pytest -m replay -q
+
+  hassfest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: home-assistant/actions/hassfest@cd6f3635a740c84d8a14f6121a90068b8ece6bf6 # master
+
+  hacs:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: hacs/action@1ebf01c408f29afcb6406bd431bc98fd8cbb15aa # main
+        with:
+          category: integration

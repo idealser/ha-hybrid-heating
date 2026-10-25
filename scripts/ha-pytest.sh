@@ -10,4 +10,4 @@ MSYS_NO_PATHCONV=1 docker run --rm \
   -e UV_PROJECT_ENVIRONMENT=/venv -e UV_LINK_MODE=copy -e UV_CACHE_DIR=/uvcache \
   -v hh-venv:/venv -v hh-uvcache:/uvcache \
   ghcr.io/astral-sh/uv:python3.14-bookworm-slim \
-  sh -c "uv sync --locked -q && uv run pytest $*"
+  sh -c 'uv sync --locked -q && uv run pytest "$@"' sh "$@"

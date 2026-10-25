@@ -1,0 +1,143 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Boiler and power",
+        "description": "Pick the boiler and power meter entities. Nothing is controlled until you switch a layer to Active.",
+        "data": {
+          "boiler_call": "Boiler heat call",
+          "boiler_flow": "Boiler flow setpoint",
+          "boiler_rods": "Maximum heating rods",
+          "flow_temperature": "Flow temperature",
+          "active_rods": "Active heating rods",
+          "boiler_power": "Boiler power",
+          "total_power": "Whole-home power",
+          "water_heater": "Water heater"
+        },
+        "data_description": {
+          "boiler_call": "Switch that tells the boiler to heat.",
+          "boiler_flow": "Climate entity whose target temperature is the boiler's flow setpoint.",
+          "boiler_rods": "Number entity that limits how many heating rods the boiler may use.",
+          "flow_temperature": "Measured flow temperature, shown on the panel.",
+          "active_rods": "How many rods are on right now, shown on the panel.",
+          "boiler_power": "Boiler power in W or kW.",
+          "total_power": "Power of the whole home in W or kW. Load shedding watches it.",
+          "water_heater": "Switched off first when the home stays over the power limit."
+        }
+      },
+      "rooms": {
+        "title": "Rooms, weather and air conditioners",
+        "description": "Pick a temperature sensor for each room, the outdoor temperature and the air conditioners.",
+        "data": {
+          "temp_living": "Living room temperature",
+          "temp_bedroom": "Bedroom temperature",
+          "temp_child": "Child's room temperature",
+          "temp_bath": "Bathroom temperature",
+          "outdoor": "Outdoor temperature",
+          "weather": "Weather",
+          "ac_living": "Living room air conditioner",
+          "ac_bedroom": "Bedroom air conditioner",
+          "quiet_living": "Living room AC quiet mode",
+          "quiet_bedroom": "Bedroom AC quiet mode"
+        },
+        "data_description": {
+          "outdoor": "Picks the weather zone and the point on the flow curve.",
+          "weather": "Used for the forecast on the panel.",
+          "ac_living": "Heat-pump air conditioner held by the living room sensor.",
+          "ac_bedroom": "Heat-pump air conditioner held by the bedroom sensor.",
+          "quiet_living": "Optional. Quiet mode switch of the living room air conditioner, used at night.",
+          "quiet_bedroom": "Optional. Quiet mode switch of the bedroom air conditioner, used at night."
+        }
+      },
+      "coexistence": {
+        "title": "Existing heating",
+        "description": "Hybrid Heating works next to your current heating setup and gives control back when it stops.",
+        "data": {
+          "thermostat": "Current thermostat",
+          "overpower_automation": "Overpower automation",
+          "disable_overpower_automation": "Turn off the overpower automation while the Load layer is active"
+        },
+        "data_description": {
+          "thermostat": "The thermostat that drives the boiler today. It is turned off while the Boiler layer is active and turned back on afterwards.",
+          "overpower_automation": "Optional. Your existing automation that throttles the boiler on overload.",
+          "disable_overpower_automation": "When the Load layer is switched to Active, Hybrid Heating turns this automation off. It turns it back on when the layer leaves Active, or when Hybrid Heating is disabled or removed. It never deletes it."
+        }
+      }
+    },
+    "error": {
+      "entity_not_found": "This entity doesn't exist in Home Assistant."
+    },
+    "abort": {
+      "single_instance_allowed": "Hybrid Heating is already set up. Only one instance is allowed."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Boiler and power",
+        "description": "Pick the boiler and power meter entities.",
+        "data": {
+          "boiler_call": "Boiler heat call",
+          "boiler_flow": "Boiler flow setpoint",
+          "boiler_rods": "Maximum heating rods",
+          "flow_temperature": "Flow temperature",
+          "active_rods": "Active heating rods",
+          "boiler_power": "Boiler power",
+          "total_power": "Whole-home power",
+          "water_heater": "Water heater"
+        },
+        "data_description": {
+          "boiler_call": "Switch that tells the boiler to heat.",
+          "boiler_flow": "Climate entity whose target temperature is the boiler's flow setpoint.",
+          "boiler_rods": "Number entity that limits how many heating rods the boiler may use.",
+          "flow_temperature": "Measured flow temperature, shown on the panel.",
+          "active_rods": "How many rods are on right now, shown on the panel.",
+          "boiler_power": "Boiler power in W or kW.",
+          "total_power": "Power of the whole home in W or kW. Load shedding watches it.",
+          "water_heater": "Switched off first when the home stays over the power limit."
+        }
+      },
+      "rooms": {
+        "title": "Rooms, weather and air conditioners",
+        "description": "Pick a temperature sensor for each room, the outdoor temperature and the air conditioners.",
+        "data": {
+          "temp_living": "Living room temperature",
+          "temp_bedroom": "Bedroom temperature",
+          "temp_child": "Child's room temperature",
+          "temp_bath": "Bathroom temperature",
+          "outdoor": "Outdoor temperature",
+          "weather": "Weather",
+          "ac_living": "Living room air conditioner",
+          "ac_bedroom": "Bedroom air conditioner",
+          "quiet_living": "Living room AC quiet mode",
+          "quiet_bedroom": "Bedroom AC quiet mode"
+        },
+        "data_description": {
+          "outdoor": "Picks the weather zone and the point on the flow curve.",
+          "weather": "Used for the forecast on the panel.",
+          "ac_living": "Heat-pump air conditioner held by the living room sensor.",
+          "ac_bedroom": "Heat-pump air conditioner held by the bedroom sensor.",
+          "quiet_living": "Optional. Quiet mode switch of the living room air conditioner, used at night.",
+          "quiet_bedroom": "Optional. Quiet mode switch of the bedroom air conditioner, used at night."
+        }
+      },
+      "coexistence": {
+        "title": "Existing heating",
+        "description": "Hybrid Heating works next to your current heating setup and gives control back when it stops.",
+        "data": {
+          "thermostat": "Current thermostat",
+          "overpower_automation": "Overpower automation",
+          "disable_overpower_automation": "Turn off the overpower automation while the Load layer is active"
+        },
+        "data_description": {
+          "thermostat": "The thermostat that drives the boiler today. It is turned off while the Boiler layer is active and turned back on afterwards.",
+          "overpower_automation": "Optional. Your existing automation that throttles the boiler on overload.",
+          "disable_overpower_automation": "When the Load layer is switched to Active, Hybrid Heating turns this automation off. It turns it back on when the layer leaves Active, or when Hybrid Heating is disabled or removed. It never deletes it."
+        }
+      }
+    },
+    "error": {
+      "entity_not_found": "This entity doesn't exist in Home Assistant."
+    }
+  }
+}

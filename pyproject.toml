@@ -35,5 +35,5 @@ allowed-confusables = ["−", "а", "е", "о", "р", "с", "у", "х", "А", "�
 
 [tool.mypy]
 python_version = "3.14"
-files = ["custom_components/hybrid_heating/core"]
+files = ["custom_components/hybrid_heating"]
 strict = true
