@@ -30,6 +30,8 @@ HA_MODULES = {
     "sensor",
     "binary_sensor",
     "websocket",
+    "websocket_learning",
+    "weather_forecast",
     "diagnostics",
     "alerts",
     "card_resource",
