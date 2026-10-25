@@ -3,7 +3,8 @@
   "name": "Hybrid Heating",
   "after_dependencies": [
     "frontend",
-    "lovelace"
+    "lovelace",
+    "recorder"
   ],
   "codeowners": [
     "@idealser"

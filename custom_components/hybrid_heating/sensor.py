@@ -81,10 +81,29 @@ class StatusSensor(HybridHeatingEntity, SensorEntity):
 
 
 class HeatLossSensor(HybridHeatingEntity, SensorEntity):
-    """The model's default for now; stage 5 replaces it with a value learned from history."""
+    """What the estimates use: the weekly estimate when it is good, else the model's default."""
 
     _attr_translation_key = "heat_loss"
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = "W/K"
-    _attr_native_value = DEFAULT_HEAT_LOSS_W_PER_K
-    _attr_extra_state_attributes = {"source": "model_default"}
+
+    @property
+    def native_value(self) -> float:
+        learned = self.coordinator.learning.heat_loss_w_per_k()
+        return learned if learned is not None else DEFAULT_HEAT_LOSS_W_PER_K
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        e = self.coordinator.learning.data.heat_loss
+        source = "model_default" if self.coordinator.learning.heat_loss_w_per_k() is None else "estimate"
+        if e is None:
+            return {"source": source}
+        return {
+            "source": source,
+            "status": e.status,
+            "estimate": e.w_per_k,
+            "days_used": e.days_used,
+            "r2": e.r2,
+            "window_days": e.window_days,
+            "computed_at": e.computed_at.isoformat(),
+        }

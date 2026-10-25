@@ -217,6 +217,7 @@ class HybridHeatingCoordinator(DataUpdateCoordinator[TickResult]):
             "entities": self.entities.to_mapping(),
             "controls": self.controls(),
             "takeover": to_data(self.takeover),
+            "model": {} if (h := self.learning.heat_loss_w_per_k()) is None else {"h_w_per_k": h},
         }
 
     def controls(self) -> dict[str, str]:

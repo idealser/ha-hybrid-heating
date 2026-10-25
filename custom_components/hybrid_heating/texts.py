@@ -46,6 +46,20 @@ TEXTS: Mapping[str, Mapping[str, str]] = {
     "season_idle": _t("Boiler off: outside the heating season", "Котёл выключен: не отопительный сезон"),
     "zone_boiler_off": _t("Boiler off in the {zone} zone", "Котёл выключен в зоне «{zone}»"),
     # Learning
+    "heat_loss_estimated": _t(
+        "Heat loss estimated: {w_per_k} W/K from {days_used} days",
+        "Теплопотери оценены: {w_per_k} Вт/К по {days_used} дням",
+    ),
+    "heat_loss_insufficient": _t(
+        "Heat loss: {days_used} of {min_days} usable days so far (whole days in season without the ACs); "
+        "estimates keep the default",
+        "Теплопотери: пока {days_used} из {min_days} подходящих дней (целые дни сезона без кондиционеров); "
+        "оценки по умолчанию",
+    ),
+    "heat_loss_implausible": _t(
+        "Heat loss estimate {w_per_k} W/K looks wrong; estimates keep the default",
+        "Оценка теплопотерь {w_per_k} Вт/К выглядит неверной; оценки по умолчанию",
+    ),
     "suggestion_created": _t(
         "New suggestion: {setting} from {old}° to {new}°", "Новая подсказка: {setting} с {old}° на {new}°"
     ),
