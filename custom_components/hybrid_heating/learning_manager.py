@@ -28,6 +28,7 @@ from .core.learning import (
     curve_suggestion,
     feedback_suggestion,
     is_fresh,
+    lever_changes,
     make_mark,
     morning_sample,
     prune,
@@ -43,7 +44,7 @@ from .core.model import (
     estimate_heat_loss,
     update_tally,
 )
-from .core.timeutil import before
+from .core.timeutil import before, elapsed_s
 from .core.types import Decision, Reason, Room, Settings, Snapshot
 from .suggestion_texts import heat_loss_view, suggestion_view
 
@@ -83,6 +84,7 @@ class LearningManager:
         self.revision = 1  # +1 whenever what the card shows as suggestions changes
         self.morning_buffer: list[TickSample] = []
         self._last_minute: datetime | None = None
+        self._saved_at: datetime | None = None
 
     async def async_load(self, now: datetime) -> None:
         raw = await self._c.store.async_load_learning()
@@ -106,16 +108,21 @@ class LearningManager:
         entry.async_on_unload(async_at_started(hass, self._async_heat_loss_at_start))
 
     def heat_loss_w_per_k(self) -> float | None:
-        """The learned heat loss if the last estimate is good; else None (estimates use the default)."""
-        e = self.data.heat_loss
-        return e.w_per_k if e is not None and e.status == "ok" else None
+        """The last good estimate of the heat loss; None until there is one (estimates use the default)."""
+        e = self.data.heat_loss_ok
+        return e.w_per_k if e is not None else None
 
     def _to_data(self) -> dict[str, Any]:
         data: dict[str, Any] = to_data(self.data)
         return data
 
     async def async_save(self) -> None:
+        self._saved_at = dt_util.now()
         await self._c.store.async_save_learning(self._to_data())
+
+    def _save_soon(self) -> None:
+        self._saved_at = dt_util.now()
+        self._c.config_entry.async_create_task(self._c.hass, self.async_save())
 
     @callback
     def on_tick(self, settings: Settings, snap: Snapshot, d: Decision, state: ControllerState) -> None:
@@ -136,7 +143,8 @@ class LearningManager:
             sample = tick_sample(settings, snap, d, state)
             if sample is not None:
                 self.morning_buffer.append(sample)
-        self._c.store.async_delay_save_learning(self._to_data, SAVE_DELAY_S)
+        if self._saved_at is None or elapsed_s(snap.now, self._saved_at) >= SAVE_DELAY_S:
+            self._save_soon()  # every few minutes, like the module's own state
 
     async def _async_morning_end(self, now: datetime) -> None:
         await self.async_morning_check(dt_util.as_local(now))
@@ -149,7 +157,9 @@ class LearningManager:
         if sample is not None:
             self.data.mornings = [m for m in self.data.mornings if m.day != day] + [sample]
         settings = self._c.settings
-        sg = curve_suggestion(self.data.mornings, settings, self.data.resolutions, now)
+        sg = curve_suggestion(
+            self.data.mornings, settings, self.data.resolutions, now, changed=self.data.changed
+        )
         if sg is not None:
             self.offer(sg, now)
         self.data = prune(self.data, settings, now)
@@ -191,9 +201,12 @@ class LearningManager:
             tallies=self.data.tallies,
             tz=dt_util.get_default_time_zone(),
         )
-        self.data.heat_loss = estimate_heat_loss(days, now)
+        estimate = estimate_heat_loss(days, now)
+        self.data.heat_loss = estimate
+        if estimate.status == "ok":
+            self.data.heat_loss_ok = estimate
         self.revision += 1
-        self._c.log.record_system(now, [heat_loss_reason(self.data.heat_loss)])
+        self._c.log.record_system(now, [heat_loss_reason(estimate)])
         await self.async_save()
         await self._c.async_flush()
         self._c.async_update_listeners()
@@ -218,7 +231,10 @@ class LearningManager:
         now = dt_util.now()
         out = [suggestion_view(s, "new", lang) for s in reversed(self.data.pending)]
         if self.data.heat_loss is not None:
-            out.append(heat_loss_view(self.data.heat_loss, DEFAULT_HEAT_LOSS_W_PER_K, lang))
+            used = self.heat_loss_w_per_k() or DEFAULT_HEAT_LOSS_W_PER_K
+            out.append(
+                heat_loss_view(self.data.heat_loss, lang, used=used, default=DEFAULT_HEAT_LOSS_W_PER_K)
+            )
         out += [
             suggestion_view(r.suggestion, r.action, lang)
             for r in reversed(self.data.resolutions)
@@ -240,12 +256,19 @@ class LearningManager:
             self._c.log.record_system(now, [Reason("system", "suggestion_stale", data)])
 
     @callback
-    def on_settings_changed(self, now: datetime) -> None:
-        """Someone changed a setting a suggestion was about: it no longer applies."""
-        stale = [p for p in self.data.pending if not is_fresh(self._c.settings, p)]
-        if stale:
-            self._withdraw(stale, now)
-            self._c.store.async_delay_save_learning(self._to_data, SAVE_DELAY_S)
+    def on_settings_changed(self, old: Settings, new: Settings, now: datetime) -> None:
+        """A setting changed: evidence about it starts afresh, and suggestions about it no longer apply."""
+        try:
+            changed = lever_changes(old, new)
+            for setting in changed:
+                self.data.changed[setting] = now
+            stale = [p for p in self.data.pending if not is_fresh(new, p)]
+            if stale:
+                self._withdraw(stale, now)
+            if changed or stale:
+                self._save_soon()
+        except Exception:
+            LOGGER.exception("Could not note the settings change for learning; the settings are saved")
 
     async def _async_decided(self) -> None:
         self.revision += 1
@@ -253,24 +276,32 @@ class LearningManager:
         await self._c.async_flush()
 
     async def async_apply(self, suggestion_id: str) -> None:
-        """NoSuchSuggestion, or StaleSuggestion / ValueError if it no longer applies."""
+        """NoSuchSuggestion, or StaleSuggestion / ValueError if it no longer applies.
+
+        The change is built from the settings found once the coordinator's lock is held, and the decision is
+        recorded in the same step: whatever someone else changed while apply waited stays as they left it.
+        """
         now = dt_util.now()
         sg = self._pending(suggestion_id)
+
+        def patch(settings: Settings) -> dict[str, Any]:
+            if sg not in self.data.pending:
+                raise StaleSuggestion(sg.setting)  # withdrawn while waiting
+            return suggestion_patch(settings, sg)
+
+        def applied() -> None:
+            self.data.pending.remove(sg)  # before the change is noted, so it is not withdrawn as stale
+            self.data.resolutions.append(Resolution(sg, "applied", now))
+            data: dict[str, float | str | bool] = {"setting": sg.setting, "old": sg.old, "new": sg.new}
+            self._c.log.record_system(now, [Reason("system", "suggestion_applied", data)])
+
         try:
-            patch = suggestion_patch(self._c.settings, sg)
+            await self._c.async_patch_settings(patch, "suggestion", on_merged=applied)
         except StaleSuggestion:
-            self._withdraw([sg], now)
+            if sg in self.data.pending:
+                self._withdraw([sg], now)
             await self.async_save()
             raise
-        self.data.pending.remove(sg)  # first, so the settings change does not withdraw it as stale
-        try:
-            await self._c.async_patch_settings(patch, "suggestion")
-        except ValueError:
-            self.data.pending.append(sg)
-            raise
-        self.data.resolutions.append(Resolution(sg, "applied", now))
-        data: dict[str, float | str | bool] = {"setting": sg.setting, "old": sg.old, "new": sg.new}
-        self._c.log.record_system(now, [Reason("system", "suggestion_applied", data)])
         await self._async_decided()
 
     async def async_dismiss(self, suggestion_id: str) -> None:
@@ -292,7 +323,9 @@ class LearningManager:
         self.data.marks.append(make_mark(room, kind, settings, result.snapshot, result.decision, at=now))
         data: dict[str, float | str | bool] = {"room": room.value, "mark": kind}
         self._c.log.record_system(now, [Reason("system", "feedback_marked", data)])
-        sg = feedback_suggestion(self.data.marks, room, kind, settings, self.data.resolutions, now)
+        sg = feedback_suggestion(
+            self.data.marks, room, kind, settings, self.data.resolutions, now, changed=self.data.changed
+        )
         if sg is not None:
             self.offer(sg, now)
             sg = next(p for p in self.data.pending if p.key == sg.key)  # the one shown already, if the same
@@ -302,9 +335,9 @@ class LearningManager:
 
     def offer(self, sg: Suggestion, now: datetime) -> bool:
         """Add a suggestion (one per key); True if the card has something new to show."""
-        before = self.data.pending
-        self.data.pending = upsert_pending(before, sg)
-        if self.data.pending == before:
+        shown = self.data.pending
+        self.data.pending = upsert_pending(shown, sg)
+        if self.data.pending == shown:
             return False
         self.revision += 1
         data: dict[str, float | str | bool] = {"setting": sg.setting, "old": sg.old, "new": sg.new}

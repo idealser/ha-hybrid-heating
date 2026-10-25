@@ -15,7 +15,7 @@ from .controller import ControllerState
 from .curve import CURVE_OUTDOOR_POINTS
 from .model import DayTally, HeatLossEstimate
 from .timeutil import before
-from .types import AC_ROOMS, Decision, Layer, LayerMode, Preset, Room, Settings, Snapshot
+from .types import AC_ROOMS, DRIVER_ROOMS, Decision, Layer, LayerMode, Preset, Room, Settings, Snapshot
 
 EPS = 1e-9  # a room exactly 0.5° off counts as off
 
@@ -121,6 +121,27 @@ def evidence_cutoff(resolutions: Sequence[Resolution], key: str) -> datetime | N
     return max(times) if times else None
 
 
+def _latest(*times: datetime | None) -> datetime | None:
+    known = [t for t in times if t is not None]
+    return max(known) if known else None
+
+
+def lever_changes(old: Settings, new: Settings) -> list[str]:
+    """The settings suggestions change that differ between old and new, as suggestion settings."""
+    out = [
+        f"curve.points.{int(t)}"
+        for (t, a), (_, b) in zip(old.curve.points, new.curve.points, strict=True)
+        if a != b
+    ]
+    if old.curve.shift != new.curve.shift:
+        out.append("curve.shift")
+    rooms = sorted(set(old.room_offsets) | set(new.room_offsets))
+    out += [
+        f"room_offsets.{r}" for r in rooms if old.room_offsets.get(r, 0.0) != new.room_offsets.get(r, 0.0)
+    ]
+    return out
+
+
 # The setting a suggestion changes
 
 
@@ -145,8 +166,13 @@ def suggestion_patch(settings: Settings, sg: Suggestion) -> dict[str, Any]:
         raise StaleSuggestion(sg.setting)
     head, _, tail = sg.setting.rpartition(".")
     if head == "curve.points":
-        point = float(tail)
-        return {"curve": {"points": [[t, sg.new if t == point else f] for t, f in settings.curve.points]}}
+        point, points = float(tail), settings.curve.points
+        i = next(i for i, (t, _) in enumerate(points) if t == point)
+        warmer = points[i - 1][1] if i > 0 else -math.inf
+        colder = points[i + 1][1] if i + 1 < len(points) else math.inf
+        if not warmer <= sg.new <= colder:
+            raise StaleSuggestion(sg.setting)  # a neighbour moved since: the curve would no longer rise
+        return {"curve": {"points": [[t, sg.new if t == point else f] for t, f in points]}}
     if sg.setting == "curve.shift":
         return {"curve": {"shift": sg.new}}
     return {"room_offsets": {tail: sg.new}}
@@ -167,7 +193,10 @@ class TickSample:
 def _on_curve(settings: Settings, snap: Snapshot, d: Decision, st: ControllerState) -> bool:
     """The boiler ran the module's curve: in Control, in season, nothing missing, nothing shed or paused."""
     paused = st.load.emergency_until is not None and before(snap.now, st.load.emergency_until)
-    missing = any(r.code in ("outdoor_unavailable", "rooms_unavailable") for r in d.reasons)
+    # A room the boiler would follow without a reading: it then follows the others, a different measure.
+    missing = any(snap.rooms.get(r) is None for r in DRIVER_ROOMS) or any(
+        r.code == "outdoor_unavailable" for r in d.reasons
+    )
     return (
         settings.layers.get(Layer.BOILER) is LayerMode.ACTIVE
         and d.season_active
@@ -227,8 +256,13 @@ def curve_suggestion(
     resolutions: Sequence[Resolution],
     now: datetime,
     ls: LearningSettings = LEARNING,
+    changed: Mapping[str, datetime] = MappingProxyType({}),
 ) -> Suggestion | None:
-    """Three mornings in a row in one band, all short of the target (or all over it): move that point."""
+    """Three mornings in a row in one band, all short of the target (or all over it): move that point.
+
+    Mornings before the last decision on this suggestion, or before the point or the shift last changed,
+    were measured on another curve and do not count.
+    """
     days = [now.date() - timedelta(days=i) for i in reversed(range(ls.streak))]
     by_day = {m.day: m for m in mornings}
     if any(d not in by_day for d in days):
@@ -244,7 +278,9 @@ def curve_suggestion(
     else:
         return None
     key = f"curve:{band}:{'up' if up else 'down'}"
-    cutoff = evidence_cutoff(resolutions, key)
+    cutoff = _latest(
+        evidence_cutoff(resolutions, key), changed.get(f"curve.points.{band}"), changed.get("curve.shift")
+    )
     if cutoff is not None and any(not before(cutoff, _morning_end(m.day, now, ls)) for m in run):
         return None
     if is_suppressed(resolutions, key, band, now, ls):
@@ -329,10 +365,15 @@ def feedback_suggestion(
     resolutions: Sequence[Resolution],
     now: datetime,
     ls: LearningSettings = LEARNING,
+    changed: Mapping[str, datetime] = MappingProxyType({}),
 ) -> Suggestion | None:
-    """Two or more marks of the same kind for a room within 7 days, an hour apart: change its lever."""
+    """Two or more marks of the same kind for a room within 7 days, an hour apart: change its lever.
+
+    Marks before the last decision on this suggestion, or before its setting last changed, are answered.
+    """
     key = f"fb:{room}:{kind}"
-    cutoff = evidence_cutoff(resolutions, key)
+    setting, old, new = _lever(room, kind, settings, ls)
+    cutoff = _latest(evidence_cutoff(resolutions, key), changed.get(setting))
     recent = sorted(
         (
             m
@@ -352,7 +393,6 @@ def feedback_suggestion(
         return None
     last = counted[-1]
     band = band_of(last.t_out, ls.band_step) if last.t_out is not None else None
-    setting, old, new = _lever(room, kind, settings, ls)
     if new == old or is_suppressed(resolutions, key, band, now, ls):
         return None
     evidence: dict[str, int | float | str] = {"marks": len(counted)}
@@ -375,7 +415,9 @@ class LearningData:
     pending: list[Suggestion] = field(default_factory=list)
     resolutions: list[Resolution] = field(default_factory=list)
     tallies: dict[date, DayTally] = field(default_factory=dict)
-    heat_loss: HeatLossEstimate | None = None
+    heat_loss: HeatLossEstimate | None = None  # the latest estimate, whatever its status
+    heat_loss_ok: HeatLossEstimate | None = None  # the latest good one: what estimates use
+    changed: dict[str, datetime] = field(default_factory=dict)  # when a suggestion setting last changed
 
 
 def upsert_pending(pending: Sequence[Suggestion], sg: Suggestion) -> list[Suggestion]:
@@ -406,4 +448,6 @@ def prune(
         resolutions=[r for r in data.resolutions if before(now - ls.keep_resolutions, r.at)],
         tallies={d: t for d, t in data.tallies.items() if d > today - ls.keep_tallies},
         heat_loss=data.heat_loss,
+        heat_loss_ok=data.heat_loss_ok,
+        changed={k: t for k, t in data.changed.items() if before(now - ls.keep_resolutions, t)},
     )

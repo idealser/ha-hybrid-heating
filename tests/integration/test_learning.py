@@ -123,3 +123,10 @@ async def test_without_the_recorder_estimates_use_the_model_default(hass, fake_h
     assert state.state == "150.0" and state.attributes["source"] == "model_default"
     config = (await ws(hass_ws_client, hass, type="hybrid_heating/get_config"))["result"]
     assert config["model"] == {}
+
+
+async def test_learning_is_saved_while_the_loop_runs(hass, fake_home, hass_storage, freezer):
+    await setup_integration(hass)
+    for _ in range(6):
+        await step(freezer, hass, 60)
+    assert hass_storage[LEARN_KEY]["data"]["tallies"]["2026-11-01"]["ticks"] >= 6

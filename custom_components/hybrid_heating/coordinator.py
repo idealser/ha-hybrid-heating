@@ -4,7 +4,7 @@ import asyncio
 import copy
 import logging
 from collections import deque
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, replace
 from datetime import datetime, timedelta
 from types import MappingProxyType
@@ -448,25 +448,42 @@ class HybridHeatingCoordinator(DataUpdateCoordinator[TickResult]):
         await self.async_refresh()
 
     async def async_patch_settings(
-        self, patch: Mapping[str, Any], source: Literal["ws", "entity", "suggestion"]
+        self,
+        patch: Mapping[str, Any] | Callable[[Settings], Mapping[str, Any]],
+        source: Literal["ws", "entity", "suggestion"],
+        *,
+        on_merged: Callable[[], None] | None = None,
     ) -> Settings:
-        """Merge a partial settings change; ValueError leaves the settings as they were."""
+        """Merge a partial settings change; ValueError leaves the settings as they were.
+
+        A callable patch is built from the settings found once the lock is held, so nothing changed while
+        waiting for it is overwritten; on_merged runs right after the merge, in the same step.
+        """
         async with self._lock:
-            new = await self._patch_settings(dt_util.now(), patch, source)
+            new = await self._patch_settings(dt_util.now(), patch, source, on_merged=on_merged)
         self.async_update_listeners()  # entities show the change now, the refresh may be debounced
         await self.async_request_refresh()
         return new
 
     async def _patch_settings(
-        self, now: datetime, patch: Mapping[str, Any], source: str, extra: Sequence[Reason] = ()
+        self,
+        now: datetime,
+        patch: Mapping[str, Any] | Callable[[Settings], Mapping[str, Any]],
+        source: str,
+        extra: Sequence[Reason] = (),
+        *,
+        on_merged: Callable[[], None] | None = None,
     ) -> Settings:
         if self._stopping:
             return self.settings  # unloading: taking over again is no longer allowed
-        new = merge_settings(self.settings, patch)
-        self.settings = new
+        changes = patch(self.settings) if callable(patch) else patch
+        new = merge_settings(self.settings, changes)
+        old, self.settings = self.settings, new
         self.revision += 1
-        self.learning.on_settings_changed(now)
-        changed = Reason("system", "settings_changed", {"keys": ",".join(sorted(patch)), "source": source})
+        if on_merged is not None:
+            on_merged()
+        self.learning.on_settings_changed(old, new, now)
+        changed = Reason("system", "settings_changed", {"keys": ",".join(sorted(changes)), "source": source})
         await self._apply_takeover(now, self._wants(), [*extra, changed])
         return new
 

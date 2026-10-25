@@ -84,7 +84,9 @@ def test_room_suggestion_details():
 
 def test_heat_loss_items():
     at = datetime(2026, 11, 9, 4, 30, tzinfo=TZ)
-    ok = heat_loss_view(HeatLossEstimate("ok", 148.0, 310.0, 0.93, 9, 28, at), 150.0, "en")
+    ok = heat_loss_view(
+        HeatLossEstimate("ok", 148.0, 310.0, 0.93, 9, 28, at), "en", used=148.0, default=150.0
+    )
     assert ok == {
         "id": "heat_loss@2026-11-09T04:30+01:00",
         "kind": "heat_loss",
@@ -94,12 +96,15 @@ def test_heat_loss_items():
         "detail": "From 9 whole heating days without the ACs. The forecast and the estimates use it instead "
         "of the default 150 W/K; it does not change how the module heats.",
     }
-    short = heat_loss_view(HeatLossEstimate("insufficient_data", None, None, None, 3, 28, at), 150.0, "ru")
+    short_estimate = HeatLossEstimate("insufficient_data", None, None, None, 3, 28, at)
+    short = heat_loss_view(short_estimate, "ru", used=150.0, default=150.0)
     assert short["title"] == "Теплопотери: пока мало данных"
     assert short["detail"] == (
         "Нужно 5 целых дней отопления без кондиционеров за 4 недели, пока 3. Оценки берут 150 Вт/К."
     )
-    odd = heat_loss_view(HeatLossEstimate("implausible", 20.0, -400.0, 0.5, 6, 28, at), 150.0, "en")
+    odd = heat_loss_view(
+        HeatLossEstimate("implausible", 20.0, -400.0, 0.5, 6, 28, at), "en", used=150.0, default=150.0
+    )
     assert odd["title"] == "Heat loss estimate looks wrong: 20 W/K"
     assert odd["detail"].startswith("Estimates keep 150 W/K.")
 
@@ -118,3 +123,9 @@ def test_russian_counts(n, ru):
         f"«холодно» {ru} за 7 дней"
         in suggestion_view(replace(sg, evidence={"marks": n}), "new", "ru")["detail"]
     )
+
+
+def test_a_short_week_names_the_value_still_in_use():
+    at = datetime(2026, 11, 9, 4, 30, tzinfo=TZ)
+    short = HeatLossEstimate("insufficient_data", None, None, None, 3, 28, at)
+    assert heat_loss_view(short, "en", used=148.0, default=150.0)["detail"].endswith("Estimates use 148 W/K.")

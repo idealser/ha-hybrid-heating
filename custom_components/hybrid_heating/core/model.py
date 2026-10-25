@@ -132,11 +132,14 @@ def estimate_heat_loss(
     min_days: int = HEAT_LOSS_MIN_DAYS,
     min_dt: float = 5.0,
     min_spread: float = 3.0,
+    min_boiler_w: float = 50.0,  # below that in season with the house colder outside: a stuck sensor
     max_boiler_w: float = 8000.0,
     min_ticks: int = 1200,
     max_ac_ticks: int = 60,
     min_season_share: float = 0.95,
     plausible: tuple[float, float] = (50.0, 400.0),
+    min_r2: float = 0.6,
+    gains_range: tuple[float, float] = (-300.0, 1500.0),
 ) -> HeatLossEstimate:
     """Least squares over whole heating days without the ACs: boiler W = H * (inside - outside) - gains."""
     first, today = now.date() - timedelta(days=window_days), now.date()
@@ -151,7 +154,7 @@ def estimate_heat_loss(
             t.ticks >= min_ticks
             and t.ac_heat_ticks <= max_ac_ticks
             and t.season_ticks >= min_season_share * t.ticks
-            and 0.0 <= s.boiler_w <= max_boiler_w
+            and min_boiler_w <= s.boiler_w <= max_boiler_w
             and dt >= min_dt
         ):
             points.append((dt, s.boiler_w))
@@ -173,5 +176,6 @@ def estimate_heat_loss(
     ss_tot = sum((y - my) ** 2 for _, y in points)
     ss_res = sum((y - (h * x + b)) ** 2 for x, y in points)
     r2 = 1.0 - ss_res / ss_tot if ss_tot > 0 else 1.0
-    status: Literal["ok", "implausible"] = "ok" if plausible[0] <= h <= plausible[1] else "implausible"
+    good = plausible[0] <= h <= plausible[1] and r2 >= min_r2 and gains_range[0] <= -b <= gains_range[1]
+    status: Literal["ok", "implausible"] = "ok" if good else "implausible"
     return result(status, round(h, 1), round(-b, 1), round(r2, 4))

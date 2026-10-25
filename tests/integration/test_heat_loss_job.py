@@ -127,3 +127,20 @@ async def test_a_failing_query_keeps_the_last_estimate(hass, fake_home, hass_sto
     with patch(INSTANCE, side_effect=RuntimeError("database is locked")):
         c = (await setup_integration(hass)).runtime_data
     assert c.learning.data.heat_loss == old and "database is locked" in caplog.text
+
+
+async def test_a_week_without_enough_days_keeps_the_last_good_estimate(
+    hass, fake_home, hass_storage, hass_ws_client, recorder
+):
+    good = HeatLossEstimate("ok", 148.0, 310.0, 0.93, 9, 28, datetime(2026, 10, 20, 4, 30, tzinfo=TZ))
+    saved_learning(
+        hass_storage, LearningData(tallies=tallies(ac_every_other=True), heat_loss=good, heat_loss_ok=good)
+    )
+    c = (await setup_integration(hass)).runtime_data  # the last estimate is 12 days old: a new one at start
+    assert c.learning.data.heat_loss is not None and c.learning.data.heat_loss.status == "insufficient_data"
+    state = hass.states.get("sensor.hybrid_heating_heat_loss")
+    assert float(state.state) == 148.0 and state.attributes["source"] == "estimate"
+    config = (await ws(hass_ws_client, hass, type="hybrid_heating/get_config"))["result"]
+    assert config["model"]["h_w_per_k"] == 148.0
+    info = c.learning.views("en")[0]
+    assert info["state"] == "info" and info["detail"].endswith("Estimates use 148 W/K.")
