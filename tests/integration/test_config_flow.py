@@ -139,7 +139,7 @@ async def test_options_flow_changes_thermostat_and_reloads(hass, fake_home):
     assert entry.options["thermostat"] == "climate.other"
     assert entry.options["disable_overpower_automation"] is True
     assert entry.state is ConfigEntryState.LOADED
-    assert entry.runtime_data is not first and entry.runtime_data.thermostat == "climate.other"
+    assert entry.runtime_data is not first and entry.runtime_data.entities.thermostat == "climate.other"
 
 
 async def test_options_flow_can_clear_an_optional_entity(hass, fake_home):
@@ -150,5 +150,5 @@ async def test_options_flow_can_clear_an_optional_entity(hass, fake_home):
     r = await hass.config_entries.options.async_configure(r["flow_id"], {"thermostat": "climate.thermostat"})
     assert r["type"] is FlowResultType.CREATE_ENTRY
     await hass.async_block_till_done()
-    assert entry.runtime_data.quiet == {Room.LIVING: None, Room.BEDROOM: None}
-    assert entry.runtime_data.overpower_automation is None
+    assert entry.runtime_data.entities.quiet == {Room.LIVING: None, Room.BEDROOM: None}
+    assert entry.runtime_data.entities.overpower_automation is None

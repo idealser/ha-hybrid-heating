@@ -13,7 +13,7 @@ from .const import WINDOW_MAX_HOURS
 from .core.context import validate_zones
 from .core.controller import ControllerState
 from .core.curve import validate_curve
-from .core.types import Settings
+from .core.types import Layer, Settings
 
 TARGET_MIN = 5.0
 TARGET_MAX = 30.0
@@ -144,6 +144,9 @@ def _decode_dataclass(tp: Any, data: Any, strict: bool, path: str) -> Any:
 
 
 def validate_settings(s: Settings) -> None:
+    missing = [layer.value for layer in Layer if layer not in s.layers]
+    if missing:
+        raise ValueError(f"layers: missing {', '.join(missing)}")
     validate_curve(s.curve)
     validate_zones(s.zones)
     for name in ("comfort", "eco", "night", "away"):
@@ -179,6 +182,15 @@ def merge_settings(current: Settings, patch: Mapping[str, Any]) -> Settings:
     merged = from_data(Settings, _deep_merge(to_data(current), patch), strict=True)
     validate_settings(merged)
     return merged
+
+
+def settings_from_saved(data: Any) -> Settings:
+    """Settings saved by this or another version: missing keys take defaults, unknown keys are ignored."""
+    if not isinstance(data, Mapping):
+        raise ValueError(f"settings must be an object, got {data!r}")
+    settings = from_data(Settings, _deep_merge(to_data(Settings()), data), strict=False)
+    validate_settings(settings)
+    return settings
 
 
 def restore_controller_state(data: Mapping[str, Any] | None, now: datetime) -> ControllerState:

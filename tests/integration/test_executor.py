@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pytest
 from homeassistant.core import Context
 from homeassistant.exceptions import HomeAssistantError
 
@@ -40,6 +41,7 @@ async def test_missing_target_is_skipped(hass, fake_home, calls):
     assert (res[0].status, res[0].detail) == ("skipped", "unavailable") and calls.log == []
 
 
+@pytest.mark.real_time
 async def test_timeout_marks_failed(hass, fake_home, calls):
     calls.delay("number", "set_value", 1.0)
     res = await async_run_commands(

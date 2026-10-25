@@ -20,7 +20,7 @@ dev = [
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
-markers = ["replay: slow season replay"]
+markers = ["replay: slow season replay", "real_time: do not freeze the clock"]
 asyncio_mode = "auto"
 
 [tool.ruff]

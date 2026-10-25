@@ -8,7 +8,9 @@ from custom_components.hybrid_heating.codec import (
     from_data,
     merge_settings,
     restore_controller_state,
+    settings_from_saved,
     to_data,
+    validate_settings,
 )
 from custom_components.hybrid_heating.core.controller import ControllerState
 from custom_components.hybrid_heating.core.curve import CURVE_OUTDOOR_POINTS
@@ -90,6 +92,27 @@ def test_merge_sets_sensor_offsets():
     s = merge_settings(Settings(), {"sensor_offsets": {"child": 0.3}})
     assert dict(s.sensor_offsets) == {Room.CHILD: 0.3}
     assert to_data(s)["sensor_offsets"] == {"child": 0.3}
+
+
+def test_saved_settings_fill_missing_keys_from_defaults():
+    s = settings_from_saved({"layers": {"boiler": "active"}, "targets": {"eco": 21.0}, "from_the_future": 1})
+    assert s.layers == {
+        Layer.BOILER: LayerMode.ACTIVE,
+        Layer.AC: LayerMode.OBSERVE,
+        Layer.LOAD: LayerMode.OBSERVE,
+    }
+    assert s.targets.eco == 21.0 and s.targets.comfort == 23.0
+
+
+@pytest.mark.parametrize("data", [{"layers": {"boiler": "turbo"}}, {"targets": {"comfort": 40.0}}, "junk"])
+def test_saved_settings_reject_bad_values(data):
+    with pytest.raises(ValueError):
+        settings_from_saved(data)
+
+
+def test_validate_rejects_missing_layer():
+    with pytest.raises(ValueError, match="layers"):
+        validate_settings(from_data(Settings, {"layers": {"boiler": "active"}}))
 
 
 def test_unknown_key_error_names_the_path():
