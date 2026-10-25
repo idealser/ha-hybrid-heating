@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.4.1
+
+What the card says is now true in every mode.
+
+- **Observe mode:** "Why" says what the module *would* do ("Would keep the radiators warm", "Would switch off: …"), ACs it does not run are shown as run by hand with their own setpoint, and the flow chip is labelled as the module's.
+- **Start-up:** until the first decision after a restart, "Why" says the module is starting instead of "the boiler is paused". The status reports this as `decided`.
+- **Rooms:** the boiler follows "the room furthest below its target", named with its real reading; room offsets no longer show a shifted number. The log and status texts give the gap to the target for the same reason.
+- **Pauses and load:** a pause out of season or for the load says so. Recovery after an overload is shown as such, and the shedding order matches what the module does. An overload being held shows before shedding starts.
+- **Background curve and what-if:** no lower flow where the boiler only backs up the ACs (the warm zone), as the core computes it. AC night modes apply in the night window with any preset.
+- **ACs:** an AC in another mode, switched off by hand, or with its layer off is described as such.
+- **Floor plan:** the radiators show the real heat call.
+- **Log:** an entry leads with what changed, failed and skipped commands are marked, and dates read day/month.
+- **Status line:** old data says so, and out of season a layer in control still reads "In control".
+- The boiler's tolerance setting is shown only in on/off mode.
+
 ## 0.4.0
 
 The card in tabs, so the overview is not buried under the settings.

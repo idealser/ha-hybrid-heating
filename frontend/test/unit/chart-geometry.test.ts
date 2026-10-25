@@ -34,7 +34,7 @@ test('curve path has 161 points and starts at +20', () => {
 
 test('background curve runs only where an AC zone is and hybrid is on', () => {
   const g = chartGeom(640);
-  expect(bgCurvePath(SETTINGS, g).startsWith('M40.0')).toBe(true);
+  expect(bgCurvePath(SETTINGS, g).startsWith(`M${g.x(7.75).toFixed(1)}`)).toBe(true); // below the warm zone
   expect(bgCurvePath({ ...SETTINGS, hybrid: false }, g)).toBe('');
 });
 

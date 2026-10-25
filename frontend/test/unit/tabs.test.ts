@@ -39,6 +39,10 @@ test('the status line under the title says who is in control', () => {
   const off = mergeSettings(SETTINGS, { layers: { boiler: 'off', ac: 'off', load: 'off' } });
   expect(statusLine(STATUS_NOW, off, 'en')).toEqual({ text: 'All layers are off', tone: 'idle' });
   expect(statusLine({ ...STATUS_NOW, season_active: false }, all, 'en')).toEqual({
+    text: 'In control: boiler, ACs, load · not the heating season',
+    tone: 'ok',
+  });
+  expect(statusLine({ ...STATUS_NOW, season_active: false }, SETTINGS, 'en')).toEqual({
     text: 'Not the heating season: the module only shows data.',
     tone: 'idle',
   });
@@ -58,4 +62,18 @@ test('long explanations shrink to their first sentence', () => {
     first: 'Outside +13.8°: zone “Warm”.',
     rest: true,
   });
+});
+
+test('old data says so instead of passing for live', () => {
+  const now = Date.parse(STATUS_NOW.now);
+  expect(statusLine(STATUS_NOW, SETTINGS, 'en', { nowMs: now + 2 * 60_000, tz: 'Europe/Berlin' }).text).toBe(
+    'Observing — nothing is changed',
+  );
+  expect(statusLine(STATUS_NOW, SETTINGS, 'en', { nowMs: now + 10 * 60_000, tz: 'Europe/Berlin' })).toEqual({
+    text: 'No new data since 15:05: the module is not updating',
+    tone: 'warn',
+  });
+  expect(statusLine(STATUS_NOW, SETTINGS, 'ru', { nowMs: now + 10 * 60_000, tz: 'Europe/Berlin' }).text).toBe(
+    'Нет новых данных с 15:05: модуль не обновляется',
+  );
 });

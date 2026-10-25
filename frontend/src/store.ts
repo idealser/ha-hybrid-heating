@@ -173,7 +173,8 @@ export class CardStore {
         patch.forecast = await this.forecast();
       this.set(patch);
     } catch {
-      // Home Assistant shows its own banner when the connection drops; keep what is on screen.
+      // Keep what is on screen, and redraw: the status line marks data that stopped coming as old.
+      this.o.onChange();
     } finally {
       this.polling = false;
     }

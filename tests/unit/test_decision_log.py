@@ -130,3 +130,12 @@ def test_identical_failed_system_entries_are_logged_once():
     log.record_system(T0 + sec(9), [Reason("system", "settings_changed")])
     log.record_system(T0 + sec(10), [Reason("system", "settings_changed")])
     assert len(log.to_data()) == 3  # entries without failures are always kept
+
+
+def test_a_new_reason_heads_the_entry():
+    log = DecisionLog()
+    boiler = Reason(Layer.BOILER, "smooth_on", {"driver": 22.6, "target": 23.0})
+    ac = Reason(Layer.AC, "ac_manual_off", {"room": "living"})
+    log.record_tick(T0, Decision((), (boiler,), 36.1, 0, 23.0, Preset.COMFORT, True), [])
+    assert log.record_tick(T0 + sec(60), Decision((), (boiler, ac), 36.1, 0, 23.0, Preset.COMFORT, True), [])
+    assert [r["code"] for r in log.latest(1)[0]["reasons"]] == ["ac_manual_off", "smooth_on"]

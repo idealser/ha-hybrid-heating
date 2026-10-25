@@ -2,7 +2,7 @@
 import { type Lang, t } from '../i18n/index';
 import type { AcRoom, HhForecastHour, HhModelParams, HhSettings, ZoneIndex } from '../types';
 import { AC_ROOMS } from '../types';
-import { dayLabel, effectiveTarget, localTime, presetTarget } from './context';
+import { dayLabel, effectiveTarget, inNightWindow, localTime, presetTarget } from './context';
 import { flowFor } from './curve';
 import { fT } from './format';
 import { zoneIndex, zoneName, zoneSummary } from './zones';
@@ -59,6 +59,8 @@ export interface ProbeResult {
   cop: number | null;
   electricKw: number;
   acActive: boolean;
+  /** The boiler runs the lower background curve: ACs heat and the boiler is the main heat (as the core). */
+  background: boolean;
   flow: number;
 }
 
@@ -88,6 +90,7 @@ export function probe(
   const boilerKw = Math.min(Math.max(0, demandKw - acTotalKw), boilerCapKw);
   const shortKw = Math.max(0, demandKw - acTotalKw - boilerKw);
   const acActive = acTotalKw > 0;
+  const background = acActive && s.hybrid && policy.boiler === 'main';
   const cop = acActive ? acCop(tOut) : null;
   return {
     zone,
@@ -100,7 +103,8 @@ export function probe(
     cop,
     electricKw: (cop ? acTotalKw / cop : 0) + boilerKw,
     acActive,
-    flow: flowFor(s.curve, tOut, { acActive, hybrid: s.hybrid }),
+    background,
+    flow: flowFor(s.curve, tOut, { acActive: background, hybrid: s.hybrid }),
   };
 }
 
@@ -122,8 +126,10 @@ export function forecastTotals(
   let kwh = 0;
   let demand = 0;
   for (const h of hours) {
-    const [preset, target] = effectiveTarget(s.targets, s.preset, localTime(h.ts, tz).hhmm);
-    const p = probe(s, m, h.t_out, { target, night: preset === 'night' });
+    const hhmm = localTime(h.ts, tz).hhmm;
+    const [, target] = effectiveTarget(s.targets, s.preset, hhmm);
+    // AC night modes: inside the night window with any preset, and all day on Night (as the core)
+    const p = probe(s, m, h.t_out, { target, night: s.preset === 'night' || inNightWindow(s.targets, hhmm) });
     kwh += p.electricKw;
     demand += p.demandKw;
   }

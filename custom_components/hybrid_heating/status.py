@@ -140,7 +140,11 @@ def build_status(
     boiler_reason = next((r for r in reasons if r.layer is Layer.BOILER and "driver" in r.data), None)
     driver = _driver(settings, snap, zone, boiler_reason)
     ac_state = layer_ac_state(settings, state)
-    ac_heating = snap is not None and any(snap.ac_hvac.get(r) == "heat" for r in AC_ROOMS)
+    # As the controller decides it: an AC that really heats and that the module does not count as failing.
+    ac_heating = snap is not None and any(
+        snap.ac_hvac.get(r) == "heat" and snap.ac_available.get(r, False) and r not in ac_state.degraded
+        for r in AC_ROOMS
+    )
     shift = (
         settings.curve.ac_background_shift
         if settings.hybrid and ac_heating and driver["mode"] == "average"
@@ -151,6 +155,8 @@ def build_status(
         "revision": revision,
         "seq": {"log": log_seq, "suggestions": suggestions_seq},
         "enabled": enabled,
+        # False until the first decision after a start (the start-up grace): nothing to explain yet.
+        "decided": decision is not None,
         "season_active": decision.season_active if decision is not None else state.season_active,
         "now": now.isoformat(),
         "t_out": t_out,

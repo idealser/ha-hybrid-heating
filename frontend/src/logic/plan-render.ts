@@ -34,5 +34,6 @@ export function deviceStates(st: HhStatus | null): { acOn: Record<AcRoom, boolea
   const acOn = Object.fromEntries(
     AC_ROOMS.map(room => [room, !!st && st.acs[room].available && st.acs[room].hvac === 'heat']),
   ) as Record<AcRoom, boolean>;
-  return { acOn, heatOn: !!st && st.season_active && st.boiler.call_on === true };
+  // what really runs: the heat call, whoever drives it (in observe mode the old thermostat)
+  return { acOn, heatOn: !!st && st.boiler.call_on === true };
 }

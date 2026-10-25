@@ -34,7 +34,7 @@ test('probe readout at +13.8 (ru)', async ({ page }) => {
   await page.goto(H({ lang: 'ru', tariff: '0.30', currency: '¤' }));
   await openTab(page, 'Кривая');
   const r = page.locator('hh-probe .readout');
-  await expect(r).toContainText('Подача котла32°, фон');
+  await expect(r).toContainText('Подача котла35°Нужно') // the warm zone backs up the ACs: the full curve;
   await expect(r).toContainText('Нужно тепла1,1 кВт');
   await expect(r).toContainText('Электричество за сутки13 кВт·ч');
   await expect(r).toContainText('Стоимость за сутки4 ¤');

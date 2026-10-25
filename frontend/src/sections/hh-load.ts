@@ -80,7 +80,7 @@ export class HhLoad extends LitElement {
     const kw = this.status?.load.kw ?? null;
     const limit = s.load.limit_kw;
     const m = loadMeter(kw, limit, SCALE_KW);
-    const shed = this.status ? shedNow(this.status, L) : null;
+    const shed = this.status ? shedNow(this.status, s, L) : null;
     return html`<section class="card" aria-labelledby="h-load">
       <div class="card-head">
         <h2 id="h-load">${t(L, 'section.load')}</h2>
@@ -93,9 +93,11 @@ export class HhLoad extends LitElement {
       <div class="field">
         <span class="lbl">${t(L, 'load.queue')}</span>
         <ol class="shed">
-          <li>${t(L, 'load.q1')}</li>
-          <li>${t(L, 'load.q2')}</li>
-          <li>${t(L, 'load.q3')}</li>
+          <li>${t(L, 'load.q1', { s: s.load.shed_after_s, p: s.load.pause_s })}</li>
+          <li>${t(L, 'load.q2', { step: s.load.step_interval_s })}</li>
+          <li>
+            ${t(L, 'load.q3', { restore: fKw(s.load.restore_kw, L), min: Math.round(s.load.restore_after_s / 60) })}
+          </li>
         </ol>
       </div>
       ${shed ? html`<p class="warn">${shed}</p>` : nothing}

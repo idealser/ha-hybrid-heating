@@ -68,6 +68,7 @@ def test_now_scenario():
     assert s["flow_target"] == pytest.approx(s["curve_flow"] + s["correction"], abs=0.01)
     assert s["acs"]["living"]["owned"] is True and s["load"]["kw"] == 1.3
     assert s["revision"] == 3 and s["seq"] == {"log": 10, "suggestions": 0}
+    assert s["decided"] is True
     assert s["reasons"] and all(r["text"].startswith("ru:") for r in s["reasons"])
     assert s["boiler"]["writes_left"] == 47  # one flow write in this tick
     json.dumps(s)
@@ -147,6 +148,7 @@ def test_before_the_first_tick():
         text=lambda r, lang: r.code,
     )
     assert r["t_out"] is None and r["flow_target"] is None and r["curve_flow"] is None and r["reasons"] == []
+    assert r["decided"] is False  # the card says "starting" instead of explaining a decision
     assert r["rooms"] == {"living": None, "bedroom": None, "child": None, "bath": None}
     assert set(r) == set(json.loads((FIXTURES / "status-now.json").read_text(encoding="utf-8")))
 
@@ -185,3 +187,26 @@ def test_status_says_what_the_module_wants_from_the_boiler():
         text=lambda r, lang: r.code,
     )
     assert r["boiler"]["wanted"] is None
+
+
+def test_background_shift_follows_the_controllers_rule():
+    """No shift for an AC the module counts as not coping, nor for one that is unavailable."""
+    hvac = {Room.LIVING: "heat", Room.BEDROOM: "heat"}
+    s = snap(t_out=-8.0, ac_hvac=hvac)
+    st = ControllerState.initial(T0)
+    st.ac.degraded = {Room.LIVING, Room.BEDROOM}
+    d = tick(ALL_ACTIVE, s, st)
+    r = build_status(
+        settings=ALL_ACTIVE,
+        snap=s,
+        decision=d,
+        state=st,
+        revision=1,
+        log_seq=0,
+        suggestions_seq=0,
+        enabled=True,
+        now=T0,
+        language="en",
+        text=lambda r, lang: r.code,
+    )
+    assert r["background_shift"] == 0.0

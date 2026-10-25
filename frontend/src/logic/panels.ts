@@ -17,11 +17,14 @@ export function seasonStatus(st: HhStatus, s: HhSettings, lang: Lang): string {
   });
 }
 
-/** What load shedding has switched off right now, or null when nothing is. */
-export function shedNow(st: HhStatus, lang: Lang): string | null {
+/** What load shedding has switched off right now (observing: what it would have), or null. */
+export function shedNow(st: HhStatus, s: HhSettings, lang: Lang): string | null {
   const l = st.load;
   if (!l.shedding) return null;
-  const what = [l.water_heater_shed ? t(lang, 'why.water_heater') : null];
+  const what: string[] = [];
+  if (l.water_heater_shed) what.push(t(lang, 'why.water_heater'));
   if (l.rods_shed > 0) what.push(t(lang, 'load.shed_rods', { n: l.rods_shed }));
-  return t(lang, 'load.shedding_now', { what: what.filter(Boolean).join(', ') });
+  if (!what.length) what.push(t(lang, 'why.boiler_paused_word'));
+  const key = s.layers.load === 'active' ? 'load.shedding_now' : 'load.shedding_obs';
+  return t(lang, key, { what: what.join(', ') });
 }

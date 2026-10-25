@@ -92,7 +92,7 @@ export class HhLog extends LitElement {
         ? html`<ul class="log">
             ${this.entries.map(e => {
               const time = logTime(e.ts, this.now, this.tz, L);
-              const { title, detail } = logLines(e);
+              const { title, detail } = logLines(e, L);
               return html`<li>
                 <span class="tm" title=${time.full}>${time.short}</span><span class="pip pip-${logPip(e)}"></span>
                 <span class="tx"><b>${title}</b>${detail ? html`<span>${detail}</span>` : null}</span>

@@ -132,7 +132,7 @@ export class HhProbe extends LitElement {
     if (!s || !m) return nothing;
     const L = this.lang;
     const at = this.probe;
-    const p = probe(s, m, at);
+    const p = probe(s, m, at, { night: s.preset === 'night' });
     const day = probeDaily(p, m);
     const policy = s.zones.policies[p.zone];
     const total = Math.max(p.demandKw, 0.001);
@@ -140,7 +140,7 @@ export class HhProbe extends LitElement {
     const rows: [string, string][] = [
       [
         t(L, 'probe.flow'),
-        `${Math.round(p.flow)}°${s.hybrid && p.acActive && s.curve.ac_background_shift ? t(L, 'probe.flow_bg') : ''}`,
+        `${Math.round(p.flow)}°${p.background && s.curve.ac_background_shift ? t(L, 'probe.flow_bg') : ''}`,
       ],
       [t(L, 'probe.demand'), fKw(p.demandKw, L)],
       ...AC_ROOMS.map(
