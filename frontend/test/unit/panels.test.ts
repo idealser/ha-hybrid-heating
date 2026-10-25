@@ -1,7 +1,10 @@
 import { expect, test } from 'vitest';
 import { loadMeter, seasonStatus, shedNow } from '../../src/logic/panels';
 import type { HhStatus } from '../../src/types';
+import { mergeSettings } from '../../src/logic/draft';
 import { SETTINGS, STATUS_NOW } from '../fixtures';
+
+const LIVE = mergeSettings(SETTINGS, { layers: { load: 'active' } });
 
 test('load meter', () => {
   expect(loadMeter(1.3, 8)).toEqual({ fill: 13, hi: false, mark: 80 });
@@ -19,9 +22,13 @@ test('season line', () => {
 });
 
 test('what load shedding has switched off', () => {
-  expect(shedNow(STATUS_NOW, 'ru')).toBeNull();
+  expect(shedNow(STATUS_NOW, LIVE, 'ru')).toBeNull();
   const st = { ...STATUS_NOW, load: { ...STATUS_NOW.load, shedding: true, water_heater_shed: true, rods_shed: 1 } } as HhStatus;
-  expect(shedNow(st, 'ru')).toBe('Сейчас отключено: бойлер, ТЭНов снято: 1.');
+  expect(shedNow(st, LIVE, 'ru')).toBe('Сейчас отключено: бойлер, ТЭНов снято: 1.');
   const rods = { ...st, load: { ...st.load, water_heater_shed: false, rods_shed: 2 } } as HhStatus;
-  expect(shedNow(rods, 'en')).toBe('Switched off now: rods off: 2.');
+  expect(shedNow(rods, LIVE, 'en')).toBe('Switched off now: rods off: 2.');
+  // observing, nothing is switched off: say what the module would switch off
+  expect(shedNow(st, SETTINGS, 'ru')).toBe('Отключил бы сейчас: бойлер, ТЭНов снято: 1.');
+  const pause = { ...st, load: { ...st.load, water_heater_shed: false, rods_shed: 0 } } as HhStatus;
+  expect(shedNow(pause, LIVE, 'en')).toBe('Switched off now: the boiler (paused).');
 });

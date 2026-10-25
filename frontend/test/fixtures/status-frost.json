@@ -5,6 +5,7 @@
   "suggestions": 2
  },
  "enabled": true,
+ "decided": true,
  "season_active": true,
  "now": "2026-10-25T14:05:00Z",
  "t_out": -8.0,

@@ -21,7 +21,7 @@ test('nulls render without NaN and without a temperature for the child room', as
 test('why explains the now scenario', async ({ page }) => {
   await page.goto(H({ lang: 'ru' }));
   await expect(page.getByRole('heading', { name: 'Почему так' })).toBeVisible();
-  await expect(page.getByText('гостиную (23,3°) и спальню (22,8°) до 23,0°.')).toBeVisible();
+  await expect(page.getByText('гостиная (23,3°, уставка 24°) и спальня (22,8°, уставка 24°).')).toBeVisible();
   await expect(page.locator('hh-header .status')).toHaveText('Наблюдение — ничего не меняется');
 });
 

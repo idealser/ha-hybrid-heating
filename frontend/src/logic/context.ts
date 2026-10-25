@@ -31,11 +31,16 @@ export function presetTarget(t: PresetTargets, p: Preset): number {
   return { comfort: t.comfort, eco: t.eco, night: t.night, away: t.away }[p];
 }
 
-/** Comfort turns into Night inside the night window; other presets hold all day. */
-export function effectiveTarget(t: PresetTargets, preset: Preset, hhmm: string): [Preset, number] {
+/** Inside the night window (it may cross midnight), by the wall clock "HH:MM". */
+export function inNightWindow(t: PresetTargets, hhmm: string): boolean {
   const start = t.night_start.slice(0, 5);
   const end = t.night_end.slice(0, 5);
-  const night = start <= end ? start <= hhmm && hhmm < end : hhmm >= start || hhmm < end;
+  return start <= end ? start <= hhmm && hhmm < end : hhmm >= start || hhmm < end;
+}
+
+/** Comfort turns into Night inside the night window; other presets hold all day. */
+export function effectiveTarget(t: PresetTargets, preset: Preset, hhmm: string): [Preset, number] {
+  const night = inNightWindow(t, hhmm);
   const effective = preset === 'comfort' && night ? 'night' : preset;
   return [effective, presetTarget(t, effective)];
 }

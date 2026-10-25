@@ -16,21 +16,23 @@ def _t(en: str, ru: str) -> Mapping[str, str]:
 
 TEXTS: Mapping[str, Mapping[str, str]] = {
     # Boiler
+    # {gap}: how far the room the boiler follows is from its own target. The "driver" itself is a reading
+    # less its room offset, which is not a temperature any room shows.
     "smooth_on": _t(
-        "Boiler on: room {driver}° vs target {target}°, flow {flow}° (correction {correction}°)",
-        "Котёл включён: комната {driver}° при цели {target}°, подача {flow}° (поправка {correction}°)",
+        "Boiler on: {gap}° below target {target}°, flow {flow}° (correction {correction}°)",
+        "Котёл включён: на {gap}° ниже цели {target}°, подача {flow}° (поправка {correction}°)",
     ),
     "smooth_overheat_wait": _t(
-        "Boiler on, room above target: {driver}° vs {target}°, waiting before a pause; flow {flow}°",
-        "Котёл включён, комната выше цели: {driver}° при {target}°, ждём перед паузой; подача {flow}°",
+        "Boiler on, {gap}° above target {target}°: waiting before a pause; flow {flow}°",
+        "Котёл включён, на {gap}° выше цели {target}°: ждём перед паузой; подача {flow}°",
     ),
     "smooth_paused": _t(
-        "Boiler paused: room {driver}° above target {target}°",
-        "Котёл на паузе: комната {driver}° выше цели {target}°",
+        "Boiler paused: {gap}° above target {target}°",
+        "Котёл на паузе: на {gap}° выше цели {target}°",
     ),
     "smooth_resumed": _t(
-        "Boiler resumed: room {driver}° below target {target}°, flow {flow}°",
-        "Котёл снова греет: комната {driver}° ниже цели {target}°, подача {flow}°",
+        "Boiler resumed: {gap}° below target {target}°, flow {flow}°",
+        "Котёл снова греет: на {gap}° ниже цели {target}°, подача {flow}°",
     ),
     "classic_on_avg": _t(
         "Boiler on: rooms on average below target {target}°, flow {flow}°",
@@ -253,6 +255,9 @@ class _Fields(dict[str, str]):
 def render_reason(reason: Reason, lang: str, *, observe_suffix: bool = True) -> str:
     lang = lang if lang in LANGS else "en"
     data = {k: v for k, v in reason.data.items() if k != "observe"}
+    driver, target = data.get("driver"), data.get("target")
+    if isinstance(driver, (int, float)) and isinstance(target, (int, float)):
+        data["gap"] = round(abs(target - driver), 1)
     template = TEXTS.get(reason.code, {}).get(lang)
     if template is None:
         details = ", ".join(f"{k}={_value(k, v, lang)}" for k, v in data.items())

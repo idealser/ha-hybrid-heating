@@ -37,6 +37,8 @@ test('the built-in schematic has the four rooms, both ACs and four radiators', (
 test('devices: ACs heat when available and in heat; radiators when the boiler is called in season', () => {
   expect(deviceStates(STATUS_NOW)).toEqual({ acOn: { living: true, bedroom: true }, heatOn: true });
   expect(deviceStates(STATUS_NULLS)).toEqual({ acOn: { living: true, bedroom: false }, heatOn: true });
-  expect(deviceStates({ ...STATUS_NOW, season_active: false } as HhStatus).heatOn).toBe(false);
+  expect(deviceStates({ ...STATUS_NOW, season_active: false } as HhStatus).heatOn).toBe(true); // the device calls
+  const idle = { ...STATUS_NOW, boiler: { ...STATUS_NOW.boiler, call_on: false } } as HhStatus;
+  expect(deviceStates(idle).heatOn).toBe(false);
   expect(deviceStates(null)).toEqual({ acOn: { living: false, bedroom: false }, heatOn: false });
 });

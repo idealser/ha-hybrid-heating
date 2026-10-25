@@ -57,7 +57,9 @@ class DecisionLog:
         if not new and (not outcomes or repeated):
             return False
         actions = [{**to_data(o.action), "status": o.status, "detail": o.detail} for o in outcomes]
-        self._append(_entry(now, "tick", decision.reasons, actions, decision))
+        # What changed heads the entry; reasons that were already there (a boiler still on) follow.
+        reasons = sorted(decision.reasons, key=lambda r: (str(to_data(r.layer)), r.code) not in new)
+        self._append(_entry(now, "tick", reasons, actions, decision))
         return True
 
     def record_system(

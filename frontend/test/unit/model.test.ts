@@ -41,7 +41,7 @@ test('probe now, +13.8', () => {
   expect(p.boilerKw).toBeCloseTo(0.378, 3);
   expect(p.shortKw).toBe(0);
   expect(p.cop).toBeCloseTo(4.11, 2);
-  expect(p.flow).toBeCloseTo(32.32, 2);
+  expect(p.flow).toBeCloseTo(35.32, 2); // the warm zone backs up the ACs: the full curve, as the core
   const d = probeDaily(p, M);
   expect(d.kwh).toBeCloseTo(13.17, 2);
   expect(d.cost).toBeCloseTo(3.951, 2);
@@ -88,4 +88,13 @@ test('forecast scale and summary', () => {
       'Холоднее всего вт 27 в 03:00, −4,6°: зона «Мороз».',
   );
   expect(forecastSummary(S, [], TZ, 'en')).toBe('');
+});
+
+test('what-if flow: no background shift where the boiler only backs up the ACs', () => {
+  const warm = probe(SETTINGS, withModelDefaults(), 13.8);
+  expect(warm.acActive).toBe(true);
+  expect(warm.background).toBe(false);
+  expect(warm.flow).toBeCloseTo(35.32, 2);
+  const frost = probe(SETTINGS, withModelDefaults(), -8);
+  expect(frost.background).toBe(true);
 });

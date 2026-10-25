@@ -156,7 +156,9 @@ export class HhRooms extends LitElement {
         ${this.target('targets.eco', t(L, 'preset.eco'), tg.eco)}
         ${this.target('targets.away', t(L, 'preset.away'), tg.away)}
       </div>
-      ${this.target('boiler.classic_coldest_tolerance', t(L, 'rooms.tolerance'), s.boiler.classic_coldest_tolerance)}
+      ${s.boiler.mode === 'classic' // used only by the on/off mode
+        ? this.target('boiler.classic_coldest_tolerance', t(L, 'rooms.tolerance'), s.boiler.classic_coldest_tolerance)
+        : nothing}
       <div class="rooms">${ROOMS.map(r => this.row(r))}</div>
     </section>`;
   }

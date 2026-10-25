@@ -48,7 +48,8 @@ export function bgCurveSegments(s: HhSettings, step = 0.25): [number, number][][
   for (let i = 0; i <= 40 / step; i++) {
     const t = 20 - i * step;
     const policy = s.zones.policies[zoneIndex(s.zones.bounds, t)];
-    if (policy.ac_rooms.length > 0 && t >= s.ac.min_outdoor) {
+    // As the core: no background shift where the boiler follows the coldest room (backup zones).
+    if (policy.ac_rooms.length > 0 && policy.boiler === 'main' && t >= s.ac.min_outdoor) {
       if (!run) runs.push((run = []));
       run.push([t, flowFor(s.curve, t, { acActive: true, hybrid: true })]);
     } else {

@@ -280,7 +280,7 @@ export class HybridHeatingCard extends LitElement {
         ></hh-floor-plan>`;
       case 'why':
         return v.status && this.running
-          ? html`<hh-why .lang=${L} .view=${buildWhy(v.status, this.running, L)}></hh-why>`
+          ? html`<hh-why .lang=${L} .view=${buildWhy(v.status, this.running, L, this.tz)}></hh-why>`
           : nothing;
       case 'curve':
         return html`<hh-curve-card
@@ -393,7 +393,7 @@ export class HybridHeatingCard extends LitElement {
       .heading=${this._config?.title ?? ''}
       .version=${v?.config?.version ?? ''}
       .settings=${v?.phase === 'ready' ? this.settings : null}
-      .status=${running ? statusLine(v?.status ?? null, running, L) : null}
+      .status=${running ? statusLine(v?.status ?? null, running, L, { nowMs: Date.now(), tz: this.tz }) : null}
       .note=${running && !this.admin ? t(L, 'read_only') : ''}
     ></hh-header>`;
     if (!v || v.phase === 'loading')

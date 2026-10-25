@@ -26,7 +26,7 @@ test('log time: today HH:MM, earlier days as a date', () => {
   const tz = 'Europe/Berlin';
   expect(logTime('2026-10-25T13:02:00Z', now, tz, 'ru').short).toBe('14:02');
   expect(logTime('2026-10-24T13:02:00Z', now, tz, 'ru').short).toBe('24.10');
-  expect(logTime('2026-10-24T13:02:00Z', now, tz, 'en').short).toBe('10/24');
+  expect(logTime('2026-10-24T13:02:00Z', now, tz, 'en').short).toBe('24/10');
   expect(logTime('2026-10-24T13:02:00Z', now, tz, 'ru').full).toBe('24.10, 15:02');
 });
 
@@ -40,4 +40,19 @@ test('an entry reads as its first reason, the rest as detail', () => {
   };
   expect(logLines(e)).toEqual({ title: 'Boiler on', detail: 'One rod off' });
   expect(logLines({ ...e, reasons: [] })).toEqual({ title: '', detail: '' });
+});
+
+test('season, zone and hand-hold codes are grey', () => {
+  const e = LOG.en.entries[0]!;
+  for (const code of ['season_idle', 'zone_boiler_off', 'ac_manual_off', 'ac_manual_hold'])
+    expect(logPip(withReason(e, code.startsWith('ac') ? 'ac' : 'boiler', code)), code).toBe('idle');
+});
+
+test('a command that failed marks the entry; skipped ones are said', () => {
+  const e = { ...LOG.en.entries[0]!, actions: [{ kind: 'boiler_call', value: true, room: null, status: 'failed' as const, detail: 'timeout' }] };
+  expect(logPip(e)).toBe('cold');
+  expect(logLines(e).detail).toBe('Failed: 1');
+  const skipped = { ...e, actions: [{ ...e.actions[0]!, status: 'skipped' as const }] };
+  expect(logPip(skipped)).toBe(logPip(LOG.en.entries[0]!));
+  expect(logLines(skipped, 'ru').detail).toBe('Пропущено: 1');
 });

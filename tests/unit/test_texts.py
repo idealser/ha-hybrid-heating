@@ -67,12 +67,22 @@ def test_names_per_language():
 
 
 def test_smooth_on_exact():
+    # the driver is a room reading less its room offset, so the text gives the gap, which is real
+    assert render_reason(SMOOTH, "en") == "Boiler on: 0.4° below target 23.0°, flow 36.1° (correction +0.8°)"
     assert (
-        render_reason(SMOOTH, "en") == "Boiler on: room 22.6° vs target 23.0°, flow 36.1° (correction +0.8°)"
+        render_reason(SMOOTH, "ru") == "Котёл включён: на 0,4° ниже цели 23,0°, подача 36,1° (поправка +0,8°)"
     )
+
+
+def test_smooth_pause_texts_give_the_gap():
+    paused = Reason(Layer.BOILER, "smooth_paused", {"driver": 23.7, "target": 23.0})
+    assert render_reason(paused, "en") == "Boiler paused: 0.7° above target 23.0°"
+    assert render_reason(paused, "ru") == "Котёл на паузе: на 0,7° выше цели 23,0°"
+    resumed = Reason(Layer.BOILER, "smooth_resumed", {"driver": 22.9, "target": 23.0, "flow": 33.0})
+    assert render_reason(resumed, "en") == "Boiler resumed: 0.1° below target 23.0°, flow 33.0°"
+    wait = Reason(Layer.BOILER, "smooth_overheat_wait", {"driver": 23.6, "target": 23.0, "flow": 31.0})
     assert (
-        render_reason(SMOOTH, "ru")
-        == "Котёл включён: комната 22,6° при цели 23,0°, подача 36,1° (поправка +0,8°)"
+        render_reason(wait, "en") == "Boiler on, 0.6° above target 23.0°: waiting before a pause; flow 31.0°"
     )
 
 
@@ -117,8 +127,7 @@ def test_status_line():
         season_active=True,
     )
     assert render_status(d, "en", enabled=True, starting=False, boiler_observe=True) == (
-        "Observe · Warm · Comfort 23.0° · "
-        "Boiler on: room 22.6° vs target 23.0°, flow 36.1° (correction +0.8°)"
+        "Observe · Warm · Comfort 23.0° · Boiler on: 0.4° below target 23.0°, flow 36.1° (correction +0.8°)"
     )
     assert render_status(d, "ru", enabled=True, starting=False, boiler_observe=False).startswith(
         "Тепло · Комфорт 23,0° · Котёл включён"

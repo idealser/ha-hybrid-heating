@@ -43,12 +43,22 @@ test('point drag rounds to 0.5 within 15..85 and does not mutate', () => {
   expect(setPointFlow(C, 8, 70).points).toHaveLength(9);
 });
 
-test('background curve: one run +20..−15 by default, split when Cool has no ACs', () => {
+test('background curve: one run +7.75..−15 by default (Cool and Frost), only Frost when Cool has no ACs', () => {
   const seg = bgCurveSegments(SETTINGS);
   expect(seg).toHaveLength(1);
-  expect(seg[0]![0]![0]).toBe(20);
+  expect(seg[0]![0]![0]).toBe(7.75); // Warm (+8 and above) has the boiler as backup: no shift there
   expect(seg[0]!.at(-1)![0]).toBe(-15);
-  expect(bgCurveSegments(withZone1(SETTINGS, []))).toHaveLength(2);
+  const frostOnly = bgCurveSegments(withZone1(SETTINGS, []));
+  expect(frostOnly).toHaveLength(1);
+  expect(frostOnly[0]![0]![0]).toBe(-3.25);
   expect(bgCurveSegments({ ...SETTINGS, hybrid: false })).toEqual([]);
   expect(bgCurveSegments({ ...SETTINGS, curve: { ...C, ac_background_shift: 0 } })).toEqual([]);
+});
+
+test('the background curve runs only where the boiler is the main heat, as in the core', () => {
+  // defaults: warm zone (above +8) has the boiler as backup, cool and frost as main, severe frost has no ACs
+  const runs = bgCurveSegments(SETTINGS);
+  expect(runs).toHaveLength(1);
+  expect(runs[0]![0]![0]).toBeLessThan(8);
+  expect(runs[0]!.at(-1)![0]).toBe(-15);
 });

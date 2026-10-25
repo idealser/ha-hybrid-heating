@@ -1,6 +1,7 @@
 // The card's tabs: what each one shows, which ones have unsaved edits, and the line under the title.
 import { t, type I18nKey, type Lang } from '../i18n/index';
 import { LAYERS, type DeepPartial, type HhSettings, type HhStatus, type SectionKey } from '../types';
+import { localTime } from './context';
 
 export type TabKey = 'now' | 'curve' | 'rooms' | 'system';
 
@@ -49,17 +50,28 @@ export function dirtyTabs(diff: DeepPartial<HhSettings>): Set<TabKey> {
 
 export type Tone = 'warn' | 'ok' | 'idle';
 
+const STALE_MS = 3.5 * 60_000; // the module ticks every minute
+
 /** Who is in control, in one line: shown under the title on every tab. */
-export function statusLine(st: HhStatus | null, s: HhSettings, L: Lang): { text: string; tone: Tone } {
+export function statusLine(
+  st: HhStatus | null,
+  s: HhSettings,
+  L: Lang,
+  o: { nowMs?: number; tz?: string } = {},
+): { text: string; tone: Tone } {
+  if (st && o.nowMs !== undefined && o.nowMs - Date.parse(st.now) > STALE_MS)
+    return { text: t(L, 'status.stale', { hhmm: localTime(st.now, o.tz ?? 'UTC').hhmm }), tone: 'warn' };
   if (st && !st.enabled) return { text: t(L, 'banner.disabled'), tone: 'warn' };
-  if (st && !st.season_active) return { text: t(L, 'banner.season'), tone: 'idle' };
   const names = (mode: string) =>
     LAYERS.filter(l => s.layers[l] === mode).map(l => t(L, `layer.${l}` as I18nKey));
   const active = names('active');
   const observed = names('observe');
+  // Out of season a layer in control still acts (the boiler call is held off, load shedding runs).
+  if (st && !st.season_active && !active.length) return { text: t(L, 'banner.season'), tone: 'idle' };
   if (active.length) {
     const also = observed.length ? t(L, 'status.observing_also', { layers: observed.join(', ') }) : '';
-    return { text: t(L, 'status.in_control', { layers: active.join(', ') }) + also, tone: 'ok' };
+    const season = st && !st.season_active ? t(L, 'status.off_season') : '';
+    return { text: t(L, 'status.in_control', { layers: active.join(', ') }) + also + season, tone: 'ok' };
   }
   if (observed.length) return { text: t(L, 'status.observing'), tone: 'warn' };
   return { text: t(L, 'status.all_off'), tone: 'idle' };

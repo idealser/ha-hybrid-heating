@@ -178,6 +178,8 @@ export interface HhStatus {
   revision: number;
   seq: { log: number; suggestions: number };
   enabled: boolean;
+  /** False until the module's first decision after a start. */
+  decided: boolean;
   season_active: boolean;
   now: string;
   t_out: number | null;
