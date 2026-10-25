@@ -14,7 +14,7 @@ from typing import Any, Literal
 from .controller import ControllerState
 from .curve import CURVE_OUTDOOR_POINTS
 from .timeutil import before
-from .types import Decision, Layer, LayerMode, Room, Settings, Snapshot
+from .types import AC_ROOMS, Decision, Layer, LayerMode, Preset, Room, Settings, Snapshot
 
 EPS = 1e-9  # a room exactly 0.5° off counts as off
 
@@ -30,12 +30,20 @@ class LearningSettings:
     streak: int = 3
     curve_step: float = 1.5
     dismiss_for: timedelta = timedelta(days=30)
+    feedback_window: timedelta = timedelta(days=7)
+    feedback_min_marks: int = 2
+    feedback_min_gap: timedelta = timedelta(hours=1)  # several taps in a row are one complaint
+    offset_step: float = 0.3
+    offset_limit: float = 3.0
+    bath_shift_step: float = 1.0
+    shift_limit: float = 10.0
 
 
 LEARNING = LearningSettings()
 
 type SuggestionKind = Literal["curve", "feedback"]
 type ResolutionAction = Literal["applied", "dismissed"]
+type MarkKind = Literal["cold", "hot"]
 
 
 def _empty() -> Mapping[str, float | int | str]:
@@ -252,4 +260,98 @@ def curve_suggestion(
     }
     return make_suggestion(
         key, "curve", f"curve.points.{band}", old, new, band=band, room=None, now=now, evidence=evidence
+    )
+
+
+# Cold/Hot marks
+
+
+@dataclass(frozen=True)
+class Mark:
+    at: datetime
+    room: Room
+    kind: MarkKind
+    room_temp: float | None
+    target: float  # the room's own target then
+    t_out: float | None
+    preset: Preset
+    zone: int
+    flow_target: float | None
+    ac_hvac: str | None  # rooms with an AC only
+    ac_setpoint: float | None
+
+
+def make_mark(room: Room, kind: MarkKind, settings: Settings, snap: Snapshot, d: Decision) -> Mark:
+    ac = room in AC_ROOMS
+    return Mark(
+        at=snap.now,
+        room=room,
+        kind=kind,
+        room_temp=snap.rooms.get(room),
+        target=round(d.target + settings.room_offsets.get(room, 0.0), 2),
+        t_out=snap.t_out,
+        preset=d.preset,
+        zone=d.zone,
+        flow_target=d.flow_target,
+        ac_hvac=snap.ac_hvac.get(room) if ac else None,
+        ac_setpoint=snap.ac_setpoint.get(room) if ac else None,
+    )
+
+
+def _lever(room: Room, kind: MarkKind, settings: Settings, ls: LearningSettings) -> tuple[str, float, float]:
+    """(setting, old, new) for a room that is too cold or too hot.
+
+    The bathroom has no heater the module steers by its sensor, so its lever is the whole curve. Every
+    other room has its own target: the AC holds it, and the boiler follows rooms against their targets.
+    """
+    sign = 1.0 if kind == "cold" else -1.0
+    if room is Room.BATH:
+        old, step, limit, setting = settings.curve.shift, ls.bath_shift_step, ls.shift_limit, "curve.shift"
+    else:
+        old, step, limit = settings.room_offsets.get(room, 0.0), ls.offset_step, ls.offset_limit
+        setting = f"room_offsets.{room}"
+    return setting, old, round(min(limit, max(-limit, old + sign * step)), 1)
+
+
+def feedback_suggestion(
+    marks: Sequence[Mark],
+    room: Room,
+    kind: MarkKind,
+    settings: Settings,
+    resolutions: Sequence[Resolution],
+    now: datetime,
+    ls: LearningSettings = LEARNING,
+) -> Suggestion | None:
+    """Two or more marks of the same kind for a room within 7 days, an hour apart: change its lever."""
+    key = f"fb:{room}:{kind}"
+    cutoff = evidence_cutoff(resolutions, key)
+    recent = sorted(
+        (
+            m
+            for m in marks
+            if m.room is room
+            and m.kind == kind
+            and before(now - ls.feedback_window, m.at)
+            and (cutoff is None or before(cutoff, m.at))
+        ),
+        key=lambda m: m.at,
+    )
+    counted: list[Mark] = []
+    for m in recent:
+        if not counted or not before(m.at, counted[-1].at + ls.feedback_min_gap):
+            counted.append(m)
+    if len(counted) < ls.feedback_min_marks:
+        return None
+    last = counted[-1]
+    band = band_of(last.t_out, ls.band_step) if last.t_out is not None else None
+    setting, old, new = _lever(room, kind, settings, ls)
+    if new == old or is_suppressed(resolutions, key, band, now, ls):
+        return None
+    evidence: dict[str, float | int | str] = {"marks": len(counted)}
+    if last.room_temp is not None:
+        evidence["room_temp"] = last.room_temp
+    if last.t_out is not None:
+        evidence["t_out"] = last.t_out
+    return make_suggestion(
+        key, "feedback", setting, old, new, band=band, room=room, now=now, evidence=evidence
     )
