@@ -1,6 +1,6 @@
 // Mirror of core/model.py, plus the "what happens in this weather" estimate and forecast totals.
 import { type I18nKey, type Lang, plural, t } from '../i18n/index';
-import type { AcRoom, HhForecastHour, HhModelParams, HhSettings, ZoneIndex } from '../types';
+import type { AcRoom, CardConfig, HhForecastHour, HhModelParams, HhSettings, ZoneIndex } from '../types';
 import { AC_ROOMS } from '../types';
 import { dayLabel, effectiveTarget, inNightWindow, localTime, presetTarget } from './context';
 import { flowFor } from './curve';
@@ -20,12 +20,25 @@ export const DEFAULT_MODEL: HhModelParams = {
   rod_kw: 2.0,
   ac_rated_kw: { living: 3.5, bedroom: 2.7 },
   ac_share: { living: 0.42, bedroom: 0.23 },
-  // The rooms of the season replay's model (2.6 + 1.3 + 1.3): a first guess until it is learned
+  // The rooms of the season replay's model (2.6 + 1.3 + 1.3): a first guess until the module learns it
   capacity_kwh_per_k: 5.2,
 };
 
 export function withModelDefaults(m?: Partial<HhModelParams>): HhModelParams {
   return { ...DEFAULT_MODEL, ...(m ?? {}) };
+}
+
+/** The card's heat model: what the module has learned, then the card options over it, then the defaults. */
+export function cardModel(
+  learned: Partial<HhModelParams> | undefined,
+  c: Pick<CardConfig, 'tariff_per_kwh' | 'currency' | 'capacity_kwh_per_k'> | undefined,
+): HhModelParams {
+  return withModelDefaults({
+    ...learned,
+    ...(c?.tariff_per_kwh !== undefined ? { tariff_per_kwh: c.tariff_per_kwh } : {}),
+    ...(c?.currency ? { currency: c.currency } : {}),
+    ...(c?.capacity_kwh_per_k !== undefined ? { capacity_kwh_per_k: c.capacity_kwh_per_k } : {}),
+  });
 }
 
 export function heatDemandKw(h: number, gains: number, tIn: number, tOut: number): number {

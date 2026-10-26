@@ -44,6 +44,7 @@ def test_entity_names():
         "zone": "Zone",
         "status": "Status",
         "heat_loss": "Heat loss",
+        "heat_capacity": "Heat capacity",
         "boiler_call": "Boiler call",
         "load_shedding": "Load shedding",
     }
@@ -56,6 +57,7 @@ def test_entity_names():
         "zone": "Зона",
         "status": "Статус",
         "heat_loss": "Теплопотери",
+        "heat_capacity": "Теплоёмкость",
         "boiler_call": "Запрос тепла",
         "load_shedding": "Сброс нагрузки",
     }

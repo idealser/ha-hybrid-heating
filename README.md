@@ -41,6 +41,7 @@ You can change the entities later under the integration's **Configure**.
 | `sensor.hybrid_heating_zone` | The current weather zone. |
 | `sensor.hybrid_heating_status` | One line: zone, preset, target and what the boiler is doing. |
 | `sensor.hybrid_heating_heat_loss` | The heat loss the estimates use (W/K): learned every Monday from the recorder's daily statistics, the 150 W/K default until there are enough whole heating days without the ACs. |
+| `sensor.hybrid_heating_heat_capacity` | How much heat the flat stores per degree (kWh/K), which sets how fast the forecast lets it cool and warm up: learned every night from the hours the module saw nothing heating, the 5.2 kWh/K default until there are 24 such hours over two weeks with the flat cooling by 1° or more. |
 | `binary_sensor.hybrid_heating_boiler_call` | Whether the module wants the boiler to heat. |
 | `binary_sensor.hybrid_heating_load_shedding` | Whether it is shedding load (or would, in observe mode). |
 
@@ -61,6 +62,7 @@ The card follows the language of your Home Assistant profile (English or Russian
 | `title` | Replaces the heading. |
 | `hide_sections` | Sections to leave out: `plan`, `why`, `forecast`, `curve`, `probe`, `zone`, `rooms`, `load`, `season`, `suggestions`, `log`. |
 | `tariff_per_kwh`, `currency` | Your electricity price, for the cost estimates (default 0.25 €). |
+| `capacity_kwh_per_k` | The flat's heat capacity, if you'd rather set it than use what the module learns. |
 
 The floor plan starts as a sample layout. To show your own flat, convert its DXF drawing with `tools/dxf_to_plan.py` (see the docstring for the overlay that names the rooms), then upload the JSON in the card editor under **Floor plan**. It is stored in Home Assistant with the module's data, not in the dashboard.
 

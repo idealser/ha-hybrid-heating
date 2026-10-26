@@ -99,6 +99,19 @@ test('revision bump refetches config and keeps the draft', async () => {
   st.stop();
 });
 
+test('a new estimate refetches the config, which carries the heat model', async () => {
+  const { h, st } = mk();
+  await st.start();
+  await st.poll();
+  const loaded = count(h, 'hybrid_heating/get_config');
+  h.statusPatch = s => ({ ...s, seq: { ...s.seq, suggestions: s.seq.suggestions + 1 } });
+  await st.poll();
+  expect(count(h, 'hybrid_heating/get_config')).toBe(loaded + 1);
+  await st.poll();
+  expect(count(h, 'hybrid_heating/get_config')).toBe(loaded + 1);
+  st.stop();
+});
+
 test('log is refetched only when seq.log changes', async () => {
   const { h, st } = mk();
   await st.start();

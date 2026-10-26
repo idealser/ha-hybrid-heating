@@ -79,7 +79,11 @@ async def test_a_dismissed_suggestion_waits_30_days_in_similar_weather(
     freezer.tick(timedelta(days=31))
     again = await two_marks(client, freezer, "bath", "cold")
     assert again is not None and again["id"] != sg["id"]
-    assert [s["state"] for s in await listed(client)] == ["new"]  # the old dismissal is over a week old
+    # the old dismissal is over a week old; the nights since have tried the heat capacity too
+    assert [(s["kind"], s["state"]) for s in await listed(client)] == [
+        ("feedback", "new"),
+        ("heat_capacity", "info"),
+    ]
 
 
 async def test_a_suggestion_the_user_overtook_is_withdrawn(hass, fake_home, hass_ws_client, freezer):

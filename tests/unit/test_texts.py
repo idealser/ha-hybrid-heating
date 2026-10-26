@@ -233,6 +233,21 @@ def test_heat_loss_texts():
     assert render_reason(found, "ru") == "Теплопотери оценены: 148,3 Вт/К по 9 дням"
 
 
+def test_heat_capacity_texts():
+    short = Reason("system", "capacity_insufficient", {"hours_used": 7, "min_hours": 24})
+    assert render_reason(short, "en") == (
+        "Heat capacity: 7 of 24 usable hours so far (nothing heating, the flat cooling); "
+        "the forecast keeps its value"
+    )
+    found = Reason("system", "capacity_estimated", {"kwh_per_k": 23.3, "hours_used": 53})
+    assert render_reason(found, "ru") == "Теплоёмкость оценена: 23,3 кВт·ч/К по 53 ч"
+    odd = Reason("system", "capacity_implausible", {"kwh_per_k": -4.2, "hours_used": 30})
+    assert (
+        render_reason(odd, "en")
+        == "Heat capacity estimate -4.2 kWh/K looks wrong; the forecast keeps its value"
+    )
+
+
 def test_feedback_and_decision_texts():
     marked = Reason("system", "feedback_marked", {"room": "child", "mark": "cold"})
     assert (render_reason(marked, "en"), render_reason(marked, "ru")) == (

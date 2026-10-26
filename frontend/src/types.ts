@@ -319,4 +319,6 @@ export interface CardConfig {
   hide_sections?: SectionKey[];
   tariff_per_kwh?: number;
   currency?: string;
+  /** Overrides the heat capacity the module learns (kWh/K). */
+  capacity_kwh_per_k?: number;
 }

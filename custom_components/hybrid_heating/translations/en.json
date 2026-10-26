@@ -185,6 +185,9 @@
       },
       "heat_loss": {
         "name": "Heat loss"
+      },
+      "heat_capacity": {
+        "name": "Heat capacity"
       }
     },
     "binary_sensor": {

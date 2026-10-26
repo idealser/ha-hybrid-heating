@@ -185,6 +185,9 @@
       },
       "heat_loss": {
         "name": "Теплопотери"
+      },
+      "heat_capacity": {
+        "name": "Теплоёмкость"
       }
     },
     "binary_sensor": {

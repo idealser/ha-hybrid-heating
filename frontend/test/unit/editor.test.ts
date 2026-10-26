@@ -51,6 +51,21 @@ test('title, tariff and currency', async () => {
   expect((await got).detail.config).not.toHaveProperty('tariff_per_kwh');
 });
 
+test('a heat capacity set by hand, and left to the module again', async () => {
+  const { next, input } = await mount({ type: 'custom:hybrid-heating-card', capacity_kwh_per_k: 20 });
+  expect(input('capacity_kwh_per_k').value).toBe('20');
+  let got = next();
+  input('capacity_kwh_per_k').value = '23.3';
+  input('capacity_kwh_per_k').dispatchEvent(new Event('change'));
+  expect((await got).detail.config.capacity_kwh_per_k).toBe(23.3);
+  for (const typed of ['', '0']) {
+    got = next();
+    input('capacity_kwh_per_k').value = typed;
+    input('capacity_kwh_per_k').dispatchEvent(new Event('change'));
+    expect((await got).detail.config).not.toHaveProperty('capacity_kwh_per_k');
+  }
+});
+
 test('a floor plan file is uploaded to Home Assistant', async () => {
   const { el, hass, input } = await mount();
   const plan = { version: 1, viewBox: [0, 0, 1, 1] };

@@ -4,7 +4,7 @@ from typing import Final
 
 DOMAIN: Final = "hybrid_heating"
 TITLE: Final = "Hybrid Heating"
-VERSION: Final = "0.9.0"
+VERSION: Final = "0.10.0"
 STORAGE_VERSION: Final = 1
 
 # Timing (seconds)
@@ -21,6 +21,9 @@ LOG_SIZE: Final = 500
 WINDOW_BUCKET_S: Final = 300
 WINDOW_MAX_HOURS: Final = 72
 DEFAULT_HEAT_LOSS_W_PER_K: Final = 150.0
+# The card's model defaults (frontend/src/logic/model.ts): the heat capacity is worked out with the same gains
+DEFAULT_GAINS_W: Final = 300.0
+DEFAULT_CAPACITY_KWH_PER_K: Final = 5.2
 WS_PREFIX: Final = "hybrid_heating/"
 
 # Config entry keys: boiler and power

@@ -1,4 +1,4 @@
-"""What the module learns from the house: day tallies, the morning check of the curve, the marks.
+"""What the module learns from the house: tallies, the morning check, the marks, heat loss and capacity.
 
 It rides along with the control loop and never decides anything in it: a failure here is logged and the
 tick goes on.
@@ -15,7 +15,7 @@ from homeassistant.helpers.start import async_at_started
 from homeassistant.util import dt as dt_util
 
 from .codec import from_data, to_data
-from .const import DEFAULT_HEAT_LOSS_W_PER_K, SAVE_DELAY_S
+from .const import DEFAULT_CAPACITY_KWH_PER_K, DEFAULT_GAINS_W, DEFAULT_HEAT_LOSS_W_PER_K, SAVE_DELAY_S
 from .core.controller import ControllerState
 from .core.learning import (
     LEARNING,
@@ -40,22 +40,27 @@ from .core.learning import (
     upsert_pending,
 )
 from .core.model import (
+    CAPACITY_MIN_HOURS,
     HEAT_LOSS_MIN_DAYS,
     HEAT_LOSS_WINDOW_DAYS,
+    CapacityEstimate,
     HeatLossEstimate,
     day_stats,
+    estimate_capacity,
     estimate_heat_loss,
+    update_hour_tally,
     update_tally,
 )
 from .core.timeutil import before, elapsed_s
 from .core.types import BoilerMode, Decision, Reason, Room, Settings, Snapshot
-from .suggestion_texts import heat_loss_view, suggestion_view
+from .suggestion_texts import capacity_view, heat_loss_view, suggestion_view
 
 if TYPE_CHECKING:
     from .coordinator import HybridHeatingCoordinator
 
 LOGGER = logging.getLogger(__package__)
 HEAT_LOSS_EVERY = timedelta(days=7)  # on Mondays at 04:30, or at a start when the last one is older
+CAPACITY_EVERY = timedelta(days=1)  # every night at 04:30, after the heat loss, or at a start
 UNITS = {"power": "W", "temperature": "°C"}
 RESOLVED_SHOWN = timedelta(days=7)  # applied and dismissed suggestions stay in the list a week
 
@@ -78,6 +83,18 @@ def heat_loss_reason(e: HeatLossEstimate) -> Reason:
         return Reason("system", "heat_loss_implausible", data)
     data["min_days"] = HEAT_LOSS_MIN_DAYS
     return Reason("system", "heat_loss_insufficient", data)
+
+
+def capacity_reason(e: CapacityEstimate) -> Reason:
+    data: dict[str, float | str | bool] = {"hours_used": e.hours_used}
+    if e.kwh_per_k is not None:
+        data["kwh_per_k"] = e.kwh_per_k
+    if e.status == "ok":
+        return Reason("system", "capacity_estimated", data)
+    if e.status == "implausible":
+        return Reason("system", "capacity_implausible", data)
+    data["min_hours"] = CAPACITY_MIN_HOURS
+    return Reason("system", "capacity_insufficient", data)
 
 
 class LearningManager:
@@ -108,14 +125,19 @@ class LearningManager:
             async_track_time_change(hass, self._async_morning_end, hour=end.hour, minute=end.minute, second=0)
         )
         entry.async_on_unload(
-            async_track_time_change(hass, self._async_heat_loss_time, hour=4, minute=30, second=0)
+            async_track_time_change(hass, self._async_model_time, hour=4, minute=30, second=0)
         )
-        entry.async_on_unload(async_at_started(hass, self._async_heat_loss_at_start))
+        entry.async_on_unload(async_at_started(hass, self._async_model_at_start))
 
     def heat_loss_w_per_k(self) -> float | None:
         """The last good estimate of the heat loss; None until there is one (estimates use the default)."""
         e = self.data.heat_loss_ok
         return e.w_per_k if e is not None else None
+
+    def capacity_kwh_per_k(self) -> float | None:
+        """The last good estimate of the heat capacity; None until there is one (the card has a default)."""
+        e = self.data.capacity_ok
+        return e.kwh_per_k if e is not None else None
 
     def _to_data(self) -> dict[str, Any]:
         data: dict[str, Any] = to_data(self.data)
@@ -142,6 +164,7 @@ class LearningManager:
             return  # one count per minute, however often the loop ticks
         self._last_minute = minute
         update_tally(self.data.tallies, snap, d)
+        update_hour_tally(self.data.hours, snap)
         sample = tick_sample(settings, snap, d, state)
         if LEARNING.morning_start <= snap.now.time() < LEARNING.morning_end:
             if self.morning_buffer and self.morning_buffer[0].at.date() != snap.now.date():
@@ -191,21 +214,30 @@ class LearningManager:
         await self.async_save()
         await self._c.async_flush()
 
-    # The heat loss, once a week
+    # The heat loss once a week, then the heat capacity every night
 
     def _heat_loss_due(self, now: datetime) -> bool:
         e = self.data.heat_loss
         return e is None or not before(now, e.computed_at + HEAT_LOSS_EVERY)
 
-    async def _async_heat_loss_time(self, _fired: datetime) -> None:
+    def _capacity_due(self, now: datetime) -> bool:
+        e = self.data.capacity
+        if e is None:
+            return bool(self.data.hours)  # a first start has seen no hour yet: nothing to say
+        return not before(now, e.computed_at + CAPACITY_EVERY)
+
+    async def _async_model_time(self, _fired: datetime) -> None:
         now = dt_util.now()  # the callback fires a fraction of a second late
         if now.weekday() == 0 or self._heat_loss_due(now):
             await self.async_heat_loss_job(now)
+        await self.async_capacity_job(now)
 
-    async def _async_heat_loss_at_start(self, hass: HomeAssistant) -> None:
+    async def _async_model_at_start(self, hass: HomeAssistant) -> None:
         now = dt_util.now()
         if self._heat_loss_due(now):
             await self.async_heat_loss_job(now)
+        if self._capacity_due(now):
+            await self.async_capacity_job(now)
 
     async def async_heat_loss_job(self, now: datetime) -> None:
         """Estimate the heat loss from the last four weeks of daily statistics."""
@@ -236,6 +268,19 @@ class LearningManager:
         await self._c.async_flush()
         self._c.async_update_listeners()
 
+    async def async_capacity_job(self, now: datetime) -> None:
+        """Estimate the heat capacity from the hours with nothing heating, with the heat loss in use."""
+        h = self.heat_loss_w_per_k() or DEFAULT_HEAT_LOSS_W_PER_K
+        estimate = estimate_capacity(self.data.hours, now, h_w_per_k=h, gains_w=DEFAULT_GAINS_W)
+        self.data.capacity = estimate
+        if estimate.status == "ok":
+            self.data.capacity_ok = estimate
+        self.revision += 1
+        self._c.log.record_system(now, [capacity_reason(estimate)])
+        await self.async_save()
+        await self._c.async_flush()
+        self._c.async_update_listeners()
+
     async def _daily_means(self, now: datetime) -> Any:
         # Imported here: the module also runs without the recorder.
         from homeassistant.components.recorder.statistics import statistics_during_period
@@ -252,7 +297,7 @@ class LearningManager:
     # Suggestions
 
     def views(self, lang: str) -> list[dict[str, Any]]:
-        """What the card lists: new suggestions, the heat loss, then what was decided this week."""
+        """What the card lists: new suggestions, the heat model, then what was decided this week."""
         now = dt_util.now()
         out = [suggestion_view(s, "new", lang) for s in reversed(self.data.pending)]
         if self.data.heat_loss is not None:
@@ -260,6 +305,9 @@ class LearningManager:
             out.append(
                 heat_loss_view(self.data.heat_loss, lang, used=used, default=DEFAULT_HEAT_LOSS_W_PER_K)
             )
+        if self.data.capacity is not None:
+            used = self.capacity_kwh_per_k() or DEFAULT_CAPACITY_KWH_PER_K
+            out.append(capacity_view(self.data.capacity, lang, used=used, default=DEFAULT_CAPACITY_KWH_PER_K))
         out += [
             suggestion_view(r.suggestion, r.action, lang)
             for r in reversed(self.data.resolutions)

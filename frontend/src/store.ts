@@ -166,7 +166,8 @@ export class CardStore {
     }
   }
 
-  /** New status; settings, log and suggestions only when their counters moved (or `texts` asks). */
+  /** New status; settings, log and suggestions only when their counters moved (or `texts` asks).
+   * A new heat-loss or heat-capacity estimate moves the suggestions counter: the config carries the model. */
   async poll(texts = false): Promise<void> {
     if (this.view.phase !== 'ready' || this.polling) return;
     this.polling = true;
@@ -174,7 +175,8 @@ export class CardStore {
     const before = this.view.status;
     try {
       const status = await this.api.getStatus(lang);
-      if (status.revision !== this.view.config?.revision) this.adopt(await this.api.getConfig());
+      const learned = before != null && status.seq.suggestions !== before.seq.suggestions;
+      if (status.revision !== this.view.config?.revision || learned) this.adopt(await this.api.getConfig());
       const patch: Partial<StoreView> = { status };
       if (texts || status.seq.log !== before?.seq.log) patch.log = await this.api.getLog(lang, LOG_LIMIT);
       const sugg = this.view.suggestions;

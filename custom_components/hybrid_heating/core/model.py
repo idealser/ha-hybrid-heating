@@ -5,7 +5,7 @@ Numbers come from the user's HA data and equipment (see the design spec, section
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta, tzinfo
+from datetime import UTC, date, datetime, timedelta, tzinfo
 from typing import Any, Literal
 
 from .types import Decision, Snapshot
@@ -179,3 +179,109 @@ def estimate_heat_loss(
     good = plausible[0] <= h <= plausible[1] and r2 >= min_r2 and gains_range[0] <= -b <= gains_range[1]
     status: Literal["ok", "implausible"] = "ok" if good else "implausible"
     return result(status, round(h, 1), round(-b, 1), round(r2, 4))
+
+
+# The heat capacity, learned from the hours when nothing heats
+
+CAPACITY_WINDOW_DAYS = 14
+CAPACITY_MIN_HOURS = 24
+
+
+@dataclass(frozen=True)
+class HourTally:
+    """One hour as the module saw it, a count per minute it ran: whether anything heated, and the means."""
+
+    ticks: int = 0
+    heat_ticks: int = 0  # the boiler had a heat call (or its state was unknown), or an AC heated
+    t_in_sum: float = 0.0  # the mean of the room readings, summed over the minutes that had one
+    t_in_n: int = 0
+    t_out_sum: float = 0.0
+    t_out_n: int = 0
+
+
+def hour_of(at: datetime) -> datetime:
+    """The hour an instant falls in, in UTC: a local clock repeats an hour when it falls back."""
+    return at.astimezone(UTC).replace(minute=0, second=0, microsecond=0)
+
+
+def update_hour_tally(hours: dict[datetime, HourTally], snap: Snapshot) -> None:
+    """Count this tick for its hour."""
+    at = hour_of(snap.now)
+    t = hours.get(at, HourTally())
+    heats = snap.boiler_call_on is not False or any(h == "heat" for h in snap.ac_hvac.values())
+    inside = [v for v in snap.rooms.values() if v is not None]
+    t_in = sum(inside) / len(inside) if inside else None
+    hours[at] = HourTally(
+        t.ticks + 1,
+        t.heat_ticks + heats,
+        t.t_in_sum + (t_in if t_in is not None else 0.0),
+        t.t_in_n + (t_in is not None),
+        t.t_out_sum + (snap.t_out if snap.t_out is not None else 0.0),
+        t.t_out_n + (snap.t_out is not None),
+    )
+
+
+@dataclass(frozen=True)
+class CapacityEstimate:
+    status: Literal["ok", "insufficient_data", "implausible"]
+    kwh_per_k: float | None
+    hours_used: int
+    cooled_k: float  # how far the flat cooled over those hours, all together
+    h_w_per_k: float  # the heat loss it was worked out with
+    window_days: int
+    computed_at: datetime
+
+
+def estimate_capacity(
+    hours: Mapping[datetime, HourTally],
+    now: datetime,
+    *,
+    h_w_per_k: float,
+    gains_w: float,
+    window_days: int = CAPACITY_WINDOW_DAYS,
+    min_hours: int = CAPACITY_MIN_HOURS,
+    min_ticks: int = 50,
+    min_cooling_k: float = 1.0,
+    min_dt: float = 5.0,
+    plausible: tuple[float, float] = (2.0, 150.0),
+) -> CapacityEstimate:
+    """The heat the flat lost, by the model's own heat loss and gains, over how far it cooled.
+
+    Only hours with nothing heating count, and only once the hour before had nothing heating either: the
+    radiators and the floors still give off heat for a while. Each such hour pairs with the next, and their
+    mean temperatures an hour apart give the cooling. With the heat loss and the gains the forecast uses, the
+    forecast then cools as fast as the flat did.
+    """
+    first, last = hour_of(now) - timedelta(days=window_days), hour_of(now) - timedelta(hours=1)
+    step = timedelta(hours=1)
+
+    def means(at: datetime) -> tuple[float, float] | None:
+        t = hours.get(at)
+        if t is None or t.ticks < min_ticks or t.heat_ticks or not t.t_in_n or not t.t_out_n:
+            return None
+        return t.t_in_sum / t.t_in_n, t.t_out_sum / t.t_out_n
+
+    lost_kwh = cooled = 0.0
+    used = 0
+    for at in sorted(hours):
+        if not first <= at < last:  # the next hour must be over as well
+            continue
+        a, b = means(at), means(at + step)
+        if a is None or b is None or means(at - step) is None:
+            continue
+        t_in, t_out = (a[0] + b[0]) / 2, (a[1] + b[1]) / 2
+        if t_in - t_out < min_dt:
+            continue
+        lost_kwh += (h_w_per_k * (t_in - t_out) - gains_w) / 1000.0
+        cooled += a[0] - b[0]
+        used += 1
+
+    def result(
+        status: Literal["ok", "insufficient_data", "implausible"], c: float | None
+    ) -> CapacityEstimate:
+        return CapacityEstimate(status, c, used, round(cooled, 2), h_w_per_k, window_days, now)
+
+    if used < min_hours or cooled < min_cooling_k:
+        return result("insufficient_data", None)
+    c = round(lost_kwh / cooled, 1)
+    return result("ok" if plausible[0] <= c <= plausible[1] else "implausible", c)

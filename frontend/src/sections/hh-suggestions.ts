@@ -6,7 +6,7 @@ import { t, type I18nKey, type Lang } from '../i18n/index';
 import { shared } from '../styles/shared';
 import type { HhAction, HhSuggestion } from '../types';
 
-const KINDS = new Set(['curve', 'heat_loss', 'feedback']);
+const KINDS = new Set(['curve', 'heat_loss', 'heat_capacity', 'feedback']);
 
 export class HhSuggestions extends LitElement {
   static override properties = { lang: {}, suggestions: { attribute: false }, canAct: { type: Boolean } };

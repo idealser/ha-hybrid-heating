@@ -1,4 +1,4 @@
-// The card's visual editor in the dashboard: title, sections, tariff, and the floor plan upload.
+// The card's visual editor in the dashboard: title, sections, tariff, heat capacity, and the floor plan upload.
 import { LitElement, css, html, nothing } from 'lit';
 import { fire } from './dom';
 import { pickLang, t, type Lang } from './i18n/index';
@@ -157,6 +157,23 @@ export class HybridHeatingCardEditor extends LitElement {
             @change=${(e: Event) => this.change({ currency: value(e) || undefined })}
           />
         </div>
+      </div>
+      <div class="field">
+        <label for="capacity">${t(L, 'editor.capacity')}</label>
+        <p class="note">${t(L, 'editor.capacity_note')}</p>
+        <input
+          type="number"
+          id="capacity"
+          name="capacity_kwh_per_k"
+          min="0.1"
+          step="0.1"
+          placeholder=${t(L, 'editor.capacity_auto')}
+          .value=${c.capacity_kwh_per_k === undefined ? '' : String(c.capacity_kwh_per_k)}
+          @change=${(e: Event) => {
+            const kwh = Number(value(e));
+            this.change({ capacity_kwh_per_k: value(e) !== '' && kwh > 0 ? kwh : undefined });
+          }}
+        />
       </div>
       <div class="field">
         <label for="plan">${t(L, 'editor.plan')}</label>

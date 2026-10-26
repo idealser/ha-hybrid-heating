@@ -2,6 +2,7 @@ import { expect, test } from 'vitest';
 import {
   acCapacityKw,
   acCop,
+  cardModel,
   DEFAULT_MODEL,
   forecastHourLine,
   forecastRun,
@@ -35,6 +36,14 @@ test('mirrors core/model.py', () => {
 test('defaults fill missing model keys', () => {
   expect(withModelDefaults({ h_w_per_k: 120 })).toEqual({ ...DEFAULT_MODEL, h_w_per_k: 120 });
   expect(withModelDefaults(undefined)).toEqual(DEFAULT_MODEL);
+});
+
+test('the card options go over what the module learned', () => {
+  const learned = { h_w_per_k: 140, capacity_kwh_per_k: 23.3 };
+  expect(cardModel(learned, undefined)).toEqual({ ...DEFAULT_MODEL, ...learned });
+  const set = cardModel(learned, { tariff_per_kwh: 4.27, currency: 'lei', capacity_kwh_per_k: 20 });
+  expect(set).toEqual({ ...DEFAULT_MODEL, h_w_per_k: 140, capacity_kwh_per_k: 20, tariff_per_kwh: 4.27, currency: 'lei' });
+  expect(cardModel(undefined, { currency: '' }).capacity_kwh_per_k).toBe(DEFAULT_MODEL.capacity_kwh_per_k);
 });
 
 test('probe now, +13.8', () => {
@@ -137,6 +146,18 @@ test('a warm flat cools down before the heating comes on', () => {
   expect(rows.at(-1)!.indoor).toBeCloseTo(17, 9);
   const steady = probe(away(), M, 10, { target: 17, night: false }).electricKw * 40;
   expect(forecastTotals(away(), M, hours, TZ, start).kwh).toBeLessThan(steady * 0.6);
+});
+
+test('a flat that stores more heat cools for longer', () => {
+  // Away at 17° from 20.6° for a day at +10°: with the default capacity the flat is near 17° by the evening;
+  // with what a concrete flat showed over 58 hours of cooling (23.3 kWh/K) it has lost only about a degree.
+  const start = { seasonActive: true, windowMean: 10, indoor: 20.6 };
+  const hours = hoursFrom(DAY, Array(24).fill(10));
+  const quick = forecastRun(away(), M, hours, TZ, start);
+  const slow = forecastRun(away(), { ...M, capacity_kwh_per_k: 23.3 }, hours, TZ, start);
+  expect(quick.at(-1)!.indoor).toBeLessThan(18);
+  expect(slow.at(-1)!.indoor).toBeGreaterThan(19.3);
+  expect(slow.every(r => r.heatKwh === 0)).toBe(true);
 });
 
 test('a cold flat warms up first, as fast as the heaters allow', () => {

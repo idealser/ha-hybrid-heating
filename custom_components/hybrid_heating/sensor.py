@@ -1,4 +1,4 @@
-"""Sensors: flow target, weather zone, status line and the heat loss estimate."""
+"""Sensors: flow target, weather zone, status line, and the heat loss and heat capacity estimates."""
 
 from typing import Any
 
@@ -8,7 +8,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .codec import to_data
-from .const import DEFAULT_HEAT_LOSS_W_PER_K
+from .const import DEFAULT_CAPACITY_KWH_PER_K, DEFAULT_HEAT_LOSS_W_PER_K
 from .coordinator import HybridHeatingConfigEntry
 from .core.types import Layer
 from .entity import HybridHeatingEntity
@@ -25,6 +25,7 @@ async def async_setup_entry(
             ZoneSensor(coordinator),
             StatusSensor(coordinator),
             HeatLossSensor(coordinator),
+            HeatCapacitySensor(coordinator),
         ]
     )
 
@@ -104,6 +105,36 @@ class HeatLossSensor(HybridHeatingEntity, SensorEntity):
             "estimate": e.w_per_k,
             "days_used": e.days_used,
             "r2": e.r2,
+            "window_days": e.window_days,
+            "computed_at": e.computed_at.isoformat(),
+        }
+
+
+class HeatCapacitySensor(HybridHeatingEntity, SensorEntity):
+    """What the forecast uses: the nightly estimate when it is good, else the card's default."""
+
+    _attr_translation_key = "heat_capacity"
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = "kWh/K"
+
+    @property
+    def native_value(self) -> float:
+        learned = self.coordinator.learning.capacity_kwh_per_k()
+        return learned if learned is not None else DEFAULT_CAPACITY_KWH_PER_K
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        e = self.coordinator.learning.data.capacity
+        source = "model_default" if self.coordinator.learning.capacity_kwh_per_k() is None else "estimate"
+        if e is None:
+            return {"source": source}
+        return {
+            "source": source,
+            "status": e.status,
+            "estimate": e.kwh_per_k,
+            "hours_used": e.hours_used,
+            "cooled_k": e.cooled_k,
+            "heat_loss_w_per_k": e.h_w_per_k,
             "window_days": e.window_days,
             "computed_at": e.computed_at.isoformat(),
         }
