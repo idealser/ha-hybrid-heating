@@ -61,6 +61,20 @@ TEXTS: Mapping[str, Mapping[str, str]] = {
         "Heat loss estimate {w_per_k} W/K looks wrong; estimates keep the default",
         "Оценка теплопотерь {w_per_k} Вт/К выглядит неверной; оценки по умолчанию",
     ),
+    "capacity_estimated": _t(
+        "Heat capacity estimated: {kwh_per_k} kWh/K from {hours_used} hours",
+        "Теплоёмкость оценена: {kwh_per_k} кВт·ч/К по {hours_used} ч",
+    ),
+    "capacity_insufficient": _t(
+        "Heat capacity: {hours_used} of {min_hours} usable hours so far (nothing heating, the flat cooling); "
+        "the forecast keeps its value",
+        "Теплоёмкость: пока {hours_used} из {min_hours} подходящих часов "
+        "(ничего не греет, квартира остывает); прогноз с прежним значением",
+    ),
+    "capacity_implausible": _t(
+        "Heat capacity estimate {kwh_per_k} kWh/K looks wrong; the forecast keeps its value",
+        "Оценка теплоёмкости {kwh_per_k} кВт·ч/К выглядит неверной; прогноз с прежним значением",
+    ),
     "suggestion_created": _t(
         "New suggestion: {setting} from {old}° to {new}°", "Новая подсказка: {setting} с {old}° на {new}°"
     ),

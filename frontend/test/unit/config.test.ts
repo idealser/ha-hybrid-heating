@@ -20,6 +20,12 @@ test('tariff, currency and title are checked', () => {
   expect(() => normalizeConfig({ type: 'x', currency: 5 })).toThrow('currency');
 });
 
+test('a heat capacity from the card options is above 0', () => {
+  expect(normalizeConfig({ type: 'x', capacity_kwh_per_k: 23.3 }).capacity_kwh_per_k).toBe(23.3);
+  expect(() => normalizeConfig({ type: 'x', capacity_kwh_per_k: 0 })).toThrow('capacity_kwh_per_k');
+  expect(() => normalizeConfig({ type: 'x', capacity_kwh_per_k: '20' })).toThrow('capacity_kwh_per_k');
+});
+
 test('sections in layout order', () => {
   expect(SECTION_KEYS).toEqual([
     'plan',

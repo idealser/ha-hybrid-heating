@@ -13,7 +13,7 @@ from typing import Any, Literal
 
 from .controller import ControllerState
 from .curve import CURVE_OUTDOOR_POINTS
-from .model import DayTally, HeatLossEstimate
+from .model import CapacityEstimate, DayTally, HeatLossEstimate, HourTally
 from .timeutil import before
 from .types import AC_ROOMS, DRIVER_ROOMS, Decision, Layer, LayerMode, Preset, Room, Settings, Snapshot
 
@@ -42,6 +42,7 @@ class LearningSettings:
     keep_mornings: timedelta = timedelta(days=14)
     keep_resolutions: timedelta = timedelta(days=45)  # longer than a dismissal lasts
     keep_tallies: timedelta = timedelta(days=35)  # longer than the heat-loss window
+    keep_hours: timedelta = timedelta(days=15)  # longer than the heat-capacity window
     # The room correction as a signal (smooth mode): what it adds on average, by band, over a week
     correction_threshold: float = 1.5
     correction_window: timedelta = timedelta(days=7)
@@ -436,6 +437,9 @@ class LearningData:
     tallies: dict[date, DayTally] = field(default_factory=dict)
     heat_loss: HeatLossEstimate | None = None  # the latest estimate, whatever its status
     heat_loss_ok: HeatLossEstimate | None = None  # the latest good one: what estimates use
+    hours: dict[datetime, HourTally] = field(default_factory=dict)
+    capacity: CapacityEstimate | None = None  # the latest estimate, whatever its status
+    capacity_ok: CapacityEstimate | None = None  # the latest good one: what estimates use
     corrections: list[CorrectionDay] = field(default_factory=list)
     changed: dict[str, datetime] = field(default_factory=dict)  # when a suggestion setting last changed
 
@@ -469,6 +473,9 @@ def prune(
         tallies={d: t for d, t in data.tallies.items() if d > today - ls.keep_tallies},
         heat_loss=data.heat_loss,
         heat_loss_ok=data.heat_loss_ok,
+        hours={h: t for h, t in data.hours.items() if before(now - ls.keep_hours, h)},
+        capacity=data.capacity,
+        capacity_ok=data.capacity_ok,
         corrections=[d for d in data.corrections if d.day > today - ls.keep_mornings],
         changed={k: t for k, t in data.changed.items() if before(now - ls.keep_resolutions, t)},
     )

@@ -4,7 +4,14 @@ from collections.abc import Mapping
 from typing import Any, Literal
 
 from .core.learning import Suggestion
-from .core.model import HEAT_LOSS_MIN_DAYS, HEAT_LOSS_WINDOW_DAYS, HeatLossEstimate
+from .core.model import (
+    CAPACITY_MIN_HOURS,
+    CAPACITY_WINDOW_DAYS,
+    HEAT_LOSS_MIN_DAYS,
+    HEAT_LOSS_WINDOW_DAYS,
+    CapacityEstimate,
+    HeatLossEstimate,
+)
 from .texts import LANGS, ROOM_NAMES
 
 type State = Literal["new", "applied", "dismissed"]
@@ -112,6 +119,41 @@ HEAT_LOSS = {
     ),
 }
 
+CAPACITY = {
+    "ok": (
+        _t("Heat capacity: {c} kWh/K", "Теплоёмкость: {c} кВт·ч/К"),
+        _t(
+            "From {hours} hours with nothing heating, in which the flat cooled by {cooled}°. The forecast "
+            "uses it instead of the default {default} kWh/K for how fast the flat cools and warms up; "
+            "it does not change how the module heats.",
+            "По {hours} ч без отопления, за которые квартира остыла на {cooled}°. Прогноз берёт это "
+            "значение вместо {default} кВт·ч/К по умолчанию: от него зависит, как быстро квартира остывает "
+            "и прогревается. На управление оно не влияет.",
+        ),
+    ),
+    "insufficient_data": (
+        _t("Heat capacity: not enough data yet", "Теплоёмкость: пока мало данных"),
+        _t(
+            "It needs {min} hours with nothing heating in {weeks} weeks, with the flat cooling by 1° or "
+            "more; {hours} so far. The forecast uses {used} kWh/K.",
+            "Нужно {min} ч без отопления за {weeks} недели, и чтобы квартира остыла хотя бы на 1°, "
+            "пока {hours} ч. Прогноз берёт {used} кВт·ч/К.",
+        ),
+    ),
+    "implausible": (
+        _t(
+            "Heat capacity estimate looks wrong: {c} kWh/K",
+            "Оценка теплоёмкости выглядит неверной: {c} кВт·ч/К",
+        ),
+        _t(
+            "The forecast keeps {used} kWh/K. This happens when a window stayed open or the sun warmed "
+            "the flat a lot.",
+            "Прогноз по-прежнему берёт {used} кВт·ч/К. "
+            "Так бывает, если было открыто окно или квартиру сильно грело солнце.",
+        ),
+    ),
+}
+
 
 def _times(n: int, lang: str) -> str:
     if lang == "en":
@@ -204,6 +246,29 @@ def heat_loss_view(e: HeatLossEstimate, lang: str, *, used: float, default: floa
     return {
         "id": f"heat_loss@{e.computed_at.isoformat(timespec='minutes')}",
         "kind": "heat_loss",
+        "state": "info",
+        "created": e.computed_at.isoformat(),
+        "title": title[lang].format(**values),
+        "detail": detail[lang].format(**values),
+    }
+
+
+def capacity_view(e: CapacityEstimate, lang: str, *, used: float, default: float) -> dict[str, Any]:
+    """The latest estimate; `used` is what the forecast uses now (the last good one, or the default)."""
+    lang = _lang(lang)
+    title, detail = CAPACITY[e.status]
+    values = {
+        "c": _num(e.kwh_per_k, lang) if e.kwh_per_k is not None else "?",
+        "hours": e.hours_used,
+        "cooled": _num(e.cooled_k, lang),
+        "default": _num(default, lang),
+        "used": _num(used, lang),
+        "min": CAPACITY_MIN_HOURS,
+        "weeks": CAPACITY_WINDOW_DAYS // 7,
+    }
+    return {
+        "id": f"heat_capacity@{e.computed_at.isoformat(timespec='minutes')}",
+        "kind": "heat_capacity",
         "state": "info",
         "created": e.computed_at.isoformat(),
         "title": title[lang].format(**values),

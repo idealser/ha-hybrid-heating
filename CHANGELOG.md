@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.10.0
+
+- **Heat capacity:** the forecast's flat cooled about four times too fast. Its heat capacity was a fixed 5.2 kWh/K, while a concrete flat that cooled for 58 hours with nothing heating showed about 23 kWh/K, so Away promised 17.5° within a day where the flat held 20°.
+  - The module now learns it. Every minute counts into its hour: whether the boiler had a heat call or an AC heated, and the mean of the rooms and outside. Every night at 04:30 it takes the hours of the last two weeks with nothing heating, after the first hour (the radiators still give off heat), and divides the heat the flat lost by the heat loss and gains the forecast uses by how far it cooled. It needs 24 such hours and 1° of cooling in all.
+  - `sensor.hybrid_heating_heat_capacity` shows what the forecast uses; System lists the latest estimate beside the heat loss, and the log records it. It never changes the control.
+  - The card option `capacity_kwh_per_k` (Heat capacity in the card editor) sets it by hand instead.
+
 ## 0.9.0
 
 - **Thermostat:** the module is now one climate entity, `climate.hybrid_heating`, so Home Assistant's own thermostat tile, the phone app and voice assistants can show and change it. It shows the temperature the boiler follows, the target in effect and whether the flat is being heated.

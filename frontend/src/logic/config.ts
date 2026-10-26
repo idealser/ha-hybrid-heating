@@ -29,6 +29,9 @@ export function normalizeConfig(c: unknown): NormalConfig {
   const tariff = raw.tariff_per_kwh;
   if (tariff !== undefined && (typeof tariff !== 'number' || !Number.isFinite(tariff) || tariff < 0))
     throw new Error('tariff_per_kwh must be a number of at least 0');
+  const capacity = raw.capacity_kwh_per_k;
+  if (capacity !== undefined && (typeof capacity !== 'number' || !Number.isFinite(capacity) || capacity <= 0))
+    throw new Error('capacity_kwh_per_k must be a number above 0');
   if (raw.currency !== undefined && typeof raw.currency !== 'string') throw new Error('currency must be text');
   if (raw.title !== undefined && typeof raw.title !== 'string') throw new Error('title must be text');
   return { ...(raw as unknown as CardConfig), hide_sections: [...new Set(hide as SectionKey[])] };

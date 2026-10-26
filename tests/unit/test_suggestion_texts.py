@@ -4,9 +4,9 @@ from datetime import datetime
 import pytest
 
 from custom_components.hybrid_heating.core.learning import curve_suggestion, feedback_suggestion
-from custom_components.hybrid_heating.core.model import HeatLossEstimate
+from custom_components.hybrid_heating.core.model import CapacityEstimate, HeatLossEstimate
 from custom_components.hybrid_heating.core.types import Room, Settings
-from custom_components.hybrid_heating.suggestion_texts import heat_loss_view, suggestion_view
+from custom_components.hybrid_heating.suggestion_texts import capacity_view, heat_loss_view, suggestion_view
 from tests.conftest import TZ
 from tests.core.test_learning import COLD3, D1, D2, D3, NOW, NOWF, ms, two
 
@@ -107,6 +107,34 @@ def test_heat_loss_items():
     )
     assert odd["title"] == "Heat loss estimate looks wrong: 20 W/K"
     assert odd["detail"].startswith("Estimates keep 150 W/K.")
+
+
+def test_heat_capacity_items():
+    at = datetime(2026, 11, 9, 4, 30, tzinfo=TZ)
+    ok = capacity_view(CapacityEstimate("ok", 23.3, 53, 2.28, 150.0, 14, at), "en", used=23.3, default=5.2)
+    assert ok == {
+        "id": "heat_capacity@2026-11-09T04:30+01:00",
+        "kind": "heat_capacity",
+        "state": "info",
+        "created": "2026-11-09T04:30:00+01:00",
+        "title": "Heat capacity: 23.3 kWh/K",
+        "detail": "From 53 hours with nothing heating, in which the flat cooled by 2.3°. The forecast "
+        "uses it instead of the default 5.2 kWh/K for how fast the flat cools and warms up; it does not "
+        "change how the module heats.",
+    }
+    short = capacity_view(
+        CapacityEstimate("insufficient_data", None, 7, 0.3, 150.0, 14, at), "ru", used=5.2, default=5.2
+    )
+    assert short["title"] == "Теплоёмкость: пока мало данных"
+    assert short["detail"] == (
+        "Нужно 24 ч без отопления за 2 недели, и чтобы квартира остыла хотя бы на 1°, пока 7 ч. "
+        "Прогноз берёт 5,2 кВт·ч/К."
+    )
+    odd = capacity_view(
+        CapacityEstimate("implausible", 400.0, 30, 1.1, 150.0, 14, at), "en", used=23.3, default=5.2
+    )
+    assert odd["title"] == "Heat capacity estimate looks wrong: 400 kWh/K"
+    assert odd["detail"].startswith("The forecast keeps 23.3 kWh/K.")
 
 
 def test_texts_are_given_in_english_for_unknown_languages():

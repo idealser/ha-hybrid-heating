@@ -218,8 +218,17 @@ class HybridHeatingCoordinator(DataUpdateCoordinator[TickResult]):
             "entities": self.entities.to_mapping(),
             "controls": self.controls(),
             "takeover": to_data(self.takeover),
-            "model": {} if (h := self.learning.heat_loss_w_per_k()) is None else {"h_w_per_k": h},
+            "model": self.model_view(),
         }
+
+    def model_view(self) -> dict[str, float]:
+        """What the card's heat model takes from the house: only values learned well enough."""
+        out: dict[str, float] = {}
+        if (h := self.learning.heat_loss_w_per_k()) is not None:
+            out["h_w_per_k"] = h
+        if (c := self.learning.capacity_kwh_per_k()) is not None:
+            out["capacity_kwh_per_k"] = c
+        return out
 
     def controls(self) -> dict[str, str]:
         """Entity ids of this integration's own switches and selects, as the user may have renamed them."""

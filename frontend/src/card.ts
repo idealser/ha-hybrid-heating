@@ -7,7 +7,7 @@ import { pickLang, t, type Lang } from './i18n/index';
 import { diffSettings, withLive } from './logic/draft';
 import { normalizeConfig, type NormalConfig } from './logic/config';
 import { hassLanguage, liveFromHass, relevantHassChanged } from './logic/hass';
-import { type ForecastStart, withModelDefaults } from './logic/model';
+import { cardModel, type ForecastStart } from './logic/model';
 import { dirtyTabs, statusLine, TABS, visibleTabs, type TabKey } from './logic/tabs';
 import { buildWhy } from './logic/why';
 import { SCHEMATIC } from './plan/builtin';
@@ -200,14 +200,9 @@ export class HybridHeatingCard extends LitElement {
     this._view = view;
   }
 
-  /** The heat model: the integration's parameters, with the tariff and currency from the card options. */
+  /** The heat model: the integration's parameters, with the tariff, currency and capacity from the card options. */
   private get model(): HhModelParams {
-    const c = this._config;
-    return withModelDefaults({
-      ...this._view?.config?.model,
-      ...(c?.tariff_per_kwh !== undefined ? { tariff_per_kwh: c.tariff_per_kwh } : {}),
-      ...(c?.currency ? { currency: c.currency } : {}),
-    });
+    return cardModel(this._view?.config?.model, this._config);
   }
 
   /** Cold/Hot: the integration learns from marks, and the module has a decision to keep with one. */

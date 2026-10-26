@@ -187,10 +187,15 @@ def test_strict_rejects_bool_in_number_field():
 
 
 def test_learning_data_round_trip_and_defaults():
-    from datetime import date, timedelta
+    from datetime import UTC, date, datetime, timedelta
 
     from custom_components.hybrid_heating.core.learning import LearningData, Resolution, curve_suggestion
-    from custom_components.hybrid_heating.core.model import DayTally, HeatLossEstimate
+    from custom_components.hybrid_heating.core.model import (
+        CapacityEstimate,
+        DayTally,
+        HeatLossEstimate,
+        HourTally,
+    )
     from tests.core.test_learning import COLD3, NOW, NOWF, mk
 
     sg = curve_suggestion(COLD3, Settings(), [], NOW)
@@ -202,6 +207,8 @@ def test_learning_data_round_trip_and_defaults():
         resolutions=[Resolution(sg, "dismissed", NOWF + timedelta(hours=1))],
         tallies={date(2026, 11, 1): DayTally(1440, 0, 1440)},
         heat_loss=HeatLossEstimate("ok", 148.0, 310.0, 0.91, 9, 28, NOW),
+        hours={datetime(2026, 11, 1, 14, 0, tzinfo=UTC): HourTally(60, 0, 1371.0, 60, 828.0, 60)},
+        capacity=CapacityEstimate("ok", 23.3, 53, 2.28, 150.0, 14, NOW),
     )
     raw = to_data(data)
     assert json.loads(json.dumps(raw)) == raw
