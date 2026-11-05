@@ -36,6 +36,8 @@ export interface StoreOptions {
   notify: (message: string) => void;
   onChange: () => void;
   pollMs?: number;
+  /** Only what the floor plan needs: no decision log and no forecast (the plan-only card). */
+  lite?: boolean;
 }
 
 const LOG_LIMIT = 20;
@@ -143,8 +145,8 @@ export class CardStore {
       const config = await this.api.getConfig();
       const [status, log, forecast, suggestions, plan] = await Promise.all([
         this.api.getStatus(lang),
-        this.api.getLog(lang, LOG_LIMIT),
-        this.forecast(),
+        this.o.lite ? Promise.resolve([]) : this.api.getLog(lang, LOG_LIMIT),
+        this.o.lite ? Promise.resolve(null) : this.forecast(),
         this.optional(() => this.api.getSuggestions(lang)),
         this.optional(() => this.api.getPlan<FloorPlan>()),
       ]);
@@ -178,7 +180,7 @@ export class CardStore {
       const learned = before != null && status.seq.suggestions !== before.seq.suggestions;
       if (status.revision !== this.view.config?.revision || learned) this.adopt(await this.api.getConfig());
       const patch: Partial<StoreView> = { status };
-      if (texts || status.seq.log !== before?.seq.log) patch.log = await this.api.getLog(lang, LOG_LIMIT);
+      if (!this.o.lite && (texts || status.seq.log !== before?.seq.log)) patch.log = await this.api.getLog(lang, LOG_LIMIT);
       const sugg = this.view.suggestions;
       if (sugg === undefined || (sugg !== null && (texts || status.seq.suggestions !== before?.seq.suggestions)))
         patch.suggestions = await this.optional(() => this.api.getSuggestions(lang));

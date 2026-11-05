@@ -14,6 +14,7 @@ const HVAC_MODES = new Set(['cool', 'dry', 'fan_only', 'auto', 'heat_cool']);
 export class HhFloorPlan extends LitElement {
   static override properties = {
     lang: {},
+    heading: {},
     plan: { attribute: false },
     schematic: { type: Boolean },
     status: { attribute: false },
@@ -24,6 +25,8 @@ export class HhFloorPlan extends LitElement {
     focused: { state: true },
   };
   declare lang: Lang;
+  /** Replaces the section's heading; empty keeps it. */
+  declare heading: string;
   declare plan: FloorPlan | null;
   declare schematic: boolean;
   declare status: HhStatus | null;
@@ -38,6 +41,7 @@ export class HhFloorPlan extends LitElement {
   constructor() {
     super();
     this.lang = 'en';
+    this.heading = '';
     this.plan = null;
     this.schematic = false;
     this.status = null;
@@ -307,7 +311,7 @@ export class HhFloorPlan extends LitElement {
     const heat = heatOn ? ' on' : '';
     return html`<section class="card" aria-labelledby="h-plan">
       <div class="card-head">
-        <h2 id="h-plan">${t(L, 'section.plan')}</h2>
+        <h2 id="h-plan">${this.heading || t(L, 'section.plan')}</h2>
         <hh-hint .lang=${L} .text=${t(L, 'plan.note') + (this.schematic ? ` ${t(L, 'plan.schematic')}` : '')}></hh-hint>
       </div>
       <svg viewBox=${p.viewBox.join(' ')} role="group" aria-label=${t(L, 'plan.aria')}>

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.11.0
+
+- **Floor plan card:** a second card, **Hybrid Heating: floor plan** (`custom:hybrid-heating-plan-card`), shows only the flat: the rooms tinted by how far they are from their targets, the radiators and ACs that run, and a tapped room's details with Cold/Hot. It fits a normal dashboard column next to other cards. Its one option, `title`, replaces the heading. It does not load the decision log or the forecast.
+
 ## 0.10.0
 
 - **Heat capacity:** the forecast's flat cooled about four times too fast. Its heat capacity was a fixed 5.2 kWh/K, while a concrete flat that cooled for 58 hours with nothing heating showed about 23 kWh/K, so Away promised 17.5° within a day where the flat held 20°.
