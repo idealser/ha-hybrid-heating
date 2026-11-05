@@ -1,5 +1,5 @@
 // The card on its own page against the fake Home Assistant. Query parameters:
-// ?lang=ru&theme=dark&admin=0&status=frost|nulls&stage5=0&backend=0&hide=log,forecast&tariff=0.30&currency=¤
+// ?card=plan (the plan-only card) &lang=ru&theme=dark&admin=0&status=frost|nulls&stage5=0&backend=0&hide=log,forecast&tariff=0.30&currency=¤
 import '../../src/hybrid-heating-card';
 import type { HybridHeatingCard } from '../../src/card';
 import type { SectionKey } from '../../src/types';
@@ -35,10 +35,11 @@ const vars = [
 ];
 vars.forEach((name, i) => document.body.style.setProperty(name, theme[i]!));
 
-const card = document.createElement('hybrid-heating-card') as HybridHeatingCard;
+const planOnly = q.get('card') === 'plan';
+const card = document.createElement(planOnly ? 'hybrid-heating-plan-card' : 'hybrid-heating-card') as HybridHeatingCard;
 const hide = q.get('hide');
 card.setConfig({
-  type: 'custom:hybrid-heating-card',
+  type: planOnly ? 'custom:hybrid-heating-plan-card' : 'custom:hybrid-heating-card',
   ...(hide ? { hide_sections: hide.split(',') as SectionKey[] } : {}),
   ...(q.get('tariff') ? { tariff_per_kwh: Number(q.get('tariff')) } : {}),
   ...(q.get('currency') ? { currency: q.get('currency')! } : {}),

@@ -64,6 +64,14 @@ The card follows the language of your Home Assistant profile (English or Russian
 | `tariff_per_kwh`, `currency` | Your electricity price, for the cost estimates (default 0.25 €). |
 | `capacity_kwh_per_k` | The flat's heat capacity, if you'd rather set it than use what the module learns. |
 
+For the flat alone on another dashboard, add the **Hybrid Heating: floor plan** card. It shows only the floor plan (tap a room for its details and Cold/Hot) and fits a normal column next to other cards:
+
+```yaml
+type: custom:hybrid-heating-plan-card
+title: Flat         # optional, replaces "Apartment now"
+show_title: false   # optional, no heading at all: only the plan
+```
+
 The floor plan starts as a sample layout. To show your own flat, convert its DXF drawing with `tools/dxf_to_plan.py` (see the docstring for the overlay that names the rooms), then upload the JSON in the card editor under **Floor plan**. It is stored in Home Assistant with the module's data, not in the dashboard.
 
 ## Development
