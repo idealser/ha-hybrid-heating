@@ -68,7 +68,8 @@ For the flat alone on another dashboard, add the **Hybrid Heating: floor plan** 
 
 ```yaml
 type: custom:hybrid-heating-plan-card
-title: Flat   # optional, replaces "Apartment now"
+title: Flat         # optional, replaces "Apartment now"
+show_title: false   # optional, no heading at all: only the plan
 ```
 
 The floor plan starts as a sample layout. To show your own flat, convert its DXF drawing with `tools/dxf_to_plan.py` (see the docstring for the overlay that names the rooms), then upload the JSON in the card editor under **Floor plan**. It is stored in Home Assistant with the module's data, not in the dashboard.

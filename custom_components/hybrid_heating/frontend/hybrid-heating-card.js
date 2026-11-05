@@ -3936,6 +3936,7 @@ R("hh-floor-plan", class extends F {
 	static properties = {
 		lang: {},
 		heading: {},
+		bare: { type: Boolean },
 		plan: { attribute: !1 },
 		schematic: { type: Boolean },
 		status: { attribute: !1 },
@@ -3946,7 +3947,7 @@ R("hh-floor-plan", class extends F {
 		focused: { state: !0 }
 	};
 	constructor() {
-		super(), this.lang = "en", this.heading = "", this.plan = null, this.schematic = !1, this.status = null, this.offsets = {}, this.settings = null, this.learning = !1, this.picked = null, this.focused = null;
+		super(), this.lang = "en", this.heading = "", this.bare = !1, this.plan = null, this.schematic = !1, this.status = null, this.offsets = {}, this.settings = null, this.learning = !1, this.picked = null, this.focused = null;
 	}
 	static styles = [H, o`
       svg {
@@ -4180,12 +4181,12 @@ R("hh-floor-plan", class extends F {
 	render() {
 		let e = this.plan, t = this.status, n = this.lang;
 		if (!e) return null;
-		let { acOn: r, heatOn: i } = Gn(t), a = i ? " on" : "";
-		return k`<section class="card" aria-labelledby="h-plan">
-      <div class="card-head">
-        <h2 id="h-plan">${this.heading || z(n, "section.plan")}</h2>
-        <hh-hint .lang=${n} .text=${z(n, "plan.note") + (this.schematic ? ` ${z(n, "plan.schematic")}` : "")}></hh-hint>
-      </div>
+		let { acOn: r, heatOn: i } = Gn(t), a = i ? " on" : "", o = this.heading || z(n, "section.plan");
+		return k`<section class="card" aria-labelledby=${this.bare ? M : "h-plan"} aria-label=${this.bare ? o : M}>
+      ${this.bare ? M : k`<div class="card-head">
+            <h2 id="h-plan">${o}</h2>
+            <hh-hint .lang=${n} .text=${z(n, "plan.note") + (this.schematic ? ` ${z(n, "plan.schematic")}` : "")}></hh-hint>
+          </div>`}
       <svg viewBox=${e.viewBox.join(" ")} role="group" aria-label=${z(n, "plan.aria")}>
         <defs>
           <pattern id="fh" width="260" height="260" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
@@ -6297,6 +6298,7 @@ function _r(e) {
 	if (typeof e != "object" || !e || Array.isArray(e)) throw Error("Invalid configuration");
 	let t = e;
 	if (t.title !== void 0 && typeof t.title != "string") throw Error("title must be text");
+	if (t.show_title !== void 0 && typeof t.show_title != "boolean") throw Error("show_title must be true or false");
 	return t;
 }
 var vr = class extends F {
@@ -6361,14 +6363,15 @@ var vr = class extends F {
 		t.kind === "feedback" && this.store?.feedback(t.room, t.value);
 	}
 	render() {
-		let e = this._view, t = this.lang, n = this._config?.title ?? "";
+		let e = this._view, t = this.lang, n = this._config?.title ?? "", r = this._config?.show_title === !1;
 		return !e || e.phase !== "ready" ? k`<section class="card">
-        <h2>${n || z(t, "section.plan")}</h2>
+        ${r ? M : k`<h2>${n || z(t, "section.plan")}</h2>`}
         ${e?.phase === "error" ? k`<p class="warn" role="alert">${e.error}</p>` : k`<p class="muted" role="status">${z(t, "loading")}</p>`}
       </section>` : k`<hh-floor-plan
       @hh-action=${this.onAction}
       .lang=${t}
       .heading=${n}
+      .bare=${r}
       .plan=${e.plan ?? Cn}
       .schematic=${!e.plan}
       .status=${e.status}

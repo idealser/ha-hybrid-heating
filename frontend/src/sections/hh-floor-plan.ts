@@ -15,6 +15,7 @@ export class HhFloorPlan extends LitElement {
   static override properties = {
     lang: {},
     heading: {},
+    bare: { type: Boolean },
     plan: { attribute: false },
     schematic: { type: Boolean },
     status: { attribute: false },
@@ -27,6 +28,8 @@ export class HhFloorPlan extends LitElement {
   declare lang: Lang;
   /** Replaces the section's heading; empty keeps it. */
   declare heading: string;
+  /** No heading row: the plan alone (the plan card with show_title: false). */
+  declare bare: boolean;
   declare plan: FloorPlan | null;
   declare schematic: boolean;
   declare status: HhStatus | null;
@@ -42,6 +45,7 @@ export class HhFloorPlan extends LitElement {
     super();
     this.lang = 'en';
     this.heading = '';
+    this.bare = false;
     this.plan = null;
     this.schematic = false;
     this.status = null;
@@ -309,11 +313,14 @@ export class HhFloorPlan extends LitElement {
     if (!p) return null;
     const { acOn, heatOn } = deviceStates(st);
     const heat = heatOn ? ' on' : '';
-    return html`<section class="card" aria-labelledby="h-plan">
-      <div class="card-head">
-        <h2 id="h-plan">${this.heading || t(L, 'section.plan')}</h2>
-        <hh-hint .lang=${L} .text=${t(L, 'plan.note') + (this.schematic ? ` ${t(L, 'plan.schematic')}` : '')}></hh-hint>
-      </div>
+    const title = this.heading || t(L, 'section.plan');
+    return html`<section class="card" aria-labelledby=${this.bare ? nothing : 'h-plan'} aria-label=${this.bare ? title : nothing}>
+      ${this.bare
+        ? nothing
+        : html`<div class="card-head">
+            <h2 id="h-plan">${title}</h2>
+            <hh-hint .lang=${L} .text=${t(L, 'plan.note') + (this.schematic ? ` ${t(L, 'plan.schematic')}` : '')}></hh-hint>
+          </div>`}
       <svg viewBox=${p.viewBox.join(' ')} role="group" aria-label=${t(L, 'plan.aria')}>
         <defs>
           <pattern id="fh" width="260" height="260" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">

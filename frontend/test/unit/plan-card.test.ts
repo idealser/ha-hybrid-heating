@@ -42,7 +42,21 @@ test('the plan card shows only the floor plan, with its own title', async () => 
   expect(plan.shadowRoot!.querySelectorAll('polygon.room').length).toBeGreaterThan(0);
 });
 
+test('show_title: false leaves only the plan', async () => {
+  await import('../../src/hybrid-heating-card');
+  const el = document.createElement('hybrid-heating-plan-card') as unknown as HybridHeatingPlanCard;
+  el.setConfig({ type: 'custom:hybrid-heating-plan-card', show_title: false });
+  el.hass = createMockHass();
+  document.body.append(el);
+  await vi.waitFor(() => expect(el.shadowRoot!.querySelector('hh-floor-plan')).not.toBeNull());
+  const plan = el.shadowRoot!.querySelector('hh-floor-plan')!;
+  await (plan as unknown as { updateComplete: Promise<unknown> }).updateComplete;
+  expect(plan.shadowRoot!.querySelector('h2, hh-hint')).toBeNull();
+  expect(plan.shadowRoot!.querySelector('svg')).not.toBeNull();
+});
+
 test('plan card config: a title must be text', () => {
   expect(() => normalizePlanConfig({ type: 'x', title: 3 })).toThrow('title must be text');
+  expect(() => normalizePlanConfig({ type: 'x', show_title: 'no' })).toThrow('show_title');
   expect(normalizePlanConfig({ type: 'x' })).toEqual({ type: 'x' });
 });

@@ -2,7 +2,7 @@
 
 ## 0.11.0
 
-- **Floor plan card:** a second card, **Hybrid Heating: floor plan** (`custom:hybrid-heating-plan-card`), shows only the flat: the rooms tinted by how far they are from their targets, the radiators and ACs that run, and a tapped room's details with Cold/Hot. It fits a normal dashboard column next to other cards. Its one option, `title`, replaces the heading. It does not load the decision log or the forecast.
+- **Floor plan card:** a second card, **Hybrid Heating: floor plan** (`custom:hybrid-heating-plan-card`), shows only the flat: the rooms tinted by how far they are from their targets, the radiators and ACs that run, and a tapped room's details with Cold/Hot. It fits a normal dashboard column next to other cards. Its options: `title` replaces the heading, `show_title: false` leaves it out. It does not load the decision log or the forecast.
 
 ## 0.10.0
 

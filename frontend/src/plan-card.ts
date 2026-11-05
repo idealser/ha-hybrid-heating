@@ -1,5 +1,5 @@
 // A small dashboard card with only the flat: the floor plan, tinted by the rooms, and the devices running.
-import { LitElement, css, html, type PropertyValues } from 'lit';
+import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
 import { HhApi } from './api';
 import { fire } from './dom';
 import { PLAN_CHANGED } from './editor';
@@ -16,12 +16,16 @@ export interface PlanCardConfig {
   type: string;
   /** Replaces the heading ("Apartment now"). */
   title?: string;
+  /** false: no heading at all, only the plan. */
+  show_title?: boolean;
 }
 
 export function normalizePlanConfig(c: unknown): PlanCardConfig {
   if (typeof c !== 'object' || c === null || Array.isArray(c)) throw new Error('Invalid configuration');
   const raw = c as Record<string, unknown>;
   if (raw.title !== undefined && typeof raw.title !== 'string') throw new Error('title must be text');
+  if (raw.show_title !== undefined && typeof raw.show_title !== 'boolean')
+    throw new Error('show_title must be true or false');
   return raw as unknown as PlanCardConfig;
 }
 
@@ -119,9 +123,10 @@ export class HybridHeatingPlanCard extends LitElement {
     const v = this._view;
     const L = this.lang;
     const heading = this._config?.title ?? '';
+    const bare = this._config?.show_title === false;
     if (!v || v.phase !== 'ready')
       return html`<section class="card">
-        <h2>${heading || t(L, 'section.plan')}</h2>
+        ${bare ? nothing : html`<h2>${heading || t(L, 'section.plan')}</h2>`}
         ${v?.phase === 'error'
           ? html`<p class="warn" role="alert">${v.error}</p>`
           : html`<p class="muted" role="status">${t(L, 'loading')}</p>`}
@@ -130,6 +135,7 @@ export class HybridHeatingPlanCard extends LitElement {
       @hh-action=${this.onAction}
       .lang=${L}
       .heading=${heading}
+      .bare=${bare}
       .plan=${v.plan ?? SCHEMATIC}
       .schematic=${!v.plan}
       .status=${v.status}
