@@ -35,6 +35,12 @@ export type AcOffReason =
 /** Reasons from the integration worth a line of their own (the AC, boiler and load lines cover the rest). */
 export const NOTABLE_CODES = new Set(['outdoor_unavailable', 'rooms_unavailable', 'ac_not_coping', 'rods_budget_exhausted']);
 
+/** The integration says the boiler cannot be driven: 'cold' while it wants heat from it, 'idle' while it does not. */
+export function boilerUnreachable(st: HhStatus): 'cold' | 'idle' | null {
+  if (st.reasons.some(r => r.code === 'boiler_unreachable_cold')) return 'cold';
+  return st.reasons.some(r => r.code === 'boiler_unreachable') ? 'idle' : null;
+}
+
 const HVAC_MODES = ['cool', 'dry', 'fan_only', 'auto', 'heat_cool'];
 
 const acHeats = (st: HhStatus, room: AcRoom): boolean => st.acs[room].available && st.acs[room].hvac === 'heat';
@@ -159,7 +165,11 @@ function boilerItem(st: HhStatus, s: HhSettings, L: Lang): WhyItem {
   const obs = s.layers.boiler !== 'active';
   const k = (key: string) => (obs ? `why.obs.${key}` : `why.${key}`) as I18nKey;
   const flow = orDash(st.flow_target, v => String(Math.round(v)));
-  if (!st.boiler.available)
+  // Its controller or the heat-call relay does not answer: said before what the boiler would be doing.
+  const unreachable = boilerUnreachable(st);
+  if (unreachable === 'cold')
+    return { pip: 'cold', lead: t(L, 'why.boiler_unavailable'), text: t(L, 'why.boiler_unavailable_cold_text') };
+  if (!st.boiler.available || unreachable)
     return { pip: 'cold', lead: t(L, 'why.boiler_unavailable'), text: t(L, 'why.boiler_unavailable_text') };
   if (s.zones.policies[st.zone]?.boiler === 'off')
     return { pip: 'idle', lead: t(L, k('boiler_off')), text: t(L, 'why.boiler_off_text') };

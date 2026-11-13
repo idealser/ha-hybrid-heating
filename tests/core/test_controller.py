@@ -84,6 +84,30 @@ def test_boiler_unavailable_only_call():
     assert (ActionKind.BOILER_CALL, True, None) in triples(d)
 
 
+WARM = {Room.LIVING: 24.5, Room.BEDROOM: 24.5, Room.CHILD: 23.5, Room.BATH: 24.5}
+
+
+@pytest.mark.parametrize("gone", [{"boiler_available": False}, {"boiler_call_on": None}])
+def test_unreachable_boiler_is_said_and_whether_heat_is_wanted(gone):
+    d = tick(active, snap(**gone), ControllerState.initial(T0))
+    assert "boiler_unreachable_cold" in codes(d) and "boiler_unreachable" not in codes(d)
+    paused = tick(active, snap(rooms=WARM, **gone), ControllerState.initial(T0))
+    assert "boiler_unreachable" in codes(paused) and "boiler_unreachable_cold" not in codes(paused)
+    observed = tick(Settings(), snap(**gone), ControllerState.initial(T0))
+    assert "boiler_unreachable_cold" in codes(observed)  # the old thermostat cannot reach it either
+
+
+def test_unreachable_boiler_is_not_said_when_it_has_nothing_to_do():
+    gone = snap(boiler_available=False, boiler_call_on=None)
+    off_season = replace(active, season=SeasonSettings(mode=SeasonMode.OFF))
+    assert not {"boiler_unreachable", "boiler_unreachable_cold"} & set(
+        codes(tick(off_season, gone, ControllerState.initial(T0)))
+    )
+    assert not {"boiler_unreachable", "boiler_unreachable_cold"} & set(
+        codes(tick(active, snap(), ControllerState.initial(T0)))
+    )
+
+
 def test_hybrid_off_turns_owned_acs_off_and_uses_average():
     st = ControllerState.initial(T0)
     st.ac.owned = {Room.LIVING, Room.BEDROOM}

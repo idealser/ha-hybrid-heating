@@ -37,6 +37,7 @@ from .const import (
     DOMAIN,
     FAST_TICK_S,
     MAX_TICK_FAILURES,
+    NO_HEAT_ALERT_AFTER_S,
     SAVE_DELAY_S,
     STARTUP_GRACE_S,
     TICK_S,
@@ -124,6 +125,8 @@ class HybridHeatingCoordinator(DataUpdateCoordinator[TickResult]):
         self._saved_log_revision = -1
         self._deadline_unsub: CALLBACK_TYPE | None = None
         self._alerted: set[str] = set()
+        self._no_heat_since: datetime | None = None  # heat wanted with the boiler unreachable, since when
+        self._no_heat_alerted = False
         self.revision = 1  # +1 on every settings change, so the card knows when to reload them
         self.learning = LearningManager(self)
 
@@ -307,6 +310,7 @@ class HybridHeatingCoordinator(DataUpdateCoordinator[TickResult]):
         if self._stopping:
             return TickResult(now, snap, None, self._status(None))
         if not self.enabled:
+            self._clear_no_heat()  # switched off, the module wants nothing from the boiler
             await self._apply_takeover(now, NOBODY)  # retry whatever could not be given back yet
             await self._maybe_save(now)
             return TickResult(now, snap, None, self._status(None))
@@ -328,6 +332,8 @@ class HybridHeatingCoordinator(DataUpdateCoordinator[TickResult]):
             await self.async_flush()
         else:
             await self._maybe_save(now)
+        if ready:
+            self._watch_no_heat(now, settings, snap, decision)
         shown = decision if ready else None
         return TickResult(now, snap, shown, self._status(shown, starting=not ready), tuple(outcomes))
 
@@ -386,6 +392,38 @@ class HybridHeatingCoordinator(DataUpdateCoordinator[TickResult]):
             elif r.status != "ok" and entity_id not in self._alerted:
                 self._alerted.add(entity_id)
                 alerts.notify_unreachable(self.hass, entity_id, r.detail)
+
+    def _watch_no_heat(self, now: datetime, settings: Settings, snap: Snapshot, decision: Decision) -> None:
+        """One notification once a live boiler layer has wanted heat from an unreachable boiler for a while.
+
+        The per-device notification comes with the first command that does not land, often while the
+        boiler is only paused, and is long dismissed by the time the flat needs heat.
+        """
+        cold = is_live(settings, Layer.BOILER) and any(
+            r.code == "boiler_unreachable_cold" for r in decision.reasons
+        )
+        if not cold:
+            self._clear_no_heat()
+            return
+        if self._no_heat_since is None:
+            self._no_heat_since = now
+        if not self._no_heat_alerted and elapsed_s(now, self._no_heat_since) >= NO_HEAT_ALERT_AFTER_S:
+            self._no_heat_alerted = True
+            unreachable = [
+                entity_id
+                for entity_id, missing in (
+                    (self.entities.boiler_flow, not snap.boiler_available),
+                    (self.entities.boiler_call, snap.boiler_call_on is None),
+                )
+                if missing
+            ]
+            alerts.notify_no_heat(self.hass, unreachable)
+
+    def _clear_no_heat(self) -> None:
+        self._no_heat_since = None
+        if self._no_heat_alerted:
+            self._no_heat_alerted = False
+            alerts.dismiss_no_heat(self.hass)
 
     @callback
     def _arm_deadline(self, now: datetime) -> None:

@@ -24,6 +24,14 @@ def dismiss_unreachable(hass: HomeAssistant, entity_id: str) -> None:
     persistent_notification.async_dismiss(hass, f"{DOMAIN}_unreachable_{entity_id}")
 
 
+def notify_no_heat(hass: HomeAssistant, entities: Iterable[str]) -> None:
+    _notify(hass, "no_heat", "no_heat", entities=", ".join(entities))
+
+
+def dismiss_no_heat(hass: HomeAssistant) -> None:
+    persistent_notification.async_dismiss(hass, f"{DOMAIN}_no_heat")
+
+
 def notify_failsafe(hass: HomeAssistant) -> None:
     _notify(hass, "failsafe", "failsafe")
 

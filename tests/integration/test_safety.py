@@ -213,6 +213,44 @@ async def test_unreachable_relay_is_logged_once_and_notified(hass, fake_home, ca
     assert not any(CALL in k for k in notifications(hass))  # dismissed once it answers again
 
 
+async def test_heat_wanted_from_an_unreachable_boiler_is_notified_after_a_while(
+    hass, fake_home, calls, stored, freezer
+):
+    stored(settings={"layers": {"boiler": "active"}})
+    c = (await setup_integration(hass)).runtime_data
+    hass.states.async_set(CALL, "unavailable")
+    await hass.async_block_till_done()
+    await step(freezer, hass, 61)
+    assert "boiler_unreachable_cold" in [r.code for r in c.data.decision.reasons]
+    assert "unavailable" in c.data.status
+    assert not any("no_heat" in k for k in notifications(hass))  # a blip is not worth a notification
+    for _ in range(10):
+        await step(freezer, hass, 61)
+    [message] = [v["message"] for k, v in notifications(hass).items() if "no_heat" in k]
+    assert CALL in message and BOILER not in message
+    hass.states.async_set(CALL, "off")
+    await hass.async_block_till_done()
+    await step(freezer, hass, 61)
+    assert not any("no_heat" in k for k in notifications(hass))  # dismissed once it answers again
+    hass.states.async_set(CALL, "unavailable")
+    await hass.async_block_till_done()
+    for _ in range(11):
+        await step(freezer, hass, 61)
+    assert any("no_heat" in k for k in notifications(hass))
+    await c.async_set_enabled(False)
+    assert not any("no_heat" in k for k in notifications(hass))  # switched off, it wants no heat
+
+
+async def test_an_observed_boiler_layer_does_not_notify_about_heat(hass, fake_home, calls, freezer):
+    c = (await setup_integration(hass)).runtime_data
+    hass.states.async_set(CALL, "unavailable")
+    await hass.async_block_till_done()
+    for _ in range(12):
+        await step(freezer, hass, 61)
+    assert "boiler_unreachable_cold" in [r.code for r in c.data.decision.reasons]
+    assert not any("no_heat" in k for k in notifications(hass))  # the old thermostat is in charge
+
+
 async def test_remove_with_a_pending_giveback_notifies(hass, fake_home, calls, stored):
     stored(settings={"layers": {"boiler": "active"}})
     entry = await setup_integration(hass)

@@ -215,6 +215,12 @@ def tick(settings: Settings, snap: Snapshot, state: ControllerState) -> Decision
             )
         )
 
+    # The boiler has heating to do in this zone, but its controller or the heat-call relay does not answer.
+    # Said on every such tick, so the status, the log and the alert do not read as an ordinary pause.
+    boiler_reachable = snap.boiler_available and snap.boiler_call_on is not None
+    if season and policy.boiler is not BoilerZoneMode.OFF and not boiler_reachable:
+        reasons.append(Reason("system", "boiler_unreachable_cold" if call else "boiler_unreachable"))
+
     # 7. Load
     budget_ok = budget_remaining(settings.boiler, state.boiler, now) > 0 and snap.boiler_available
     a, r = load_step(

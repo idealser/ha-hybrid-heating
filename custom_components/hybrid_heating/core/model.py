@@ -185,6 +185,7 @@ def estimate_heat_loss(
 
 CAPACITY_WINDOW_DAYS = 14
 CAPACITY_MIN_HOURS = 24
+BOILER_IDLE_KW = 0.05  # below this the boiler does not heat: its electronics and the pump at most
 
 
 @dataclass(frozen=True)
@@ -192,7 +193,7 @@ class HourTally:
     """One hour as the module saw it, a count per minute it ran: whether anything heated, and the means."""
 
     ticks: int = 0
-    heat_ticks: int = 0  # the boiler had a heat call (or its state was unknown), or an AC heated
+    heat_ticks: int = 0  # the boiler had a heat call (or one that could not be ruled out), or an AC heated
     t_in_sum: float = 0.0  # the mean of the room readings, summed over the minutes that had one
     t_in_n: int = 0
     t_out_sum: float = 0.0
@@ -204,11 +205,20 @@ def hour_of(at: datetime) -> datetime:
     return at.astimezone(UTC).replace(minute=0, second=0, microsecond=0)
 
 
-def update_hour_tally(hours: dict[datetime, HourTally], snap: Snapshot) -> None:
-    """Count this tick for its hour."""
+def update_hour_tally(
+    hours: dict[datetime, HourTally], snap: Snapshot, boiler_kw: float | None = None
+) -> None:
+    """Count this tick for its hour.
+
+    A heat call whose state is unknown counts as heating, unless the boiler's own meter (`boiler_kw`) shows
+    it draws nothing: with the relay unreachable for days, the flat still cools and those hours still count.
+    """
     at = hour_of(snap.now)
     t = hours.get(at, HourTally())
-    heats = snap.boiler_call_on is not False or any(h == "heat" for h in snap.ac_hvac.values())
+    call = snap.boiler_call_on
+    if call is None and boiler_kw is not None:
+        call = boiler_kw >= BOILER_IDLE_KW
+    heats = call is not False or any(h == "heat" for h in snap.ac_hvac.values())
     inside = [v for v in snap.rooms.values() if v is not None]
     t_in = sum(inside) / len(inside) if inside else None
     hours[at] = HourTally(

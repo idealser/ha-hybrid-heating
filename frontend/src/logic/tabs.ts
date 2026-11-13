@@ -2,6 +2,7 @@
 import { t, type I18nKey, type Lang } from '../i18n/index';
 import { LAYERS, type DeepPartial, type HhSettings, type HhStatus, type SectionKey } from '../types';
 import { localTime } from './context';
+import { boilerUnreachable } from './why';
 
 export type TabKey = 'now' | 'curve' | 'rooms' | 'system';
 
@@ -71,7 +72,11 @@ export function statusLine(
   if (active.length) {
     const also = observed.length ? t(L, 'status.observing_also', { layers: observed.join(', ') }) : '';
     const season = st && !st.season_active ? t(L, 'status.off_season') : '';
-    return { text: t(L, 'status.in_control', { layers: active.join(', ') }) + also + season, tone: 'ok' };
+    // In control of a boiler that does not answer is not all well, whatever the layers say.
+    const lost = st && s.layers.boiler === 'active' && boilerUnreachable(st);
+    const boiler = lost ? t(L, 'status.boiler_unreachable') : '';
+    const text = t(L, 'status.in_control', { layers: active.join(', ') }) + also + season + boiler;
+    return { text, tone: lost ? 'warn' : 'ok' };
   }
   if (observed.length) return { text: t(L, 'status.observing'), tone: 'warn' };
   return { text: t(L, 'status.all_off'), tone: 'idle' };

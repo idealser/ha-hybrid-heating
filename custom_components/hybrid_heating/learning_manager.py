@@ -54,6 +54,7 @@ from .core.model import (
 from .core.timeutil import before, elapsed_s
 from .core.types import BoilerMode, Decision, Reason, Room, Settings, Snapshot
 from .suggestion_texts import capacity_view, heat_loss_view, suggestion_view
+from .view import power_kw
 
 if TYPE_CHECKING:
     from .coordinator import HybridHeatingCoordinator
@@ -164,7 +165,8 @@ class LearningManager:
             return  # one count per minute, however often the loop ticks
         self._last_minute = minute
         update_tally(self.data.tallies, snap, d)
-        update_hour_tally(self.data.hours, snap)
+        boiler_kw = power_kw(self._c.hass.states.get(self._c.entities.boiler_power))
+        update_hour_tally(self.data.hours, snap, boiler_kw)
         sample = tick_sample(settings, snap, d, state)
         if LEARNING.morning_start <= snap.now.time() < LEARNING.morning_end:
             if self.morning_buffer and self.morning_buffer[0].at.date() != snap.now.date():

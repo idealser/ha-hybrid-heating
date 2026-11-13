@@ -29,6 +29,8 @@ const codes: [Pip, string[]][] = [
       'rods_budget_exhausted',
       'outdoor_unavailable',
       'rooms_unavailable',
+      'boiler_unreachable',
+      'boiler_unreachable_cold',
       'ac_not_coping',
       'ac_unavailable',
       'load_unknown',

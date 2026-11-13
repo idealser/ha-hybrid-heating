@@ -8,6 +8,7 @@ from .core.types import Decision, Layer, Preset, Reason
 
 LANGS = ("en", "ru")
 STATUS_MAX = 255
+BOILER_UNREACHABLE = frozenset({"boiler_unreachable", "boiler_unreachable_cold"})
 
 
 def _t(en: str, ru: str) -> Mapping[str, str]:
@@ -148,6 +149,12 @@ TEXTS: Mapping[str, Mapping[str, str]] = {
     "outdoor_unavailable": _t(
         "Outdoor temperature unavailable: using the last value or a fixed flow",
         "Уличная температура недоступна: берём последнее значение или фиксированную подачу",
+    ),
+    "boiler_unreachable": _t(
+        "Boiler unavailable: the module cannot drive it", "Котёл недоступен: модуль не может им управлять"
+    ),
+    "boiler_unreachable_cold": _t(
+        "Boiler unavailable while heat is needed", "Котёл недоступен, а нужно тепло"
     ),
     "rooms_unavailable": _t(
         "Room temperatures unavailable: the boiler runs at a fixed flow",
@@ -306,6 +313,12 @@ ALERTS: Mapping[str, Mapping[str, str]] = {
         "{entities} did not respond ({detail}). Hybrid Heating keeps trying; please check the device.",
         "{entities} не ответил ({detail}). Hybrid Heating продолжает попытки; проверьте устройство.",
     ),
+    "no_heat": _t(
+        "Heat is needed, but the boiler does not respond ({entities}). The boiler is not heating the flat; "
+        "please check its power and its connection.",
+        "Нужно тепло, но котёл не отвечает ({entities}). Котёл квартиру не греет; "
+        "проверьте его питание и связь.",
+    ),
     "failsafe": _t(
         "Hybrid Heating failed several cycles in a row, switched itself off and gave control back. "
         "Download the diagnostics and switch it on again when the cause is fixed.",
@@ -440,6 +453,10 @@ def render_status(
     main = next((r for r in decision.reasons if r.layer in (Layer.BOILER, "season")), None)
     if load_pause:  # the boiler's own reason still says "on" while the load holds the call off
         main = Reason(Layer.LOAD, "pause_boiler")
+    # Ahead of what the boiler would be doing: it cannot be told to do it.
+    unreachable = next((r for r in decision.reasons if r.code in BOILER_UNREACHABLE), None)
+    if unreachable is not None:
+        parts.append(render_reason(unreachable, lang, observe_suffix=False))
     if main is not None:
         parts.append(render_reason(main, lang, observe_suffix=False))
     return _truncate(" · ".join(parts))
