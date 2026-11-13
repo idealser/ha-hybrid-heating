@@ -336,3 +336,20 @@ test('a module that is off says so, not that it is starting', () => {
   expect(w.summary.startsWith('Module off')).toBe(true);
   expect(buildWhy(off, LIVE, 'ru').items[0]!.lead).toBe('Модуль выключен:');
 });
+
+test('a boiler the integration cannot reach is said before what it would be doing', () => {
+  // The heat-call relay is gone while the boiler's own controller still answers.
+  const gone = (code: string) =>
+    ({ ...STATUS_NOW, boiler: { ...STATUS_NOW.boiler, call_on: null }, reasons: [reason('system', code), ...STATUS_NOW.reasons] }) as HhStatus;
+  expect(buildWhy(gone('boiler_unreachable'), LIVE, 'en').items[1]).toEqual({
+    pip: 'cold',
+    lead: 'The boiler is unavailable:',
+    text: 'the module cannot drive it.',
+  });
+  expect(buildWhy(gone('boiler_unreachable_cold'), LIVE, 'en').items[1]!.text).toBe(
+    'heat is needed and the module cannot switch it on.',
+  );
+  expect(buildWhy(gone('boiler_unreachable_cold'), LIVE, 'ru').items[1]!.text).toBe(
+    'нужно тепло, а модуль не может его включить.',
+  );
+});

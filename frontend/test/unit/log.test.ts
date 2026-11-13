@@ -18,6 +18,8 @@ test('unknown codes fall back to the layer of the first reason', () => {
   expect(logPip(withReason(e, 'load', 'brand_new'))).toBe('ok');
   expect(logPip(withReason(e, 'system', 'x'))).toBe('idle');
   expect(logPip(withReason(e, 'system', 'pause_boiler'))).toBe('cold');
+  expect(logPip(withReason(e, 'system', 'boiler_unreachable'))).toBe('cold');
+  expect(logPip(withReason(e, 'system', 'boiler_unreachable_cold'))).toBe('cold');
   expect(logPip({ ...e, reasons: [] })).toBe('idle');
 });
 

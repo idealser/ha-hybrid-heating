@@ -100,3 +100,17 @@ def test_hours_count_minutes_in_utc():
     assert (a.ticks, a.heat_ticks, a.t_in_n, a.t_out_n) == (2, 0, 2, 1)
     assert a.t_in_sum == pytest.approx(2 * rooms_mean) and a.t_out_sum == pytest.approx(13.8)
     assert (b.ticks, b.heat_ticks, b.t_in_n, b.t_out_n) == (3, 2, 2, 3)
+
+
+def test_unknown_heat_call_follows_the_boilers_meter():
+    hours: dict[datetime, HourTally] = {}
+    at = datetime(2026, 11, 7, 12, 0, tzinfo=UTC)
+    gone = snap(now=at, boiler_call_on=None)
+    update_hour_tally(hours, gone, 0.001)  # the relay does not answer and the boiler draws nothing
+    assert (hours[at].ticks, hours[at].heat_ticks) == (1, 0)
+    update_hour_tally(hours, gone, 1.9)  # it heats, whoever switched it on
+    update_hour_tally(hours, gone)  # no meter reading either: it may heat
+    assert (hours[at].ticks, hours[at].heat_ticks) == (3, 2)
+    update_hour_tally(hours, snap(now=at, boiler_call_on=True), 0.0)  # a known call is taken at its word
+    update_hour_tally(hours, snap(now=at, boiler_call_on=False), 1.9)
+    assert (hours[at].ticks, hours[at].heat_ticks) == (5, 3)

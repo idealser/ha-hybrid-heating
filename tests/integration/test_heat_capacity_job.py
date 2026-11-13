@@ -9,9 +9,12 @@ from custom_components.hybrid_heating.core.learning import LearningData
 from custom_components.hybrid_heating.core.model import CapacityEstimate, HeatLossEstimate, hour_of
 from tests.conftest import T0, TZ
 from tests.core.test_heat_capacity import cooling
-from tests.integration.conftest import log_reasons, setup_integration
+from tests.fakes import CALL, FAKE_MAP
+from tests.integration.conftest import log_reasons, setup_integration, step
 from tests.integration.test_card_contract import ws
 from tests.integration.test_learning import saved_learning
+
+BOILER_POWER = FAKE_MAP.boiler_power
 
 SENSOR = "sensor.hybrid_heating_heat_capacity"
 
@@ -84,3 +87,18 @@ async def test_a_fresh_estimate_waits_for_the_night_and_a_bad_one_keeps_the_last
     e = c.learning.data.capacity
     assert e is not None and e.status == "insufficient_data" and e.computed_at.astimezone(UTC).hour == 3
     assert c.learning.data.capacity_ok == good and float(hass.states.get(SENSOR).state) == 23.3
+
+
+async def test_an_unreachable_relay_counts_as_heating_only_while_the_boiler_draws(hass, fake_home, freezer):
+    c = (await setup_integration(hass)).runtime_data
+    hass.states.async_set(CALL, "unavailable")
+    hass.states.async_set(BOILER_POWER, "1", {"unit_of_measurement": "W"})
+    await hass.async_block_till_done()
+    await step(freezer, hass, 61)
+    await step(freezer, hass, 61)
+    tally = c.learning.data.hours[hour_of(T0)]
+    assert tally.ticks >= 3 and tally.heat_ticks == 0  # the flat cools: these minutes still count
+    hass.states.async_set(BOILER_POWER, "1900", {"unit_of_measurement": "W"})
+    await hass.async_block_till_done()
+    await step(freezer, hass, 61)
+    assert c.learning.data.hours[hour_of(T0)].heat_ticks == 1

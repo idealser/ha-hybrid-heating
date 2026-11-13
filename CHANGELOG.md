@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.11.1
+
+- **A boiler that does not answer:** in the heating season, when the boiler's controller or its heat-call relay is unavailable, the status sensor, the log and the card say so instead of an ordinary "Boiler paused". The line under the card's title turns into a warning while the boiler layer is in control.
+  - When the module wants heat from such a boiler for 10 minutes, Home Assistant gets one notification that names what does not respond. It goes away once the boiler answers or heat is no longer needed. The notification per device stays as it was: it comes with the first command that does not land, often while the boiler is only paused.
+- **Heat capacity:** hours with the heat-call relay unavailable counted as heating, so a flat that cooled for a week with the relay off the network taught nothing. Such an hour now counts as not heating when the boiler's own power meter shows under 50 W.
+
 ## 0.11.0
 
 - **Floor plan card:** a second card, **Hybrid Heating: floor plan** (`custom:hybrid-heating-plan-card`), shows only the flat: the rooms tinted by how far they are from their targets, the radiators and ACs that run, and a tapped room's details with Cold/Hot. It fits a normal dashboard column next to other cards. Its options: `title` replaces the heading, `show_title: false` leaves it out. It does not load the decision log or the forecast.
