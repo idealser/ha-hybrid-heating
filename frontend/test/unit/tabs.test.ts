@@ -36,6 +36,14 @@ test('the status line under the title says who is in control', () => {
   expect(statusLine(STATUS_NOW, mixed, 'en')).toEqual({ text: 'In control: boiler, load · observing: ACs', tone: 'ok' });
   const all = mergeSettings(SETTINGS, { layers: { boiler: 'active', ac: 'active', load: 'active' } });
   expect(statusLine(STATUS_NOW, all, 'ru').text).toBe('Управляет: котёл, кондиционеры, нагрузка');
+  const lost = { ...STATUS_NOW, reasons: [{ layer: 'system', code: 'boiler_unreachable', data: {}, text: '' }] };
+  expect(statusLine(lost, all, 'en')).toEqual({
+    text: 'In control: boiler, ACs, load · the boiler is unavailable',
+    tone: 'warn',
+  });
+  expect(statusLine(lost, all, 'ru').text).toBe('Управляет: котёл, кондиционеры, нагрузка · котёл недоступен');
+  const acsOnly = mergeSettings(SETTINGS, { layers: { boiler: 'observe', ac: 'active', load: 'observe' } });
+  expect(statusLine(lost, acsOnly, 'en').tone).toBe('ok'); // the boiler is the old thermostat's
   const off = mergeSettings(SETTINGS, { layers: { boiler: 'off', ac: 'off', load: 'off' } });
   expect(statusLine(STATUS_NOW, off, 'en')).toEqual({ text: 'All layers are off', tone: 'idle' });
   expect(statusLine({ ...STATUS_NOW, season_active: false }, all, 'en')).toEqual({

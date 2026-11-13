@@ -4,7 +4,7 @@ from typing import Final
 
 DOMAIN: Final = "hybrid_heating"
 TITLE: Final = "Hybrid Heating"
-VERSION: Final = "0.11.0"
+VERSION: Final = "0.11.1"
 STORAGE_VERSION: Final = 1
 
 # Timing (seconds)
@@ -12,6 +12,7 @@ TICK_S: Final = 60
 FAST_TICK_S: Final = 5
 DEBOUNCE_S: Final = 5.0
 STARTUP_GRACE_S: Final = 60
+NO_HEAT_ALERT_AFTER_S: Final = 600  # heat wanted and the boiler unreachable this long: tell the user
 COMMAND_TIMEOUT_S: Final = 10.0
 SAVE_DELAY_S: Final = 300
 MAX_TICK_FAILURES: Final = 5

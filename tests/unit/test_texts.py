@@ -303,3 +303,24 @@ def test_the_status_line_says_when_the_load_pauses_the_boiler():
     paused = render_status(d, "en", enabled=True, starting=False, boiler_observe=False, load_pause=True)
     assert paused.endswith("Load above limit: boiler paused")
     assert "Boiler on" not in paused
+
+
+def test_status_line_says_an_unreachable_boiler_first():
+    paused = Reason(Layer.BOILER, "smooth_paused", {"driver": 14.66, "target": 13.0})
+    d = Decision(
+        actions=(),
+        reasons=(Reason("system", "boiler_unreachable"), paused),
+        flow_target=30.0,
+        zone=0,
+        target=13.0,
+        preset=Preset.AWAY,
+        season_active=True,
+    )
+    assert render_status(d, "ru", enabled=True, starting=False, boiler_observe=False) == (
+        "Тепло · Отъезд 13,0° · Котёл недоступен: модуль не может им управлять"
+        " · Котёл на паузе: на 1,7° выше цели 13,0°"
+    )
+    cold = replace(d, reasons=(Reason("system", "boiler_unreachable_cold"), paused))
+    assert "Boiler unavailable while heat is needed · " in render_status(
+        cold, "en", enabled=True, starting=False, boiler_observe=False
+    )
